@@ -1,0 +1,24 @@
+Neodim Chat allows you to chat with AI-powered bot via Neodim Server (https://github.com/alkatrazstudio/neodim-server).
+
+NOTE: Before installing this app, make sure that you're able to run Neodim Server and you understand how it works!
+
+Neodim Chat will allow you to do the following:
+
+* Create a chat between two participants.
+
+* A reply of any participant can be written by you or AI. E.g. AI can talk with itself or you can write messages for it, or vice versa.
+
+* Setup any model parameters and other parameters that Neodim Server supports, e. g. "temperature", "top-p", "tail-free sampling" etc. Read more about these parameters on the Neodim Server's page (https://github.com/alkatrazstudio/neodim-server#api-request). The app also has a built-in help page.
+
+* Set preamble (https://github.com/alkatrazstudio/neodim-server#prompt-and-preamble).
+
+* Auto-correction of common misspellings.
+
+* Change text in any message by tapping it.
+
+* Undo, redo and retry buttons.
+
+* Color customization for speech bubbles.
+
+
+More info: https://github.com/alkatrazstudio/neodim-chat
