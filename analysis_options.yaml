@@ -1,0 +1,15 @@
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  strong-mode:
+    implicit-casts: false
+    implicit-dynamic: false
+
+  exclude:
+  - '**/*.g.dart'
+
+linter:
+  rules:
+    curly_braces_in_flow_control_structures: false
+    use_key_in_widget_constructors: false
+    prefer_single_quotes: true

@@ -1,0 +1,49 @@
+// SPDX-License-Identifier: GPL-3.0-only
+// 🄯 2022, Alexey Parfenov <zxed@alkatrazstudio.net>
+
+import 'package:flutter/material.dart';
+
+import 'package:bubble/bubble.dart';
+import 'package:provider/provider.dart';
+
+import '../models/conversations.dart';
+import '../models/messages.dart';
+import '../widgets/input_dialog.dart';
+
+class ChatMsg extends StatelessWidget {
+  const ChatMsg({
+    required this.msg,
+    required this.author,
+    required this.isUsed
+  });
+
+  final Message msg;
+  final Participant author;
+  final bool isUsed;
+
+  @override
+  Widget build(BuildContext context) {
+    double opacity = isUsed ? 1 : 0.5;
+    return Bubble(
+      margin: const BubbleEdges.only(top: 10),
+      alignment: msg.isYou ? Alignment.topRight : Alignment.topLeft,
+      nip: msg.isYou ? BubbleNip.rightBottom : BubbleNip.leftBottom,
+      color: author.color.withOpacity(opacity),
+      borderColor: msg.isGenerated ? Colors.red.withOpacity(0.25 * opacity) : null,
+      child: SelectableText(
+        msg.text,
+        textAlign: TextAlign.left,
+        style: TextStyle(
+          color: Theme.of(context).textTheme.bodyText1?.color?.withOpacity(opacity)
+        ),
+        onTap: () async {
+          var newText = await showInputDialog(context, '${author.name}:', msg.text);
+          if(newText == null)
+            return;
+          Provider.of<MessagesModel>(context, listen: false).setText(msg, newText);
+          await ConversationsModel.saveCurrentData(context);
+        }
+      )
+    );
+  }
+}
