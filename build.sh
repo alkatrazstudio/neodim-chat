@@ -20,4 +20,11 @@ case "$1" in
     bundle)
         flutter build appbundle "${BUILD_PARAMS[@]}"
         ;;
+
+    upload)
+        flutter build appbundle "${BUILD_PARAMS[@]}"
+        export LC_ALL=en_US.UTF-8
+        export LANG=en_US.UTF-8
+        bundle exec fastlane upload_play
+        ;;
 esac

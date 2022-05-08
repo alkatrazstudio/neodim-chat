@@ -90,6 +90,26 @@ To build this application do the following:
    so e.g. `./build.sh bundle` will remove the APK file that was built by `./build.sh apk`.
 
 
+## Upload to Google Play
+
+For uploading production releases this project uses [fastlane](https://fastlane.tools).
+
+1. Create `fastlane/Appfile` file using [fastlane/Appfile.template](fastlane/Appfile.template) as a template.
+
+2. Use the following instructions to obtain `api-secret.json` file: https://docs.fastlane.tools/actions/supply/#setup.
+
+3. Install [Bundler](https://bundler.io), e.g. on Ubuntu: `sudo apt install ruby-bundler`.
+
+4. Run `bundle install`. It will install fastlane.
+
+5. Make appropriate changes in `fastlane/metadata/android`.
+
+6. Build and deploy a new release: `./build.sh upload`.
+
+Repeat `5` and `6` for each new release.
+These steps are not exhaustive. Consult [fastlane docs](https://docs.fastlane.tools) for more information.
+
+
 ## License
 
 GPLv3
