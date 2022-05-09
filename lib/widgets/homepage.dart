@@ -72,7 +72,7 @@ class HomePage extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(
           title: Consumer<ConversationsModel>(builder: (context, value, child) {
-            return Text(value.current?.name ?? '<no conversation loaded>');
+            return Text(value.current?.name ?? 'Neodim Chat');
           }),
           actions: [
             Consumer<ConversationsModel>(builder: (context, value, child) {
@@ -95,8 +95,13 @@ class HomePage extends StatelessWidget {
             children: [
               DrawerHeader(
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Text('Neodim'),
+                    const Text(
+                      'Neodim Chat',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 21),
+                      textAlign: TextAlign.center
+                    ),
                     ElevatedButton(
                       onPressed: () async {
                         var c = Conversation.create('Conversation');
