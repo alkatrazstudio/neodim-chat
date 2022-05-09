@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:intl/intl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 class Tab {
@@ -148,7 +149,7 @@ class HelpPageState extends State<HelpPage> {
                           return;
                         if(!await canLaunchUrlString(url))
                           return;
-                        await launchUrlString(url);
+                        await launchUrlString(url, mode: LaunchMode.externalApplication);
                       }
                     );
                   }
