@@ -1,8 +1,9 @@
 Neodim Chat allows you to chat with AI-powered bot via Neodim Server (https://github.com/alkatrazstudio/neodim-server).
 
-NOTE: Before installing this app, make sure that you're able to run Neodim Server and you understand how it works!
+NOTE: Before installing this app, make sure that you're able to run Neodim Server and you understand how it works. Neodim Chat does not work without Neodim Server!
 
-Neodim Chat will allow you to do the following:
+
+Neodim Chat allows you to do the following:
 
 * Create a chat between two participants.
 
