@@ -293,6 +293,12 @@ class MessagesModel extends ChangeNotifier {
     return msg;
   }
 
+  Message? remove(Message msg) {
+    var isRemoved = messages.remove(msg);
+    notifyListeners();
+    return isRemoved ? msg : null;
+  }
+
   Message? removeLast() {
     if(messages.isEmpty)
       return null;

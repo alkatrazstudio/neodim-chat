@@ -37,10 +37,14 @@ class ChatMsg extends StatelessWidget {
           color: Theme.of(context).textTheme.bodyText1?.color?.withOpacity(opacity)
         ),
         onTap: () async {
-          var newText = await showMessageDialog(context, '${author.name}:', msg.text);
-          if(newText == null)
+          var result = await showMessageDialog(context, '${author.name}:', msg.text);
+          if(result == null)
             return;
-          Provider.of<MessagesModel>(context, listen: false).setText(msg, newText);
+          var messages = Provider.of<MessagesModel>(context, listen: false);
+          if(result.doDelete)
+            messages.remove(msg);
+          else
+            messages.setText(msg, result.text);
           await ConversationsModel.saveCurrentData(context);
         }
       )

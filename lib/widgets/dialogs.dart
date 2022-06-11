@@ -2,28 +2,41 @@
 // 🄯 2022, Alexey Parfenov <zxed@alkatrazstudio.net>
 
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 
 import '../models/messages.dart';
 
-Future<String?> showMessageDialog(
+class MessageDialogResult {
+  const MessageDialogResult({
+    required this.text,
+    required this.doDelete
+  });
+
+  final String text;
+  final bool doDelete;
+}
+
+Future<MessageDialogResult?> showMessageDialog(
   BuildContext context,
   String title,
   String initialText
 ) async {
   var doFormat = true;
 
-  void submit(BuildContext ctx, String text) {
+  void submitMsg(BuildContext ctx, String text) {
     text = text.trim();
     if(doFormat)
       text = Message.format(text);
     if(text.isEmpty || text == initialText)
       Navigator.of(context).pop();
     else
-      Navigator.of(context).pop(text);
+      Navigator.of(context).pop(MessageDialogResult(text: text, doDelete: false));
   }
 
-  return showDialog<String>(
+  void deleteMsg(BuildContext ctx) {
+    Navigator.of(context).pop(const MessageDialogResult(text: '', doDelete: true));
+  }
+
+  return showDialog<MessageDialogResult>(
     context: context,
     builder: (BuildContext context) {
       final inputController = TextEditingController();
@@ -42,7 +55,7 @@ Future<String?> showMessageDialog(
                 controller: inputController,
                 textInputAction: TextInputAction.go,
                 onSubmitted: (text) {
-                  submit(context, text);
+                  submitMsg(context, text);
                 }
               ),
               Row(
@@ -56,18 +69,30 @@ Future<String?> showMessageDialog(
                     )
                   )
                 ]
+              ),
+              Padding(
+                padding: const EdgeInsets.only(top: 35),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    TextButton(
+                      child: const Text('DELETE'),
+                      onPressed: () {
+                        deleteMsg(context);
+                      }
+                    ),
+                    TextButton(
+                      child: const Text('OK'),
+                      onPressed: () {
+                        submitMsg(context, inputController.text);
+                      }
+                    )
+                  ]
+                )
               )
             ]
           );
-        }),
-        actions: [
-          TextButton(
-            child: const Text('OK'),
-            onPressed: () {
-              submit(context, inputController.text);
-            }
-          )
-        ]
+        })
       );
     }
   );
