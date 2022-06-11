@@ -2,14 +2,21 @@
 // 🄯 2022, Alexey Parfenov <zxed@alkatrazstudio.net>
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 
-Future<String?> showInputDialog(
-    BuildContext context,
-    String title,
-    String initialText
+import '../models/messages.dart';
+
+Future<String?> showMessageDialog(
+  BuildContext context,
+  String title,
+  String initialText
 ) async {
+  var doFormat = true;
+
   void submit(BuildContext ctx, String text) {
     text = text.trim();
+    if(doFormat)
+      text = Message.format(text);
     if(text.isEmpty || text == initialText)
       Navigator.of(context).pop();
     else
@@ -24,17 +31,36 @@ Future<String?> showInputDialog(
 
       return AlertDialog(
         title: Text(title),
-        content: TextField(
-          minLines: 1,
-          maxLines: 5,
-          autofocus: true,
-          controller: inputController,
-          textInputAction: TextInputAction.go,
-          onSubmitted: (text) {
-            submit(context, text);
-          }
-        ),
-        actions: <Widget>[
+        content: StatefulBuilder(builder: (context, StateSetter setState) {
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                minLines: 1,
+                maxLines: 5,
+                autofocus: true,
+                controller: inputController,
+                textInputAction: TextInputAction.go,
+                onSubmitted: (text) {
+                  submit(context, text);
+                }
+              ),
+              Row(
+                children: [
+                  Expanded(
+                    child: CheckboxListTile(
+                      title: const Text('Auto-format'),
+                      value: doFormat,
+                      onChanged: (newVal) => setState((){doFormat = newVal ?? false;}),
+                      controlAffinity: ListTileControlAffinity.leading
+                    )
+                  )
+                ]
+              )
+            ]
+          );
+        }),
+        actions: [
           TextButton(
             child: const Text('OK'),
             onPressed: () {

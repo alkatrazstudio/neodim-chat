@@ -8,7 +8,7 @@ import 'package:provider/provider.dart';
 
 import '../models/conversations.dart';
 import '../models/messages.dart';
-import '../widgets/input_dialog.dart';
+import '../widgets/dialogs.dart';
 
 class ChatMsg extends StatelessWidget {
   const ChatMsg({
@@ -37,7 +37,7 @@ class ChatMsg extends StatelessWidget {
           color: Theme.of(context).textTheme.bodyText1?.color?.withOpacity(opacity)
         ),
         onTap: () async {
-          var newText = await showInputDialog(context, '${author.name}:', msg.text);
+          var newText = await showMessageDialog(context, '${author.name}:', msg.text);
           if(newText == null)
             return;
           Provider.of<MessagesModel>(context, listen: false).setText(msg, newText);
