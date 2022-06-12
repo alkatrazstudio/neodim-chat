@@ -1,0 +1,2 @@
+- Added: auto-formatting edited messages
+- Added: removing messages
