@@ -8,7 +8,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:intl/intl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 class Tab {
@@ -321,7 +320,7 @@ class HelpPageState extends State<HelpPage> {
             It may help to generate messages with models than have problems with newlines (e.g. XGLM or OPT).
           </li>
         </ul>
-        
+
         <h2>Controls</h2>
         Below is the list of the controls that are located below the input field.
         The controls are listed from left to right.
@@ -396,7 +395,7 @@ class HelpPageState extends State<HelpPage> {
         return '''
           <h1 style="text-align: center">Neodim Chat</h1>
           <div style="text-align: center; padding-bottom: 50"><strong><em>v${_h(info.version)}</em></strong></div>
-          ''' + _KeyValRow.renderParagraphs([
+          ${_KeyValRow.renderParagraphs([
             _KeyValRow(key: 'Website', val: appBaseUrl, valLink: appBaseUrl),
             _KeyValRow(key: 'Google Play page', val: 'https://play.google.com/store/apps/details?id=${info.packageName}', valLink: 'https://play.google.com/store/apps/details?id=${info.packageName}'),
             _KeyValRow(key: 'File a bug report', val: '$appBaseUrl/issues', valLink: '$appBaseUrl/issues'),
@@ -409,7 +408,8 @@ class HelpPageState extends State<HelpPage> {
             _KeyValRow(key: 'License', val: 'GPLv3', valLink: 'https://www.gnu.org/licenses/gpl-3.0.txt'),
             _KeyValRow(key: 'Author', val: 'Алексей Парфёнов (Alexey Parfenov) aka ZXED'),
             _KeyValRow(key: "Author's website", val: 'https://alkatrazstudio.net/', valLink: 'https://alkatrazstudio.net/')
-          ]);
+          ])}
+          ''';
       }
     );
   }
@@ -437,7 +437,7 @@ class HelpPageState extends State<HelpPage> {
             </tr>
           </thead>
           <tbody>
-          ''' + _KeyValRow.renderRows([
+          ${_KeyValRow.renderRows([
             _KeyValRow(key: 'Flutter', keyLink: 'https://flutter.dev', val: bsd3, valLink: bsd3Url),
             _KeyValRow(key: 'http', keyLink: 'https://pub.dev/packages/http', val: bsd3, valLink: bsd3Url),
             _KeyValRow(key: 'provider', keyLink: 'https://pub.dev/packages/provider', val: mit, valLink: mitUrl),
@@ -454,7 +454,7 @@ class HelpPageState extends State<HelpPage> {
             _KeyValRow(key: 'flutter_lints', keyLink: 'https://pub.dev/packages/flutter_lints', val: bsd3, valLink: bsd3Url),
             _KeyValRow(key: 'build_runner', keyLink: 'https://pub.dev/packages/build_runner', val: bsd3, valLink: bsd3Url),
             _KeyValRow(key: 'json_serializable', keyLink: 'https://pub.dev/packages/json_serializable', val: bsd3, valLink: bsd3Url)
-          ]) + '''
+          ])}
           </tbody>
         </table>
        
@@ -473,9 +473,9 @@ class HelpPageState extends State<HelpPage> {
             </tr>
           </thead>
           <tbody>
-          ''' + _KeyValRow.renderRows([
+          ${_KeyValRow.renderRows([
             _KeyValRow(key: 'Material design icons', keyLink: 'https://google.github.io/material-design-icons/', val: 'Apache License 2.0', valLink: 'https://www.apache.org/licenses/LICENSE-2.0.txt')
-          ]) + '''
+          ])}
           </tbody>
         </table>
       '''

@@ -147,7 +147,7 @@ class NeodimGpu {
         memoryFreeMin: data['memory_free_min'] as int,
         memoryReservedMax: data['memory_reserved_max'] as int,
         memoryAllocatedMax: data['memory_allocated_max'] as int,
-        memoryFreeMax: data['memory_free_max'] as int,
+        memoryFreeMax: data['memory_free_max'] as int
     );
   }
 }

@@ -51,7 +51,7 @@ class HomePage extends StatelessWidget {
       stopStings.add(MessagesModel.sequenceEnd);
       var request = NeodimRequest(
         prompt: inputText,
-        preamble: cfgModel.preamble + '\n\n',
+        preamble: '${cfgModel.preamble}\n\n',
         generatedTokensCount: cfgModel.generatedTokensCount,
         maxTotalTokens: cfgModel.maxTotalTokens,
         temperature: cfgModel.temperature,

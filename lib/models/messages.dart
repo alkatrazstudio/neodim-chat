@@ -168,7 +168,7 @@ class MessagesModel extends ChangeNotifier {
 
     var partOneStr = '';
     for(var m in partOne)
-      partOneStr += m.text + ' ';
+      partOneStr += '${m.text} ';
     partOneStr = partOneStr
       .replaceAll(RegExp(r'[^\p{Letter}\p{Number}\*\(\)\n]', unicode: true), ' ')
       .replaceAll(RegExp(r'\s+'), ' ')
@@ -176,7 +176,7 @@ class MessagesModel extends ChangeNotifier {
 
     var partTwoStr = '';
     for(var m in partTwo)
-      partTwoStr += m.text + ' ';
+      partTwoStr += '${m.text} ';
     partTwoStr = partTwoStr
       .replaceAll(RegExp(r'[^\p{Letter}\p{Number}\n]', unicode: true), ' ')
       .replaceAll(RegExp(r'\s+'), ' ')

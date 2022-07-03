@@ -100,9 +100,9 @@ Future<MessageDialogResult?> showMessageDialog(
 }
 
 Future<bool> showConfirmDialog(
-    BuildContext context,
-    String title,
-    String text
+  BuildContext context,
+  String title,
+  String text
 ) async {
   return (await showDialog<bool>(
     context: context,

@@ -65,15 +65,15 @@ class SettingsPage extends StatelessWidget {
             ElevatedButton(
               onPressed: () async {
                 if (await showConfirmDialog(
-                    context, 'Removing "${curConv.name}"',
-                    'Really remove this conversation?')
+                  context, 'Removing "${curConv.name}"',
+                  'Really remove this conversation?')
                 ) {
                   await ConversationsModel.delete(context, curConv);
                   Navigator.of(context).pop();
                 }
               },
-              child: const Text('Remove'),
-              style: ElevatedButton.styleFrom(primary: Colors.redAccent)
+              style: ElevatedButton.styleFrom(primary: Colors.redAccent),
+              child: const Text('Remove')
             )
           ]
         )
@@ -197,14 +197,14 @@ class SettingsPage extends StatelessWidget {
         for(var authorIndex = 0; authorIndex < msgModel.participants.length; authorIndex++)
           ...[
             CardSettingsText(
-              label: 'Person ${authorIndex + 1}' + (authorIndex == Message.youIndex ? ' (you)' : '')+' name',
+              label: 'Person ${authorIndex + 1}${authorIndex == Message.youIndex ? ' (you)' : ''} name',
               initialValue: msgModel.participants[authorIndex].name,
               validator: validateRequired,
               onSaved: onStringSave((s) => msgModel.setAuthorName(authorIndex, s)),
               maxLength: 32
             ),
             CardSettingsColorPicker(
-              label: 'Person ${authorIndex + 1}' + (authorIndex == Message.youIndex ? ' (you)' : '')+' color',
+              label: 'Person ${authorIndex + 1}${authorIndex == Message.youIndex ? ' (you)' : ''} color',
               initialValue: msgModel.participants[authorIndex].color,
               onSaved: (c) {
                 if(c != null)
