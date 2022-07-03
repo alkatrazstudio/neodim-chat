@@ -99,6 +99,7 @@ class MessagesModel extends ChangeNotifier {
   static const String commentSeparator = '\n\n';
   static const String actionSeparator = '\n\n';
   static const String actionPrompt = '>';
+  static const String sequenceEnd = '<|endoftext|>';
   static const List<String> sentenceStops = ['.', '!', '?'];
 
   @JsonKey(defaultValue: <Message>[])

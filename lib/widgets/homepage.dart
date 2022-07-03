@@ -48,6 +48,7 @@ class HomePage extends StatelessWidget {
         : <String>[];
       if(cfgModel.stopOnPunctuation)
         stopStings.addAll(MessagesModel.sentenceStops);
+      stopStings.add(MessagesModel.sequenceEnd);
       var request = NeodimRequest(
         prompt: inputText,
         preamble: cfgModel.preamble + '\n\n',
