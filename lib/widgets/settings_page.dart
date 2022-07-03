@@ -100,8 +100,14 @@ class SettingsPage extends StatelessWidget {
   }
 
   String? validatePositiveDouble(double? x) {
-    if(x == null || x < 0)
+    if(x == null || x <= 0)
       return 'Must be greater than 0';
+    return null;
+  }
+
+  String? validateNonNegativeDouble(double? x) {
+    if(x == null || x < 0)
+      return 'Must be 0 or above';
     return null;
   }
 
@@ -266,7 +272,7 @@ class SettingsPage extends StatelessWidget {
           label: 'Repetition penalty',
           initialValue: cfgModel.repetitionPenalty,
           decimalDigits: 3,
-          validator: validatePositiveDouble,
+          validator: validateNonNegativeDouble,
           onSaved: onDoubleSave((x) => cfgModel.setRepetitionPenalty(x))
         ),
         CardSettingsInt(
@@ -279,7 +285,7 @@ class SettingsPage extends StatelessWidget {
           label: 'Repetition penalty slope',
           initialValue: cfgModel.repetitionPenaltySlope,
           decimalDigits: 3,
-          validator: validatePositiveDouble,
+          validator: validateNonNegativeDouble,
           onSaved: onDoubleSave((x) => cfgModel.setRepetitionPenaltySlope(x))
         ),
         CardSettingsSwitch(
