@@ -32,7 +32,12 @@ class ChatState extends State<Chat> {
     var msgModel = Provider.of<MessagesModel>(context, listen: false);
     if(inputController.text.isEmpty)
       return;
-    var text = Message.format(inputController.text);
+    var convModel = Provider.of<ConversationsModel>(context, listen: false);
+    var curConv = convModel.current;
+    if(curConv == null)
+      return;
+    var chatFormat = curConv.type == Conversation.typeChat || authorIndex == Message.youIndex;
+    var text = Message.format(inputController.text, upperFirst: chatFormat, endWithDot: chatFormat);
     msgModel.addText(text, false, authorIndex);
     inputController.clear();
     await ConversationsModel.saveCurrentData(context);
@@ -88,6 +93,7 @@ class ChatState extends State<Chat> {
     retryCache.clear();
 
     var isChat = curConv.type == Conversation.typeChat;
+    var chatFormat = isChat || participantIndex == Message.youIndex;
 
     var nTries = isChat ? 3 : 1;
     List<String> texts = [];
@@ -95,7 +101,7 @@ class ChatState extends State<Chat> {
       try {
         texts = await widget.generate(aiInput, repPenInput, promptedParticipant);
         texts = texts
-          .map((text) => Message.format(text, upperFirst: isChat, endWithDot: isChat))
+          .map((text) => Message.format(text, upperFirst: chatFormat, endWithDot: chatFormat))
           .where((text) => text.isNotEmpty)
           .toSet().toList();
         if(texts.isNotEmpty || nTries <= 1)
@@ -129,6 +135,9 @@ class ChatState extends State<Chat> {
       children: [
         Expanded(
           child: Consumer2<MessagesModel, ConversationsModel>(builder: (context, msgModel, convModel, child) {
+            var curConv = convModel.current;
+            if(curConv == null)
+              return const SizedBox.shrink();
             return ListView.builder(
               padding: const EdgeInsets.only(bottom: 10),
               itemCount: msgModel.messages.length,
@@ -141,6 +150,7 @@ class ChatState extends State<Chat> {
                   msg: msg,
                   author: msgModel.participants[msg.authorIndex],
                   isUsed: isUsed,
+                  conversation: curConv
                 );
               }
             );

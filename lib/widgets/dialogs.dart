@@ -18,14 +18,15 @@ class MessageDialogResult {
 Future<MessageDialogResult?> showMessageDialog(
   BuildContext context,
   String title,
-  String initialText
+  String initialText,
+  bool chatFormat
 ) async {
   var doFormat = true;
 
   void submitMsg(BuildContext ctx, String text) {
     text = text.trim();
     if(doFormat)
-      text = Message.format(text);
+      text = Message.format(text, upperFirst: chatFormat, endWithDot: chatFormat);
     if(text.isEmpty || text == initialText)
       Navigator.of(context).pop();
     else

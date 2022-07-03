@@ -14,16 +14,19 @@ class ChatMsg extends StatelessWidget {
   const ChatMsg({
     required this.msg,
     required this.author,
-    required this.isUsed
+    required this.isUsed,
+    required this.conversation
   });
 
   final Message msg;
   final Participant author;
   final bool isUsed;
+  final Conversation conversation;
 
   @override
   Widget build(BuildContext context) {
     double opacity = isUsed ? 1 : 0.5;
+
     return Bubble(
       margin: const BubbleEdges.only(top: 10),
       alignment: msg.isYou ? Alignment.topRight : Alignment.topLeft,
@@ -37,7 +40,8 @@ class ChatMsg extends StatelessWidget {
           color: Theme.of(context).textTheme.bodyText1?.color?.withOpacity(opacity)
         ),
         onTap: () async {
-          var result = await showMessageDialog(context, '${author.name}:', msg.text);
+          var chatFormat = conversation.type == Conversation.typeChat || msg.authorIndex == Message.youIndex;
+          var result = await showMessageDialog(context, '${author.name}:', msg.text, chatFormat);
           if(result == null)
             return;
           var messages = Provider.of<MessagesModel>(context, listen: false);
