@@ -15,6 +15,13 @@ import '../widgets/help_page.dart';
 import '../widgets/settings_page.dart';
 
 class HomePage extends StatelessWidget {
+  String outputTextFromSequence(NeodimSequence s) {
+    var text = s.generatedText;
+    if(MessagesModel.sentenceStops.contains(s.stopString))
+      text = text + s.stopString;
+    return text.trim();
+  }
+
   Future<List<String>> generate(BuildContext context, String inputText, String repPenText, Participant promptedParticipant) async {
     var cfgModel = Provider.of<ConfigModel>(context, listen: false);
     var neodimModel = Provider.of<NeodimModel>(context, listen: false);
@@ -32,6 +39,15 @@ class HomePage extends StatelessWidget {
     neodimModel.setApiRunning(true);
     try {
       final api = NeodimApi(endpoint: cfgModel.apiEndpoint);
+
+      var truncatePromptUntil = conv.type == Conversation.typeChat
+        ? [MessagesModel.messageSeparator]
+        : [...MessagesModel.sentenceStops, MessagesModel.actionPrompt];
+      var stopStings = conv.type == Conversation.typeChat
+        ? [MessagesModel.messageSeparator]
+        : <String>[];
+      if(cfgModel.stopOnPunctuation)
+        stopStings.addAll(MessagesModel.sentenceStops);
       var request = NeodimRequest(
         prompt: inputText,
         preamble: cfgModel.preamble + '\n\n',
@@ -49,8 +65,8 @@ class HomePage extends StatelessWidget {
         repetitionPenaltyTruncateToInput: cfgModel.repetitionPenaltyTruncateToInput,
         repetitionPenaltyPrompt: repPenText,
         sequencesCount: 1 + cfgModel.extraRetries,
-        stopStrings: [MessagesModel.messageSeparator],
-        truncatePromptUntil: conv.type == Conversation.typeChat ? [MessagesModel.messageSeparator] : ['.', '!', '?', '>']
+        stopStrings: stopStings,
+        truncatePromptUntil: truncatePromptUntil
       );
       neodimModel.setRequest(request);
       var response = await api.run(request);
@@ -58,7 +74,7 @@ class HomePage extends StatelessWidget {
       neodimModel.setApiRunning(false);
       convModel.updateUsedMessagesCount(
         response.usedPrompt, promptedParticipant, msgModel, inputMessages);
-      return response.sequences.map((s) => s.generatedText).toList();
+      return response.sequences.map(outputTextFromSequence).toList();
     } catch (e) {
       neodimModel.setApiRunning(false);
       rethrow;

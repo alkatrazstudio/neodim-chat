@@ -317,6 +317,11 @@ class SettingsPage extends StatelessWidget {
           initialValue: cfgModel.extraRetries,
           validator: validateNonNegativeInt,
           onSaved: onIntSave((x) => cfgModel.setExtraRetries(x))
+        ),
+        CardSettingsSwitch(
+          label: 'Stop the generation on ".", "!", "?"',
+          initialValue: cfgModel.stopOnPunctuation,
+          onSaved: (val) => cfgModel.setStopOnPunctuation(val ?? false)
         )
       ]
     );

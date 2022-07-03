@@ -98,6 +98,8 @@ class MessagesModel extends ChangeNotifier {
   static const String messageSeparator = '\n';
   static const String commentSeparator = '\n\n';
   static const String actionSeparator = '\n\n';
+  static const String actionPrompt = '>';
+  static const List<String> sentenceStops = ['.', '!', '?'];
 
   @JsonKey(defaultValue: <Message>[])
   List<Message> messages = [];
@@ -198,7 +200,7 @@ class MessagesModel extends ChangeNotifier {
         isPrevStory = false;
       } else {
         if (m.isYou) {
-          s += '$actionSeparator> ${m.text}';
+          s += '$actionSeparator$actionPrompt ${m.text}';
           isPrevStory = false;
         } else {
           if(isPrevStory && m.text.isNotEmpty)

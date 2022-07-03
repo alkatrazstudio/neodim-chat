@@ -315,6 +315,11 @@ class HelpPageState extends State<HelpPage> {
             generate multiple replies at once and then use those replies
             when pressing the "retry" button without making additional requests to the server.
           </li>
+          <li>
+            <strong>Stop the generation on ".", "!", "?"</strong> -
+            stops generating the text if any of these punctuation symbols are met.
+            It may help to generate messages with models than have problems with newlines (e.g. XGLM or OPT).
+          </li>
         </ul>
         
         <h2>Controls</h2>

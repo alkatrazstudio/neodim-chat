@@ -57,6 +57,9 @@ class ConfigModel extends ChangeNotifier {
   @JsonKey(defaultValue: 5)
   int repetitionPenaltyLinesWithNoExtraSymbols = 5;
 
+  @JsonKey(defaultValue: false)
+  bool stopOnPunctuation = false;
+
   void setApiEndpoint(String newApiEndpoint) {
     apiEndpoint = newApiEndpoint;
     notifyListeners();
@@ -137,6 +140,11 @@ class ConfigModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setStopOnPunctuation(bool newStopOnPunctuation) {
+    stopOnPunctuation = newStopOnPunctuation;
+    notifyListeners();
+  }
+
   void load(ConfigModel other) {
     apiEndpoint = other.apiEndpoint;
     generatedTokensCount = other.generatedTokensCount;
@@ -153,6 +161,7 @@ class ConfigModel extends ChangeNotifier {
     preamble = other.preamble;
     extraRetries = other.extraRetries;
     repetitionPenaltyLinesWithNoExtraSymbols = other.repetitionPenaltyLinesWithNoExtraSymbols;
+    stopOnPunctuation = other.stopOnPunctuation;
 
     notifyListeners();
   }
