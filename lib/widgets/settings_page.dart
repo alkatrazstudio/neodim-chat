@@ -269,6 +269,13 @@ class SettingsPage extends StatelessWidget {
           onSaved: onDoubleSave((x) => cfgModel.setTfs(x))
         ),
         CardSettingsDouble(
+          label: 'Typical sampling',
+          initialValue: cfgModel.typical,
+          decimalDigits: 3,
+          validator: validateNormalizedDouble,
+          onSaved: onDoubleSave((x) => cfgModel.setTypical(x))
+        ),
+        CardSettingsDouble(
           label: 'Repetition penalty',
           initialValue: cfgModel.repetitionPenalty,
           decimalDigits: 3,

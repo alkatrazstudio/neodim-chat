@@ -274,8 +274,12 @@ class HelpPageState extends State<HelpPage> {
             <a href="$serverBaseUrl#top_p-float-optional">more info</a>
           </li>
           <li>
-            <strong>Tail-free sampling</strong> - limiting the amount of chosen tokens. 
+            <strong>Tail-free sampling</strong> - limiting the amount of chosen tokens.
             <a href="$serverBaseUrl#tfs-float-optional">more info</a>
+          </li>
+          <li>
+            <strong>Typical sampling</strong> - limiting the amount of chosen tokens.
+            <a href="$serverBaseUrl#typical-float-optional">more info</a>
           </li>
           <li>
             <strong>Repetition penalty</strong> - make generated text more different than the already existing text.
