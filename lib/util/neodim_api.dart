@@ -21,6 +21,7 @@ class NeodimRequest {
     this.topP,
     this.tfs,
     this.typical,
+    this.topA,
     this.repetitionPenalty,
     this.repetitionPenaltyRange,
     this.repetitionPenaltySlope,
@@ -43,6 +44,7 @@ class NeodimRequest {
   final double? topP;
   final double? tfs;
   final double? typical;
+  final double? topA;
   final double? repetitionPenalty;
   final int? repetitionPenaltyRange;
   final double? repetitionPenaltySlope;
@@ -65,6 +67,7 @@ class NeodimRequest {
       'top_p': topP,
       'tfs': tfs,
       'typical': typical,
+      'top_a': topA,
       'repetition_penalty': repetitionPenalty,
       'repetition_penalty_range': repetitionPenaltyRange,
       'repetition_penalty_slope': repetitionPenaltySlope,

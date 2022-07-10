@@ -282,6 +282,10 @@ class HelpPageState extends State<HelpPage> {
             <a href="$serverBaseUrl#typical-float-optional">more info</a>
           </li>
           <li>
+            <strong>Top A</strong> - limiting the amount of chosen tokens.
+            <a href="$serverBaseUrl#top_a-float-optional">more info</a>
+          </li>
+          <li>
             <strong>Repetition penalty</strong> - make generated text more different than the already existing text.
             <a href="$serverBaseUrl#repetition_penalty-float-optional">more info</a>
           </li>

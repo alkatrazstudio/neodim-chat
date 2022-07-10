@@ -59,6 +59,7 @@ class HomePage extends StatelessWidget {
         topK: cfgModel.topK == 0 ? null : cfgModel.topK,
         tfs: (cfgModel.tfs == 0 || cfgModel.tfs == 1) ? null : cfgModel.tfs,
         typical: (cfgModel.typical == 0 || cfgModel.typical == 1) ? null : cfgModel.typical,
+        topA: cfgModel.topA == 0 ? null : cfgModel.topA,
         repetitionPenalty: cfgModel.repetitionPenalty,
         repetitionPenaltyRange: cfgModel.repetitionPenaltyRange,
         repetitionPenaltySlope: cfgModel.repetitionPenaltySlope,

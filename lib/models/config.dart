@@ -33,6 +33,9 @@ class ConfigModel extends ChangeNotifier {
   @JsonKey(defaultValue: 0)
   double typical = 0;
 
+  @JsonKey(defaultValue: 0)
+  double topA = 0;
+
   @JsonKey(defaultValue: 1.25)
   double repetitionPenalty = 1.25;
 
@@ -103,6 +106,11 @@ class ConfigModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setTopA(double newTopA) {
+    topA = newTopA;
+    notifyListeners();
+  }
+
   void setRepetitionPenalty(double newRepetitionPenalty) {
     repetitionPenalty = newRepetitionPenalty;
     notifyListeners();
@@ -162,6 +170,7 @@ class ConfigModel extends ChangeNotifier {
     topK = other.topK;
     tfs = other.tfs;
     typical = other.typical;
+    topA = other.topA;
     repetitionPenalty = other.repetitionPenalty;
     repetitionPenaltyRange = other.repetitionPenaltyRange;
     repetitionPenaltySlope = other.repetitionPenaltySlope;
