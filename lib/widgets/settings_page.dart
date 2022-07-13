@@ -10,9 +10,9 @@ import '../models/config.dart';
 import '../models/conversations.dart';
 import '../models/messages.dart';
 import '../util/neodim_api.dart';
-import '../widgets/help_page.dart';
 import '../widgets/card_settings_warpers_order.dart';
 import '../widgets/dialogs.dart';
+import '../widgets/help_page.dart';
 
 class SettingsPage extends StatelessWidget {
   SettingsPage();

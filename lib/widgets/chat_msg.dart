@@ -7,8 +7,8 @@ import 'package:bubble/bubble.dart';
 import 'package:provider/provider.dart';
 
 import '../models/conversations.dart';
-import '../models/messages.dart';
 import '../widgets/dialogs.dart';
+import '../models/messages.dart';
 
 class ChatMsg extends StatelessWidget {
   const ChatMsg({
