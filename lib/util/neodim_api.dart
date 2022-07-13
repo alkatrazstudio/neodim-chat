@@ -11,6 +11,24 @@ class NeodimRepPenGenerated {
   static const String slide = 'slide';
 }
 
+class NeodimWarper {
+  static const String temperature = 'temperature';
+  static const String topK = 'top_k';
+  static const String topP = 'top_p';
+  static const String typical = 'typical';
+  static const String tfs = 'tfs';
+  static const String topA = 'top_a';
+
+  static const List<String> defaultOrder = [
+    temperature,
+    topK,
+    topP,
+    typical,
+    tfs,
+    topA
+  ];
+}
+
 class NeodimRequest {
   const NeodimRequest({
     required this.prompt,
@@ -22,6 +40,7 @@ class NeodimRequest {
     this.tfs,
     this.typical,
     this.topA,
+    this.warpersOrder,
     this.repetitionPenalty,
     this.repetitionPenaltyRange,
     this.repetitionPenaltySlope,
@@ -45,6 +64,7 @@ class NeodimRequest {
   final double? tfs;
   final double? typical;
   final double? topA;
+  final List<String>? warpersOrder;
   final double? repetitionPenalty;
   final int? repetitionPenaltyRange;
   final double? repetitionPenaltySlope;
@@ -68,6 +88,7 @@ class NeodimRequest {
       'tfs': tfs,
       'typical': typical,
       'top_a': topA,
+      'warpers_order': warpersOrder,
       'repetition_penalty': repetitionPenalty,
       'repetition_penalty_range': repetitionPenaltyRange,
       'repetition_penalty_slope': repetitionPenaltySlope,
