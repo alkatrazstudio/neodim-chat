@@ -28,6 +28,31 @@ class MainMenu extends StatelessWidget {
       );
     }),
 
+    MainMenuItem('Duplicate', Icons.content_copy, (context) async {
+      var convModel = Provider.of<ConversationsModel>(context, listen: false);
+      var curConv = convModel.current;
+      if(curConv == null)
+        return;
+
+      if(await showConfirmDialog(
+        context, 'Duplicate "${curConv.name}"',
+        'Make a copy of this conversation?')
+      ) {
+        var c = Conversation.create('${curConv.name} (copy)');
+        c.type = curConv.type;
+        var data = curConv.getCurrentData(context);
+        await c.saveData(data);
+        convModel.add(c);
+        await convModel.save();
+        await c.loadAsCurrent(context);
+
+        Navigator.push<void>(
+          context,
+          MaterialPageRoute(builder: (context) => SettingsPage())
+        );
+      }
+    }),
+
     MainMenuItem('Clear', Icons.clear_all, (context) async {
       var curConv = Provider.of<ConversationsModel>(context, listen: false).current;
       if(curConv == null)

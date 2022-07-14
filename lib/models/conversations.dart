@@ -79,17 +79,22 @@ class Conversation {
     return data;
   }
 
-  void setAsCurrent(BuildContext ctx, ConversationData data) async {
+  void setAsCurrent(BuildContext ctx, ConversationData data) {
     Provider.of<MessagesModel>(ctx, listen: false).load(data.msgModel);
     Provider.of<ConversationsModel>(ctx, listen: false).setCurrent(this);
     Provider.of<ConfigModel>(ctx, listen: false).load(data.config);
   }
 
-  Future<ConversationData> saveCurrentData(BuildContext ctx) async {
+  ConversationData getCurrentData(BuildContext ctx) {
     var data = ConversationData(
       msgModel: Provider.of<MessagesModel>(ctx, listen: false),
       config: Provider.of<ConfigModel>(ctx, listen: false)
     );
+    return data;
+  }
+
+  Future<ConversationData> saveCurrentData(BuildContext ctx) async {
+    var data = getCurrentData(ctx);
     await saveData(data);
     return data;
   }
