@@ -311,6 +311,11 @@ class MessagesModel extends ChangeNotifier {
     return msg;
   }
 
+  void clear() {
+    messages.clear();
+    notifyListeners();
+  }
+
   void replace(int i, Message msg) {
     messages[i] = msg;
     notifyListeners();

@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../models/conversations.dart';
+import '../models/messages.dart';
 import '../widgets/dialogs.dart';
 import '../widgets/help_page.dart';
 import '../widgets/settings_page.dart';
@@ -27,6 +28,21 @@ class MainMenu extends StatelessWidget {
       );
     }),
 
+    MainMenuItem('Clear', Icons.clear_all, (context) async {
+      var curConv = Provider.of<ConversationsModel>(context, listen: false).current;
+      if(curConv == null)
+        return;
+      var msgModel = Provider.of<MessagesModel>(context, listen: false);
+
+      if(await showConfirmDialog(
+        context, 'Clear "${curConv.name}"',
+        'Remove all messages from this conversation?')
+      ) {
+        msgModel.clear();
+        await curConv.saveCurrentData(context);
+      }
+    }),
+
     MainMenuItem('Delete', Icons.delete_forever, (context) async {
       var curConv = Provider.of<ConversationsModel>(context, listen: false).current;
       if(curConv == null)
@@ -34,7 +50,7 @@ class MainMenu extends StatelessWidget {
 
       if(await showConfirmDialog(
         context, 'Removing "${curConv.name}"',
-        'Really remove this conversation?')
+        'Remove this conversation?')
       ) {
         await ConversationsModel.delete(context, curConv);
       }
