@@ -11,7 +11,6 @@ import '../models/conversations.dart';
 import '../models/messages.dart';
 import '../util/neodim_api.dart';
 import '../widgets/card_settings_warpers_order.dart';
-import '../widgets/dialogs.dart';
 import '../widgets/help_page.dart';
 
 class SettingsPage extends StatelessWidget {
@@ -64,19 +63,7 @@ class SettingsPage extends StatelessWidget {
               key: formKey,
               child: settings(context)
             ),
-            ElevatedButton(
-              onPressed: () async {
-                if (await showConfirmDialog(
-                  context, 'Removing "${curConv.name}"',
-                  'Really remove this conversation?')
-                ) {
-                  await ConversationsModel.delete(context, curConv);
-                  Navigator.of(context).pop();
-                }
-              },
-              style: ElevatedButton.styleFrom(primary: Colors.redAccent),
-              child: const Text('Remove')
-            )
+            const SizedBox(height: 65)
           ]
         )
       )

@@ -12,6 +12,7 @@ import '../models/neodim_model.dart';
 import '../util/neodim_api.dart';
 import '../widgets/chat.dart';
 import '../widgets/help_page.dart';
+import '../widgets/main_menu.dart';
 import '../widgets/settings_page.dart';
 
 class HomePage extends StatelessWidget {
@@ -94,19 +95,7 @@ class HomePage extends StatelessWidget {
           title: Consumer<ConversationsModel>(builder: (context, value, child) {
             return Text(value.current?.name ?? 'Neodim Chat');
           }),
-          actions: [
-            Consumer<ConversationsModel>(builder: (context, value, child) {
-              return IconButton(
-                onPressed: value.current == null ? null : () {
-                  Navigator.push<void>(
-                    context,
-                    MaterialPageRoute(builder: (context) => SettingsPage())
-                  );
-                },
-                icon: const Icon(Icons.settings)
-              );
-            })
-          ]
+          actions: [MainMenu()]
         ),
 
         drawer: Drawer(
