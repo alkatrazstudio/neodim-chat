@@ -2,6 +2,7 @@
 // 🄯 2022, Alexey Parfenov <zxed@alkatrazstudio.net>
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'package:provider/provider.dart';
 
@@ -26,7 +27,18 @@ class TextualViewPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(curConv?.name ?? '')
+        title: Text(curConv?.name ?? ''),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.copy),
+            onPressed: () async {
+              await Clipboard.setData(ClipboardData(text: text));
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Copied to the clipboard'))
+              );
+            }
+          )
+        ]
       ),
       body: SingleChildScrollView(
         child: Padding(
