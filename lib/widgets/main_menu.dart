@@ -34,23 +34,31 @@ class MainMenu extends StatelessWidget {
       if(curConv == null)
         return;
 
-      if(await showConfirmDialog(
-        context, 'Duplicate "${curConv.name}"',
-        'Make a copy of this conversation?')
-      ) {
-        var c = Conversation.create('${curConv.name} (copy)');
-        c.type = curConv.type;
-        var data = curConv.getCurrentData(context);
-        await c.saveData(data);
-        convModel.add(c);
-        await convModel.save();
-        await c.loadAsCurrent(context);
+      var result = await showConfirmDialogWithCheckbox(
+        context: context,
+        title: 'Duplicate "${curConv.name}"',
+        text: 'Make a copy of this conversation?',
+        checkboxText: 'Copy with messages',
+        initialChecked: true
+      );
 
-        Navigator.push<void>(
-          context,
-          MaterialPageRoute(builder: (context) => SettingsPage())
-        );
-      }
+      if(result == CheckboxDialogResult.no)
+        return;
+
+      var c = Conversation.create('${curConv.name} (copy)');
+      c.type = curConv.type;
+      var data = curConv.getCurrentData(context);
+      await c.saveData(data);
+      convModel.add(c);
+      await convModel.save();
+      await c.loadAsCurrent(context);
+      if(result == CheckboxDialogResult.yesWithoutCheckbox)
+        Provider.of<MessagesModel>(context, listen: false).clear();
+
+      Navigator.push<void>(
+        context,
+        MaterialPageRoute(builder: (context) => SettingsPage())
+      );
     }),
 
     MainMenuItem('Clear', Icons.clear_all, (context) async {

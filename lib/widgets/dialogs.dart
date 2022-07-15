@@ -124,3 +124,57 @@ Future<bool> showConfirmDialog(
     }
   )) ?? false;
 }
+
+enum CheckboxDialogResult {
+  no,
+  yesWithCheckbox,
+  yesWithoutCheckbox
+}
+
+Future<CheckboxDialogResult> showConfirmDialogWithCheckbox({
+  required BuildContext context,
+  required String title,
+  required String text,
+  required String checkboxText,
+  bool initialChecked = false
+}) async {
+  var isChecked = initialChecked;
+
+  return (await showDialog<CheckboxDialogResult>(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text(title),
+        content: StatefulBuilder(builder: (context, StateSetter setState) {
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(text),
+              CheckboxListTile(
+                  title: Text(checkboxText),
+                  value: isChecked,
+                  onChanged: (val) => setState(() {isChecked = val ?? false;}),
+                  controlAffinity: ListTileControlAffinity.leading
+
+              )
+            ]
+          );
+        }),
+        actions: [
+          TextButton(
+            child: const Text('No'),
+            onPressed: () => Navigator.of(context).pop()
+          ),
+          TextButton(
+            child: const Text('Yes'),
+            onPressed: () => Navigator.of(context).pop(
+              isChecked
+                ? CheckboxDialogResult.yesWithCheckbox
+                : CheckboxDialogResult.yesWithoutCheckbox
+            )
+          )
+        ]
+      );
+    }
+  )) ?? CheckboxDialogResult.no;
+}
