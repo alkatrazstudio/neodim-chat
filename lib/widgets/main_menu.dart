@@ -10,6 +10,7 @@ import '../models/messages.dart';
 import '../widgets/dialogs.dart';
 import '../widgets/help_page.dart';
 import '../widgets/settings_page.dart';
+import '../widgets/textual_view_page.dart';
 
 class MainMenuItem {
   MainMenuItem(this.title, this.icon, this.onSelected);
@@ -25,6 +26,13 @@ class MainMenu extends StatelessWidget {
       Navigator.push<void>(
         context,
         MaterialPageRoute(builder: (context) => SettingsPage())
+      );
+    }),
+
+    MainMenuItem('View as text', Icons.text_snippet, (context) {
+      Navigator.push<void>(
+        context,
+        MaterialPageRoute(builder: (context) => const TextualViewPage())
       );
     }),
 

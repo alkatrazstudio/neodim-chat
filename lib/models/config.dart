@@ -69,6 +69,13 @@ class ConfigModel extends ChangeNotifier {
   @JsonKey(defaultValue: false)
   bool stopOnPunctuation = false;
 
+  String get inputPreamble {
+    var s = preamble.trim();
+    if(s.isEmpty)
+      return '';
+    return '$preamble\n\n';
+  }
+
   void setApiEndpoint(String newApiEndpoint) {
     apiEndpoint = newApiEndpoint;
     notifyListeners();
