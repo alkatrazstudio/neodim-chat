@@ -323,6 +323,13 @@ class HelpPageState extends State<HelpPage> {
             for the purpose of calculating the repetition penalty.
           </li>
           <li>
+            <strong>Keep the original repetition penalty text</strong> -
+            do not modify the repetition penalty text in any way
+            (i.e. it will include punctuation, special symbols, newlines, etc).
+            In any case, the repetition penalty text won't include the names of the participants.
+            Enabling this setting will disable the "Repetition penalty lines without extra symbols" setting.
+          </li>
+          <li>
             <strong>Generate extra sequences for quick retries</strong> -
             generate multiple replies at once and then use those replies
             when pressing the "retry" button without making additional requests to the server.

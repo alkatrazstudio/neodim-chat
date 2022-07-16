@@ -186,6 +186,13 @@ class MessagesModel extends ChangeNotifier {
     return result;
   }
 
+  String getOriginalRepetitionPenaltyTextForChat(List<Message> msgs) {
+    var text = '';
+    for(var m in msgs)
+      text += '${m.text}\n';
+    return text;
+  }
+
   String getAiInputForChat(List<Message> msgs, Participant? promptedParticipant) {
     var text = getTextForChat(msgs);
     var aiInput = text + getPromptForChat(promptedParticipant ?? nextParticipant);

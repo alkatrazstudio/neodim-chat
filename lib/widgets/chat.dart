@@ -16,7 +16,7 @@ class Chat extends StatefulWidget {
     required this.generate
   });
 
-  final Future<List<String>> Function(String, String, Participant) generate;
+  final Future<List<String>> Function(String, String?, Participant) generate;
 
   @override
   State<Chat> createState() => ChatState();
@@ -56,17 +56,25 @@ class ChatState extends State<Chat> {
     }
   }
 
-  String getRepPenInput(Conversation c, MessagesModel msgModel, ConfigModel cfgModel) {
+  String? getRepPenInput(Conversation c, MessagesModel msgModel, ConfigModel cfgModel) {
     switch(c.type) {
       case Conversation.typeChat:
-        return msgModel.getRepetitionPenaltyTextForChat(
-            msgModel.messages, cfgModel.repetitionPenaltyLinesWithNoExtraSymbols);
+        if(cfgModel.repetitionPenaltyKeepOriginalPrompt) {
+          return msgModel.getOriginalRepetitionPenaltyTextForChat(msgModel.messages);
+        } else {
+          return msgModel.getRepetitionPenaltyTextForChat(
+            msgModel.messages,
+            cfgModel.repetitionPenaltyLinesWithNoExtraSymbols
+          );
+        }
 
       case Conversation.typeAdventure:
+        if(cfgModel.repetitionPenaltyKeepOriginalPrompt)
+          return null;
         return msgModel.repetitionPenaltyTextForAdventure;
 
       default:
-        return '';
+        return null;
     }
   }
 

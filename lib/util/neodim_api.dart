@@ -47,7 +47,7 @@ class NeodimRequest {
     this.repetitionPenaltyIncludePreamble = false,
     this.repetitionPenaltyIncludeGenerated = NeodimRepPenGenerated.slide,
     this.repetitionPenaltyTruncateToInput = false,
-    this.repetitionPenaltyPrompt = '',
+    this.repetitionPenaltyPrompt,
     this.preamble = '',
     this.sequencesCount = 1,
     this.stopStrings = const [],
@@ -71,7 +71,7 @@ class NeodimRequest {
   final bool repetitionPenaltyIncludePreamble;
   final String repetitionPenaltyIncludeGenerated;
   final bool repetitionPenaltyTruncateToInput;
-  final String repetitionPenaltyPrompt;
+  final String? repetitionPenaltyPrompt;
   final int sequencesCount;
   final List<String> stopStrings;
   final List<String> truncatePromptUntil;

@@ -325,6 +325,11 @@ class SettingsPage extends StatelessWidget {
           validator: validateNonNegativeInt,
           onSaved: onIntSave((x) => cfgModel.setRepetitionPenaltyLinesWithNoExtraSymbols(x))
         ),
+        CardSettingsSwitch(
+          label: 'Keep the original repetition penalty text',
+          initialValue: cfgModel.repetitionPenaltyKeepOriginalPrompt,
+          onSaved: (val) => cfgModel.setRepetitionPenaltyKeepOriginalPrompt(val ?? false)
+        ),
         CardSettingsInt(
           label: 'Generate extra sequences for quick retries',
           initialValue: cfgModel.extraRetries,

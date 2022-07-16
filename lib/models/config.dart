@@ -67,6 +67,9 @@ class ConfigModel extends ChangeNotifier {
   int repetitionPenaltyLinesWithNoExtraSymbols = 5;
 
   @JsonKey(defaultValue: false)
+  bool repetitionPenaltyKeepOriginalPrompt = false;
+
+  @JsonKey(defaultValue: false)
   bool stopOnPunctuation = false;
 
   String get inputPreamble {
@@ -176,6 +179,11 @@ class ConfigModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setRepetitionPenaltyKeepOriginalPrompt(bool newRepetitionPenaltyKeepOriginalPrompt) {
+    repetitionPenaltyKeepOriginalPrompt = newRepetitionPenaltyKeepOriginalPrompt;
+    notifyListeners();
+  }
+
   void load(ConfigModel other) {
     apiEndpoint = other.apiEndpoint;
     generatedTokensCount = other.generatedTokensCount;
@@ -195,6 +203,7 @@ class ConfigModel extends ChangeNotifier {
     preamble = other.preamble;
     extraRetries = other.extraRetries;
     repetitionPenaltyLinesWithNoExtraSymbols = other.repetitionPenaltyLinesWithNoExtraSymbols;
+    repetitionPenaltyKeepOriginalPrompt = other.repetitionPenaltyKeepOriginalPrompt;
     stopOnPunctuation = other.stopOnPunctuation;
 
     notifyListeners();

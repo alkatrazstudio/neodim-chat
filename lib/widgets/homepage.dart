@@ -23,7 +23,7 @@ class HomePage extends StatelessWidget {
     return text.trim();
   }
 
-  Future<List<String>> generate(BuildContext context, String inputText, String repPenText, Participant promptedParticipant) async {
+  Future<List<String>> generate(BuildContext context, String inputText, String? repPenText, Participant promptedParticipant) async {
     var cfgModel = Provider.of<ConfigModel>(context, listen: false);
     var neodimModel = Provider.of<NeodimModel>(context, listen: false);
     var msgModel = Provider.of<MessagesModel>(context, listen: false);
