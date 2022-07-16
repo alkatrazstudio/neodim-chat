@@ -321,6 +321,7 @@ class HelpPageState extends State<HelpPage> {
             <strong>Repetition penalty lines without extra symbols</strong> -
             this many last lines of chat will have their punctuation and other symbols preserved
             for the purpose of calculating the repetition penalty.
+            Only applies to the chat mode.
           </li>
           <li>
             <strong>Keep the original repetition penalty text</strong> -
