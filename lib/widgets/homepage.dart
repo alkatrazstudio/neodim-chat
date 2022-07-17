@@ -41,15 +41,32 @@ class HomePage extends StatelessWidget {
     try {
       final api = NeodimApi(endpoint: cfgModel.apiEndpoint);
 
-      var truncatePromptUntil = conv.type == Conversation.typeChat
-        ? [MessagesModel.messageSeparator]
-        : [...MessagesModel.sentenceStops, MessagesModel.actionPrompt];
-      var stopStings = conv.type == Conversation.typeChat
-        ? [MessagesModel.messageSeparator]
-        : [MessagesModel.actionPrompt];
+      List<String> truncatePromptUntil;
+      List<String> stopStrings;
+      switch(conv.type)
+      {
+        case Conversation.typeChat:
+          truncatePromptUntil = [MessagesModel.messageSeparator];
+          stopStrings = [MessagesModel.messageSeparator];
+          break;
+
+        case Conversation.typeAdventure:
+          truncatePromptUntil = [...MessagesModel.sentenceStops, MessagesModel.actionPrompt];
+          stopStrings = [MessagesModel.actionPrompt];
+          break;
+
+        case Conversation.typeStory:
+          truncatePromptUntil = MessagesModel.sentenceStops;
+          stopStrings = [];
+          break;
+
+        default:
+          return [];
+      }
       if(cfgModel.stopOnPunctuation)
-        stopStings.addAll(MessagesModel.sentenceStops);
-      stopStings.add(MessagesModel.sequenceEnd);
+        stopStrings.addAll(MessagesModel.sentenceStops);
+      stopStrings.add(MessagesModel.sequenceEnd);
+
       var request = NeodimRequest(
         prompt: inputText,
         preamble: cfgModel.inputPreamble,
@@ -70,7 +87,7 @@ class HomePage extends StatelessWidget {
         repetitionPenaltyTruncateToInput: cfgModel.repetitionPenaltyTruncateToInput,
         repetitionPenaltyPrompt: repPenText,
         sequencesCount: 1 + cfgModel.extraRetries,
-        stopStrings: stopStings,
+        stopStrings: stopStrings,
         truncatePromptUntil: truncatePromptUntil
       );
       neodimModel.setRequest(request);

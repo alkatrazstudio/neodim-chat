@@ -21,6 +21,13 @@ class Conversation {
 
   static const String typeChat = 'chat';
   static const String typeAdventure = 'adventure';
+  static const String typeStory = 'story';
+
+  static const List<String> availableTypes = [
+    Conversation.typeChat,
+    Conversation.typeAdventure,
+    Conversation.typeStory
+  ];
 
   Conversation({
     required this.name,

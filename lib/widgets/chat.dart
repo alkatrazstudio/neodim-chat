@@ -51,6 +51,9 @@ class ChatState extends State<Chat> {
       case Conversation.typeAdventure:
         return msgModel.aiInputForAdventure;
 
+      case Conversation.typeStory:
+        return msgModel.aiInputForStory;
+
       default:
         return '';
     }
@@ -72,6 +75,11 @@ class ChatState extends State<Chat> {
         if(cfgModel.repetitionPenaltyKeepOriginalPrompt)
           return null;
         return msgModel.repetitionPenaltyTextForAdventure;
+
+      case Conversation.typeStory:
+        if(cfgModel.repetitionPenaltyKeepOriginalPrompt)
+          return null;
+        return msgModel.repetitionPenaltyTextForStory;
 
       default:
         return null;
@@ -248,6 +256,10 @@ class _ChatButtonsState extends State<ChatButtons> {
         buttonRows = adventureButtons(context, msgModel, curConv, neodimModel);
         break;
 
+      case Conversation.typeStory:
+        buttonRows = storyButtons(context, msgModel, curConv, neodimModel);
+        break;
+
       default:
         buttonRows = [];
     }
@@ -372,6 +384,20 @@ class _ChatButtonsState extends State<ChatButtons> {
       )
     ]];
   }
+
+  List<List<Widget>> storyButtons(BuildContext context, MessagesModel msgModel, Conversation curConv, NeodimModel neodimModel) {
+    return [[
+      IconButton(
+        onPressed: (neodimModel.isApiRunning || msgModel.messages.isEmpty) ? null : () {
+          widget.addGenerated(Message.storyIndex);
+        },
+        icon: const Icon(Icons.speaker_notes_outlined)
+      ),
+      btnUndo(context, msgModel, curConv),
+      btnRedo(context, msgModel),
+      btnRetry(context, msgModel, curConv, neodimModel)
+    ]];
+  }
 }
 
 class ChatInput extends StatelessWidget {
@@ -403,6 +429,10 @@ class ChatInput extends StatelessWidget {
         nextParticipantIndex = Message.youIndex;
         break;
 
+      case Conversation.typeStory:
+        nextParticipantIndex = Message.storyIndex;
+        break;
+
       default:
         return const SizedBox.shrink();
     }
@@ -418,6 +448,7 @@ class ChatInput extends StatelessWidget {
         if(neodimModel.isApiRunning)
           return;
 
+        var wasEmpty = inputController.text.isEmpty;
         submit(nextParticipantIndex);
         focusNode.requestFocus();
 
@@ -430,6 +461,11 @@ class ChatInput extends StatelessWidget {
           case Conversation.typeAdventure:
             addGenerated(Message.dmIndex);
             break;
+
+          case Conversation.typeStory:
+            if(wasEmpty)
+              addGenerated(Message.storyIndex);
+            break;
         }
       },
       decoration: InputDecoration(
@@ -440,6 +476,7 @@ class ChatInput extends StatelessWidget {
             if(neodimModel.isApiRunning)
               return;
 
+            var wasEmpty = inputController.text.isEmpty;
             submit(nextParticipantIndex);
 
             switch(convModel.current?.type) {
@@ -451,6 +488,11 @@ class ChatInput extends StatelessWidget {
               case Conversation.typeAdventure:
                 addGenerated(Message.dmIndex);
                 break;
+
+              case Conversation.typeStory:
+                if(wasEmpty)
+                  addGenerated(Message.storyIndex);
+              break;
             }
           }
         ),

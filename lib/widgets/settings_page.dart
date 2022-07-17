@@ -163,10 +163,7 @@ class SettingsPage extends StatelessWidget {
         CardSettingsListPicker<String>(
           label: 'Type',
           initialItem: curConv.type,
-          items: const [
-            Conversation.typeChat,
-            Conversation.typeAdventure,
-          ],
+          items: Conversation.availableTypes,
           onSaved: (s) {
             if(s == null)
               return;

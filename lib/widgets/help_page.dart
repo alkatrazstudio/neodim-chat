@@ -229,12 +229,12 @@ class HelpPageState extends State<HelpPage> {
             <strong>Type</strong> - what this conversation represents.
             "Chat" mean a regular chat between two participants.
             "Adventure" means playing a text adventure game.
+            "Story" means just writing a story text as-is.
             The first participant (with speech bubbles on the right) represents the player.
             The other participant represents "the story", i.e. it's not a person talking but just simple story text.
-            Note that the "adventure" mode is done as an afterthought and may have a lot of quirks and bugs.
           </li>
         </ul>
-        
+
         <h3>Participants</h3>
         <ul>
           <li>
@@ -381,13 +381,22 @@ class HelpPageState extends State<HelpPage> {
           <li>Generate new potion of the story.</li>
           <li>Add the user text (in the input field) as a new portions of the story.</li>
         </ul>
-        
+
+        <h3>Story mode</h3>
+
+        <ul>
+          <li>Generate new potion of the story.</li>
+          <li>Undo - removes the last message.</li>
+          <li>Redo - restores the removed message.</li>
+          <li>Retry - generates new text for the last message.</li>
+        </ul>
+
         You can also press the send button in the input field
         or the send button on your keyboard to add currently edited text in the input field
         as the player's action.
         It's preferable to prefix all player's actions with "You",
         e.g. "You steal the crown" instead of just "Steal the crown".
-        
+
         <h2>Miscellaneous</h2>
         <ul>
           <li>The red line(s) at the bottom represents the GPU usage.</li>

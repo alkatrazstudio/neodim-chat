@@ -19,9 +19,24 @@ class TextualViewPage extends StatelessWidget {
     var msgModel = Provider.of<MessagesModel>(context);
     var cfgModel = Provider.of<ConfigModel>(context);
 
-    var text = curConv?.type == Conversation.typeChat
-      ? msgModel.chatText
-      : msgModel.adventureText;
+    String text;
+    switch(curConv?.type)
+    {
+      case Conversation.typeChat:
+        text = msgModel.chatText;
+        break;
+
+      case Conversation.typeAdventure:
+        text = msgModel.adventureText;
+        break;
+
+      case Conversation.typeStory:
+        text = msgModel.storyText;
+        break;
+
+      default:
+        text = '';
+    }
 
     text = cfgModel.inputPreamble + text;
 

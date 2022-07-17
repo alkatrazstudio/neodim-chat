@@ -23,6 +23,7 @@ class Message {
   static const int noneIndex = -1;
   static const int youIndex = 0;
   static const int dmIndex = 1;
+  static const int storyIndex = dmIndex;
 
   bool get isYou => authorIndex == youIndex;
 
@@ -117,8 +118,11 @@ class MessagesModel extends ChangeNotifier {
 
   String get chatText => getTextForChat(messages);
   String get adventureText => getTextForAdventure(messages);
+  String get storyText => getTextForStory(messages);
   String get aiInputForAdventure => adventureText;
+  String get aiInputForStory => storyText;
   String get repetitionPenaltyTextForAdventure => getRepetitionPenaltyTextForAdventure(messages);
+  String get repetitionPenaltyTextForStory => getRepetitionPenaltyTextForStory(messages);
 
   int getNextParticipantIndex(int? index) {
     index ??= lastParticipantIndex;
@@ -202,6 +206,24 @@ class MessagesModel extends ChangeNotifier {
     return s;
   }
 
+  String getTextForStory(List<Message> msgs) {
+    var s = '';
+    var isPrevEmpty = false;
+    for(var m in msgs) {
+      if(m.text.isNotEmpty) {
+        if(!isPrevEmpty)
+          s += ' ';
+        s += m.text;
+      } else {
+        s += '$messageSeparator${m.text}';
+      }
+      isPrevEmpty = m.text.isEmpty;
+    }
+    s = s.trimLeft();
+    s = s.replaceAll(RegExp(r'[ ]+$'), ''); // trailing spaces make some models go crazy
+    return s;
+  }
+
   String getRepetitionPenaltyTextForAdventure(List<Message> msgs) {
     var text = getTextForAdventure(msgs);
     text = text
@@ -209,6 +231,10 @@ class MessagesModel extends ChangeNotifier {
       .replaceAll(RegExp(r'\s+'), ' ');
 
     return text.trim();
+  }
+
+  String getRepetitionPenaltyTextForStory(List<Message> msgs) {
+    return getRepetitionPenaltyTextForAdventure(msgs);
   }
 
   List<Message> getMessagesSnapshot() {
@@ -237,6 +263,10 @@ class MessagesModel extends ChangeNotifier {
 
         case Conversation.typeAdventure:
           testText = getTextForAdventure(testMessages);
+          break;
+
+        case Conversation.typeStory:
+          testText = getTextForStory(testMessages);
           break;
 
         default:
