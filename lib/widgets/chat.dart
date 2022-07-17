@@ -392,6 +392,23 @@ class ChatInput extends StatelessWidget {
     var convModel = Provider.of<ConversationsModel>(context, listen: false);
     var msgModel = Provider.of<MessagesModel>(context, listen: false);
 
+    var nextParticipantIndex = Message.noneIndex;
+
+    switch(convModel.current?.type) {
+      case Conversation.typeChat:
+        nextParticipantIndex = msgModel.getNextParticipantIndex(null);
+        break;
+
+      case Conversation.typeAdventure:
+        nextParticipantIndex = Message.youIndex;
+        break;
+
+      default:
+        return const SizedBox.shrink();
+    }
+
+    var nextParticipant = msgModel.participants[nextParticipantIndex];
+
     return TextField(
       controller: inputController,
       focusNode: focusNode,
@@ -400,36 +417,38 @@ class ChatInput extends StatelessWidget {
       onSubmitted: (text) {
         if(neodimModel.isApiRunning)
           return;
+
+        submit(nextParticipantIndex);
+        focusNode.requestFocus();
+
         switch(convModel.current?.type) {
           case Conversation.typeChat:
-            submit(msgModel.nextParticipantIndex);
-            focusNode.requestFocus();
-            addGenerated(msgModel.nextParticipantIndex);
+            var genParticipantIndex = msgModel.getNextParticipantIndex(null);
+            addGenerated(genParticipantIndex);
             break;
 
           case Conversation.typeAdventure:
-            submit(Message.youIndex);
-            focusNode.requestFocus();
             addGenerated(Message.dmIndex);
             break;
         }
       },
       decoration: InputDecoration(
-        hintText: msgModel.nextName,
+        hintText: nextParticipant.name,
         suffixIcon: IconButton(
           icon: const Icon(Icons.send),
           onPressed: () {
             if(neodimModel.isApiRunning)
               return;
 
+            submit(nextParticipantIndex);
+
             switch(convModel.current?.type) {
               case Conversation.typeChat:
-                submit(msgModel.nextParticipantIndex);
-                addGenerated(msgModel.nextParticipantIndex);
+                var genParticipantIndex = msgModel.getNextParticipantIndex(null);
+                addGenerated(genParticipantIndex);
                 break;
 
               case Conversation.typeAdventure:
-                submit(Message.youIndex);
                 addGenerated(Message.dmIndex);
                 break;
             }

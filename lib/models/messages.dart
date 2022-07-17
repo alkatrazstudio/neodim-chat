@@ -112,29 +112,16 @@ class MessagesModel extends ChangeNotifier {
   int get lastParticipantIndex => messages.lastOrNull?.authorIndex ?? Message.noneIndex;
   bool get lastIsYou => lastParticipantIndex == Message.youIndex;
 
-  int get nextParticipantIndex {
-    if(lastParticipantIndex == Message.noneIndex)
-      return Message.youIndex;
-    var nextIndex = lastParticipantIndex + 1;
-    if(nextIndex < participants.length)
-      return nextIndex;
-    return Message.youIndex;
-  }
-
-  Participant get nextParticipant => participants[nextParticipantIndex];
-
-  bool get nextIsYou => nextParticipantIndex == Message.youIndex;
-  String get nextName => participants[nextParticipantIndex].name;
   bool get isLastGenerated => messages.lastOrNull?.isGenerated ?? false;
   Message? get generatedAtEnd => isLastGenerated ? messages.lastOrNull : null;
 
   String get chatText => getTextForChat(messages);
-
   String get adventureText => getTextForAdventure(messages);
   String get aiInputForAdventure => adventureText;
   String get repetitionPenaltyTextForAdventure => getRepetitionPenaltyTextForAdventure(messages);
 
-  int getNextParticipantIndex(int index) {
+  int getNextParticipantIndex(int? index) {
+    index ??= lastParticipantIndex;
     var nextIndex = index + 1;
     if (nextIndex < participants.length)
       return nextIndex;
@@ -182,9 +169,9 @@ class MessagesModel extends ChangeNotifier {
     return text;
   }
 
-  String getAiInputForChat(List<Message> msgs, Participant? promptedParticipant) {
+  String getAiInputForChat(List<Message> msgs, Participant promptedParticipant) {
     var text = getTextForChat(msgs);
-    var aiInput = text + getPromptForChat(promptedParticipant ?? nextParticipant);
+    var aiInput = text + getPromptForChat(promptedParticipant);
     return aiInput;
   }
 
