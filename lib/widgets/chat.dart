@@ -37,7 +37,7 @@ class ChatState extends State<Chat> {
     if(curConv == null)
       return;
     var chatFormat = curConv.type == Conversation.typeChat || authorIndex == Message.youIndex;
-    var text = Message.format(inputController.text, upperFirst: chatFormat, endWithDot: chatFormat);
+    var text = Message.format(inputController.text, chatFormat);
     msgModel.addText(text, false, authorIndex);
     inputController.clear();
     await ConversationsModel.saveCurrentData(context);
@@ -109,7 +109,7 @@ class ChatState extends State<Chat> {
       try {
         texts = await widget.generate(aiInput, repPenInput, promptedParticipant);
         texts = texts
-          .map((text) => Message.format(text, upperFirst: chatFormat, endWithDot: chatFormat))
+          .map((text) => Message.format(text, chatFormat))
           .where((text) => text.isNotEmpty)
           .toSet().toList();
         if(texts.isNotEmpty || nTries <= 1)

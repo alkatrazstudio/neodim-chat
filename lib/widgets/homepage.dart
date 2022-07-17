@@ -46,7 +46,7 @@ class HomePage extends StatelessWidget {
         : [...MessagesModel.sentenceStops, MessagesModel.actionPrompt];
       var stopStings = conv.type == Conversation.typeChat
         ? [MessagesModel.messageSeparator]
-        : <String>[];
+        : [MessagesModel.actionPrompt];
       if(cfgModel.stopOnPunctuation)
         stopStings.addAll(MessagesModel.sentenceStops);
       stopStings.add(MessagesModel.sequenceEnd);

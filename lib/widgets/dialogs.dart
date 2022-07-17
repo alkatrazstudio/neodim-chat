@@ -26,7 +26,7 @@ Future<MessageDialogResult?> showMessageDialog(
   void submitMsg(BuildContext ctx, String text) {
     text = text.trim();
     if(doFormat)
-      text = Message.format(text, upperFirst: chatFormat, endWithDot: chatFormat);
+      text = Message.format(text, chatFormat);
     if(text.isEmpty || text == initialText)
       Navigator.of(context).pop();
     else

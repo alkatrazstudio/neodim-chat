@@ -36,13 +36,14 @@ class Message {
   @JsonKey(defaultValue: false)
   final bool isGenerated;
 
-  static String format(String text, {bool upperFirst = true, bool endWithDot = true}) {
+  static String format(String text, bool forChat) {
     text = text.replaceAll(RegExp(r'<s>'), '');
     text = text.replaceAll(RegExp(r'\.{4,}'), '...');
     text = text.replaceAll(RegExp(r'\!+'), '!');
     text = text.replaceAll(RegExp(r'\?+'), '?');
     text = text.replaceAll(RegExp(r'''^([^\p{Letter}\p{Number}\("\*]|[\s|_])+''', unicode: true), '');
-    text = text.replaceAll(RegExp(r'''([^\p{Letter}\p{Number}\.!\?\)"\*]|[\s|_])+$''', unicode: true), '');
+    if(forChat)
+      text = text.replaceAll(RegExp(r'''([^\p{Letter}\p{Number}\.!\?\)"\*]|[\s|_])+$''', unicode: true), '');
     text = text.replaceAllMapped(RegExp(r'([!\?])\s*(\p{Letter})', caseSensitive: false, unicode: true), (m) => '${m[1]} ${m[2]?.toUpperCase()}');
     text = text.replaceAllMapped(RegExp(r'(?<!\.)(\.)\s*(\p{Letter})', caseSensitive: false, unicode: true), (m) => '${m[1]} ${m[2]?.toUpperCase()}');
     text = text.replaceAllMapped(RegExp(r'([\,\:\;])\s*(\p{Letter})', caseSensitive: false), (m) => '${m[1]} ${m[2]}');
@@ -52,9 +53,9 @@ class Message {
     if(text.isEmpty)
       return text;
 
-    if(upperFirst)
+    if(forChat)
       text = text[0].toUpperCase() + text.substring(1);
-    if(endWithDot && !text.endsWith('.') && !text.endsWith('!') && !text.endsWith('?') && !text.endsWith(')') && !text.endsWith('*'))
+    if(forChat && !text.endsWith('.') && !text.endsWith('!') && !text.endsWith('?') && !text.endsWith(')') && !text.endsWith('*'))
       text += '.';
 
     text = text.replaceAllMapped(RegExp(r'\b(can|won|don|haven|couldn|shouldn|wouldn|mustn|didn|aren|isn)(t)\b', caseSensitive: false), (m) => "${m[1]}'${m[2]}");
@@ -201,20 +202,25 @@ class MessagesModel extends ChangeNotifier {
 
   String getTextForAdventure(List<Message> msgs) {
     var s = '';
-    bool isPrevStory = false;
+    var isPrevStory = false;
+    var isPrevEmpty = false;
     for(var m in msgs) {
       if(m.isComment) {
         s += '$commentSeparator${m.text}$messageSeparator';
         isPrevStory = false;
       } else {
-        if (m.isYou) {
+        if(m.isYou) {
           s += '$actionSeparator$actionPrompt ${m.text}';
           isPrevStory = false;
         } else {
-          if(isPrevStory && m.text.isNotEmpty)
-            s += ' ${m.text}';
-          else
+          if(isPrevStory && m.text.isNotEmpty) {
+            if(!isPrevEmpty)
+              s += ' ';
+            s += m.text;
+          } else {
             s += '$messageSeparator${m.text}';
+          }
+          isPrevEmpty = m.text.isEmpty;
           isPrevStory = true;
         }
       }
@@ -229,7 +235,7 @@ class MessagesModel extends ChangeNotifier {
   String getRepetitionPenaltyTextForAdventure(List<Message> msgs) {
     var text = getTextForAdventure(msgs);
     text = text
-      .replaceAll(RegExp(r'[^\p{Letter}\p{Number}\*\(\)]', unicode: true), ' ')
+      .replaceAll(RegExp(r'[^\p{Letter}\p{Number}]', unicode: true), ' ')
       .replaceAll(RegExp(r'\s+'), ' ');
 
     return text.trim();
