@@ -1,6 +1,20 @@
 # Neodim Chat - CHANGELOG
 
 
+## v0.4.0 (July 17, 2022)
+
+- Added: support for typical sampling
+- Added: support for top A sampling
+- Added: ability to reorder filters/sampling/warpers
+- Added: ability to clear all messages from a conversation
+- Added: ability to duplicate a conversation
+- Added: textual view of a conversation
+- Added: ability to keep the unfiltered repetition penalty text
+- Added: story mode
+- Changed: default settings
+- Fixed: various problems with adventure mode text
+
+
 ## v0.3.0 (July 3, 2022)
 
 - Added: option to stop the generation on `.`, `!` or `?`.
