@@ -496,7 +496,7 @@ class ChatInput extends StatelessWidget {
             }
           }
         ),
-        contentPadding: const EdgeInsets.only(left: 5, bottom: 0, right: 0, top: 15)
+        contentPadding: const EdgeInsets.only(left: 5, top: 15)
       ),
       maxLines: 5,
       minLines: 1,

@@ -57,10 +57,8 @@ AI can't generate the player actions,
 but you can write the story.
 
 It's preferable to prefix all player's actions with "You",
-e.g. "You pat the goblin." instead of just "Pat the goblin."
-
-**NOTE:** Neodim Chat is not adequately designed for this mode,
-so you may experience some bugs and other weird behavior.
+e.g. "You pat the goblin." instead of just "Pat the goblin.",
+but it really depends on the model.
 
 **An example of the adventure mode**
 

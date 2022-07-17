@@ -191,24 +191,24 @@ class HelpPageState extends State<HelpPage> {
       icon: Icons.help,
       htmlFunc: (context) async => '''
         <h1 style="text-align: center">Manual</h1>
-        
+
         <p>
           This is a client application that can be used together with
           <a href="$serverBaseUrl">Neodim Server</a>.
           Before using Neodim Chat, make sure that Neodim Server is up and running,
           and accessible via LAN IP (e.g. 192.168.1.123).
         </p>
-        
+
         <h2>Settings</h2>
-        
+
         <p>
           The chat will be between two participants.
-          You can write for any of them, and Neodim Server can write for any of them too. 
+          You can write for any of them, and Neodim Server can write for any of them too.
         </p>
 
         <p>
           Below are explanations for the settings for a conversation.
-          Some parameters represent paramenters for Neodim Server,
+          Some parameters represent parameters for Neodim Server,
           so you can find an additional information about them on
           <a href="$serverBaseUrl">Neodim Server's website</a>.
           It is advisable to read all Neodim Server documentation before using Neodim Chat.
@@ -244,9 +244,9 @@ class HelpPageState extends State<HelpPage> {
             <strong>Person color</strong> - the color of the participant's speech bubble.
           </li>
         </ul>
-        
+
         <h3>Configuration</h3>
-        <ul>   
+        <ul>
           <li>
             <strong>API endpoint</strong> - the full URL that points to your Neodim Server instance.
             Must contain the protocol, the port and the "/generate" part,
@@ -300,7 +300,7 @@ class HelpPageState extends State<HelpPage> {
             <a href="$serverBaseUrl#repetition_penalty_range-int-optional-default0">more info</a>
           </li>
           <li>
-            <strong>Repetition penalty slope</strong> - 
+            <strong>Repetition penalty slope</strong> -
             <a href="$serverBaseUrl#repetition_penalty_slope-float-optional">more info</a>
           </li>
           <li>
@@ -345,16 +345,16 @@ class HelpPageState extends State<HelpPage> {
         <h2>Controls</h2>
         Below is the list of the controls that are located below the input field.
         The controls are listed from left to right.
-        
+
         <h3>Chat mode</h3>
-        
+
         <h4>First row</h4>
         <ul>
           <li>Undo - removes the last message.</li>
           <li>Redo - restores the previously removed message.</li>
           <li>Retry - generates new text for the last message.</li>
         </ul>
-        
+
         <h4>Second row</h4>
         <ul>
           <li>Generate new message for the second (left) participant.</li>
@@ -362,20 +362,20 @@ class HelpPageState extends State<HelpPage> {
           <li>Add the user text (in the input field) to the second (left) participant.</li>
           <li>Add the user text (in the input field) to the first (right) participant.</li>
         </ul>
-        
+
         You can also press the send button in the input field
         or the send button on your keyboard to add currently edited text in the input field
         to the chat and start generating a reply.
-        
+
         <h3>Adventure mode</h3>
-        
+
         <h4>First row</h4>
         <ul>
           <li>Undo - removes the last message.</li>
           <li>Redo - restores the removed message.</li>
           <li>Retry - generates new text for the last message.</li>
         </ul>
-        
+
         <h4>Second row</h4>
         <ul>
           <li>Generate new potion of the story.</li>
@@ -458,7 +458,7 @@ class HelpPageState extends State<HelpPage> {
           Tap on a library name to go to its website.
           Tap on a license name to read the license text online.
         </p>
-        
+
         <table>
           <thead>
             <tr>
@@ -487,14 +487,14 @@ class HelpPageState extends State<HelpPage> {
           ])}
           </tbody>
         </table>
-       
+
         <h2>Assets</h2>
         <p>
           Below is the list of all assets that are directly used by {appTitle}.
           Some libraries that are used in {appTitle} may contain and/otr use other assets.
           Tap on an asset name to go to its website. Tap on a license name to read the license text online.
         </p>
-        
+
         <table>
           <thead>
             <tr>
