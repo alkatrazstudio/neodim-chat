@@ -18,8 +18,8 @@ class ConfigModel extends ChangeNotifier {
   @JsonKey(defaultValue: 1024)
   int maxTotalTokens = 1024;
 
-  @JsonKey(defaultValue: 0.7)
-  double temperature = 0.7;
+  @JsonKey(defaultValue: 0.85)
+  double temperature = 0.85;
 
   @JsonKey(defaultValue: 0)
   double topP = 0;
@@ -27,11 +27,11 @@ class ConfigModel extends ChangeNotifier {
   @JsonKey(defaultValue: 0)
   int topK = 0;
 
-  @JsonKey(defaultValue: 0.95)
-  double tfs = 0.95;
+  @JsonKey(defaultValue: 0.85)
+  double tfs = 0.85;
 
-  @JsonKey(defaultValue: 0)
-  double typical = 0;
+  @JsonKey(defaultValue: 0.35)
+  double typical = 0.35;
 
   @JsonKey(defaultValue: 0)
   double topA = 0;
@@ -39,14 +39,14 @@ class ConfigModel extends ChangeNotifier {
   @JsonKey(defaultValue: NeodimWarper.defaultOrder)
   List<String> warpersOrder = NeodimWarper.defaultOrder;
 
-  @JsonKey(defaultValue: 1.25)
-  double repetitionPenalty = 1.25;
+  @JsonKey(defaultValue: 1.5)
+  double repetitionPenalty = 1.5;
 
   @JsonKey(defaultValue: 0)
-  int repetitionPenaltyRange = 512;
+  int repetitionPenaltyRange = 1024;
 
-  @JsonKey(defaultValue: 1)
-  double repetitionPenaltySlope = 1;
+  @JsonKey(defaultValue: 0.5)
+  double repetitionPenaltySlope = 0.5;
 
   @JsonKey(defaultValue: false)
   bool repetitionPenaltyIncludePreamble = false;

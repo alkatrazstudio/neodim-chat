@@ -23,8 +23,8 @@ class NeodimWarper {
     temperature,
     topK,
     topP,
-    typical,
     tfs,
+    typical,
     topA
   ];
 }
