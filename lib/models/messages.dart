@@ -20,11 +20,10 @@ class Message {
     required this.isGenerated
   });
 
+  static const int noneIndex = -1;
   static const int youIndex = 0;
   static const int dmIndex = 1;
-  static const int commentIndex = -1;
 
-  bool get isComment => authorIndex == commentIndex;
   bool get isYou => authorIndex == youIndex;
 
   @JsonKey(defaultValue: '')
@@ -97,7 +96,6 @@ class Participant {
 @JsonSerializable(explicitToJson: true)
 class MessagesModel extends ChangeNotifier {
   static const String messageSeparator = '\n';
-  static const String commentSeparator = '\n\n';
   static const String actionSeparator = '\n\n';
   static const String actionPrompt = '>';
   static const String sequenceEnd = '<|endoftext|>';
@@ -111,13 +109,11 @@ class MessagesModel extends ChangeNotifier {
     const Participant(name: 'Bot', color: Colors.indigoAccent)
   ];
 
-  Message? get lastNonComment => messages.lastWhereOrNull((m) => m.authorIndex != Message.commentIndex);
-  int get lastParticipantIndex => lastNonComment?.authorIndex ?? Message.commentIndex;
-  int get lastNonCommentParticipantIndex => lastNonComment?.authorIndex ?? getNextParticipantIndex(Message.youIndex);
+  int get lastParticipantIndex => messages.lastOrNull?.authorIndex ?? Message.noneIndex;
   bool get lastIsYou => lastParticipantIndex == Message.youIndex;
 
   int get nextParticipantIndex {
-    if(lastParticipantIndex == Message.commentIndex)
+    if(lastParticipantIndex == Message.noneIndex)
       return Message.youIndex;
     var nextIndex = lastParticipantIndex + 1;
     if(nextIndex < participants.length)
@@ -149,16 +145,8 @@ class MessagesModel extends ChangeNotifier {
 
   String getTextForChat(List<Message> msgs) {
     var s = '';
-    for(var m in msgs) {
-      if(m.isComment) {
-        if(s.isNotEmpty)
-          s += commentSeparator;
-        s += m.text;
-        s += commentSeparator;
-      } else {
-        s += '${participants[m.authorIndex].name}: ${m.text}$messageSeparator';
-      }
-    }
+    for(var m in msgs)
+      s += '${participants[m.authorIndex].name}: ${m.text}$messageSeparator';
     return s;
   }
 
@@ -205,24 +193,19 @@ class MessagesModel extends ChangeNotifier {
     var isPrevStory = false;
     var isPrevEmpty = false;
     for(var m in msgs) {
-      if(m.isComment) {
-        s += '$commentSeparator${m.text}$messageSeparator';
+      if(m.isYou) {
+        s += '$actionSeparator$actionPrompt ${m.text}';
         isPrevStory = false;
       } else {
-        if(m.isYou) {
-          s += '$actionSeparator$actionPrompt ${m.text}';
-          isPrevStory = false;
+        if(isPrevStory && m.text.isNotEmpty) {
+          if(!isPrevEmpty)
+            s += ' ';
+          s += m.text;
         } else {
-          if(isPrevStory && m.text.isNotEmpty) {
-            if(!isPrevEmpty)
-              s += ' ';
-            s += m.text;
-          } else {
-            s += '$messageSeparator${m.text}';
-          }
-          isPrevEmpty = m.text.isEmpty;
-          isPrevStory = true;
+          s += '$messageSeparator${m.text}';
         }
+        isPrevEmpty = m.text.isEmpty;
+        isPrevStory = true;
       }
     }
     if(!isPrevStory && s.isNotEmpty)
