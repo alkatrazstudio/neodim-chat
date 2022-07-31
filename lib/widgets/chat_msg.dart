@@ -28,6 +28,7 @@ class ChatMsg extends StatelessWidget {
     double opacity = isUsed ? 1 : 0.5;
 
     return Bubble(
+      key: UniqueKey(), // do not cache (otherwise it keeps the old color)
       margin: const BubbleEdges.only(top: 10),
       alignment: msg.isYou ? Alignment.topRight : Alignment.topLeft,
       nip: msg.isYou ? BubbleNip.rightBottom : BubbleNip.leftBottom,
