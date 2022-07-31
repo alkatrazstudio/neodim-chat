@@ -23,10 +23,37 @@ class Chat extends StatefulWidget {
   State<Chat> createState() => ChatState();
 }
 
+class GeneratedResult {
+  const GeneratedResult({
+    required this.text,
+    this.preText = ''
+  });
+
+  static const GeneratedResult empty = GeneratedResult(text: '');
+
+  static GeneratedResult fromRawOutput(String output, bool chatFormat) {
+    var rx = RegExp(r'[\.\!\?\,\:\;\-\)\*\"]+\s+');
+    var match = rx.matchAsPrefix(output);
+    if(match == null) {
+      rx = RegExp(r'[\.\!\?\,\:\;\-\)\*]*');
+      match = rx.matchAsPrefix(output);
+    }
+    var preText = match?.group(0) ?? '';
+    var text = output.substring(preText.length);
+    return GeneratedResult(
+      text: Message.format(text, chatFormat),
+      preText: preText.trimRight()
+    );
+  }
+
+  final String text;
+  final String preText;
+}
+
 class ChatState extends State<Chat> {
   final inputController = TextEditingController();
 
-  List<String> retryCache = [];
+  List<GeneratedResult> retryCache = [];
   String aiInputForRetryCache = '';
 
   Future submit(BuildContext context, int authorIndex) async {
@@ -87,19 +114,19 @@ class ChatState extends State<Chat> {
     }
   }
 
-  Future<String> getGenerated(BuildContext context, int participantIndex) async {
+  Future<GeneratedResult> getGenerated(BuildContext context, int participantIndex) async {
     var convModel = Provider.of<ConversationsModel>(context, listen: false);
     var curConv = convModel.current;
     if(curConv == null)
-      return '';
+      return GeneratedResult.empty;
     var msgModel = Provider.of<MessagesModel>(context, listen: false);
 
     var promptedParticipant = msgModel.participants[participantIndex];
     var aiInput = getAiInput(curConv, msgModel, promptedParticipant);
 
     if(aiInput == aiInputForRetryCache && retryCache.isNotEmpty) {
-      var text = retryCache.removeAt(0);
-      return text;
+      var result = retryCache.removeAt(0);
+      return result;
     }
 
     var cfgModel = Provider.of<ConfigModel>(context, listen: false);
@@ -113,35 +140,53 @@ class ChatState extends State<Chat> {
     var chatFormat = isChat || participantIndex == Message.youIndex;
 
     var nTries = isChat ? 3 : 1;
-    List<String> texts = [];
+    List<GeneratedResult> results = [];
     while(true) {
       try {
-        texts = await widget.generate(aiInput, repPenInput, promptedParticipant);
-        texts = texts
-          .map((text) => Message.format(text, chatFormat))
-          .where((text) => text.isNotEmpty)
+        var texts = await widget.generate(aiInput, repPenInput, promptedParticipant);
+        var isSingle = texts.length == 1;
+        results = texts
+          .map((text) => isSingle
+            ? GeneratedResult.fromRawOutput(text, chatFormat)
+            : GeneratedResult(text: Message.format(text, chatFormat))
+          )
+          .where((result) => result.text.isNotEmpty)
           .toSet().toList();
-        if(texts.isNotEmpty || nTries <= 1)
+        if(results.isNotEmpty || nTries <= 1)
           break;
         nTries--;
       } catch(e) {
-        texts = [e.toString().replaceAll('\n', '')];
+        results = [GeneratedResult(text: e.toString().replaceAll('\n', ''))];
         break;
       }
     }
 
-    if(texts.isEmpty)
-      return '';
+    if(results.isEmpty)
+      return GeneratedResult.empty;
 
-    var text = texts.removeAt(0);
-    retryCache = texts;
-    return text;
+    var result = results.removeAt(0);
+    retryCache = results;
+    return result;
   }
 
   Future addGenerated(BuildContext context, int authorIndex) async {
     var msgModel = Provider.of<MessagesModel>(context, listen: false);
-    var text = await getGenerated(context, authorIndex);
-    msgModel.addText(text, true, authorIndex);
+    var curConv = Provider.of<ConversationsModel>(context, listen: false).current;
+    if(curConv == null)
+      return;
+
+    var result = await getGenerated(context, authorIndex);
+    var lastMsg = msgModel.messages.lastOrNull;
+    if(
+      lastMsg != null
+      && result.preText.isNotEmpty
+      && lastMsg.authorIndex == authorIndex
+      && curConv.type != Conversation.typeChat
+    ) {
+      msgModel.setText(lastMsg, lastMsg.text + result.preText, false);
+    }
+
+    msgModel.addText(result.text, true, authorIndex);
     await ConversationsModel.saveCurrentData(context);
   }
 
