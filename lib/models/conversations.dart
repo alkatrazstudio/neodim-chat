@@ -115,6 +115,29 @@ class Conversation {
     await f.delete();
   }
 
+  static String getCurrentPrompt(BuildContext context) {
+    var curConv = Provider.of<ConversationsModel>(context).current;
+    if(curConv == null)
+      return '';
+
+    var msgModel = Provider.of<MessagesModel>(context);
+
+    switch(curConv.type)
+    {
+      case Conversation.typeChat:
+        return msgModel.chatText;
+
+      case Conversation.typeAdventure:
+        return msgModel.adventureText;
+
+      case Conversation.typeStory:
+        return msgModel.storyText;
+
+      default:
+        return '';
+    }
+  }
+
   static Conversation fromJson(Map<String, dynamic> json) {
     json['type'] ??= typeChat;
     json['createdAt'] ??= DateTime.fromMicrosecondsSinceEpoch(0).toIso8601String();
