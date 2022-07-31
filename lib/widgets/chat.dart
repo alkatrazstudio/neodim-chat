@@ -288,7 +288,6 @@ class ChatButtons extends StatefulWidget {
 class _ChatButtonsState extends State<ChatButtons> {
   final List<UndoItem> undoQueue = [];
   Conversation? undoConversation;
-  var msgCountToUndo = -1;
 
   @override
   Widget build(BuildContext context) {
@@ -300,7 +299,7 @@ class _ChatButtonsState extends State<ChatButtons> {
     var neodimModel = Provider.of<NeodimModel>(context);
     var cfgModel = Provider.of<ConfigModel>(context);
 
-    if(msgModel.messages.length != msgCountToUndo || undoConversation != curConv)
+    if(undoConversation != curConv)
       undoQueue.clear();
 
     List<List<Widget>> buttonRows;
@@ -361,7 +360,6 @@ class _ChatButtonsState extends State<ChatButtons> {
       if(pos <= 0) {
         undoBySentence = false;
       } else {
-        msgCountToUndo = msgModel.messages.length;
         undoItem = UndoItem(text: undoText);
         var newText = lastMsg.text.substring(0, lastMsg.text.length - undoText.length);
         msgModel.setText(lastMsg, newText, false);
@@ -369,8 +367,6 @@ class _ChatButtonsState extends State<ChatButtons> {
     }
 
     if(!undoBySentence) {
-      msgCountToUndo = msgModel.messages.length - 1;
-
       var msg = msgModel.removeLast();
       if(msg == null)
         return null;
@@ -401,10 +397,8 @@ class _ChatButtonsState extends State<ChatButtons> {
         setState(() {
           var undoItem = undoQueue.removeLast();
           if(undoItem.message != null) {
-            msgCountToUndo = msgModel.messages.length + 1;
             msgModel.add(undoItem.message!);
           } else if(undoItem.text != null) {
-            msgCountToUndo = msgModel.messages.length;
             var lastMsg = msgModel.messages.lastOrNull;
             if(lastMsg != null)
               msgModel.setText(lastMsg, lastMsg.text + undoItem.text!, false);
