@@ -264,11 +264,11 @@ class ChatState extends State<Chat> {
 
 class UndoItem {
   UndoItem({
-    this.message,
+    required this.message,
     this.text
   });
 
-  final Message? message;
+  final Message message;
   final String? text;
 }
 
@@ -360,7 +360,7 @@ class _ChatButtonsState extends State<ChatButtons> {
       if(pos <= 0) {
         undoBySentence = false;
       } else {
-        undoItem = UndoItem(text: undoText);
+        undoItem = UndoItem(message: lastMsg, text: undoText);
         var newText = lastMsg.text.substring(0, lastMsg.text.length - undoText.length);
         msgModel.setText(lastMsg, newText, false);
       }
@@ -396,12 +396,16 @@ class _ChatButtonsState extends State<ChatButtons> {
       onPressed: undoQueue.isEmpty ? null : () async {
         setState(() {
           var undoItem = undoQueue.removeLast();
-          if(undoItem.message != null) {
-            msgModel.add(undoItem.message!);
-          } else if(undoItem.text != null) {
+          if(undoItem.text != null) {
             var lastMsg = msgModel.messages.lastOrNull;
-            if(lastMsg != null)
-              msgModel.setText(lastMsg, lastMsg.text + undoItem.text!, false);
+            if(lastMsg != null) {
+              if(lastMsg.authorIndex == undoItem.message.authorIndex)
+                msgModel.setText(lastMsg, lastMsg.text + undoItem.text!, false);
+              else
+                msgModel.addText(undoItem.text!.trim(), undoItem.message.isGenerated, undoItem.message.authorIndex);
+            }
+          } else {
+            msgModel.add(undoItem.message);
           }
         });
         await ConversationsModel.saveCurrentData(context);
