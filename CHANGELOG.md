@@ -1,6 +1,16 @@
 # Neodim Chat - CHANGELOG
 
 
+## v0.5.0 (July 31, 2022)
+
+- Added: ability to undo the text by sentence
+- Changed: the leading punctuation is now not lost in the adventure/story mode
+- Changed: the undo stack is now not auto-cleared
+- Changed: default settings
+- Fixed: some auto-correction rules
+- Fixed: participant colors are not updated right away
+
+
 ## v0.4.0 (July 17, 2022)
 
 - Added: support for typical sampling
