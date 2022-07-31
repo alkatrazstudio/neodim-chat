@@ -72,6 +72,9 @@ class ConfigModel extends ChangeNotifier {
   @JsonKey(defaultValue: false)
   bool stopOnPunctuation = false;
 
+  @JsonKey(defaultValue: false)
+  bool undoBySentence = false;
+
   String get inputPreamble {
     var s = preamble.trim();
     if(s.isEmpty)
@@ -184,6 +187,11 @@ class ConfigModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setUndoBySentence(bool newUndoBySentence) {
+    undoBySentence = newUndoBySentence;
+    notifyListeners();
+  }
+
   void load(ConfigModel other) {
     apiEndpoint = other.apiEndpoint;
     generatedTokensCount = other.generatedTokensCount;
@@ -205,6 +213,7 @@ class ConfigModel extends ChangeNotifier {
     repetitionPenaltyLinesWithNoExtraSymbols = other.repetitionPenaltyLinesWithNoExtraSymbols;
     repetitionPenaltyKeepOriginalPrompt = other.repetitionPenaltyKeepOriginalPrompt;
     stopOnPunctuation = other.stopOnPunctuation;
+    undoBySentence = other.undoBySentence;
 
     notifyListeners();
   }

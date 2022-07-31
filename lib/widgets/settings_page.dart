@@ -337,6 +337,11 @@ class SettingsPage extends StatelessWidget {
           label: 'Stop the generation on ".", "!", "?"',
           initialValue: cfgModel.stopOnPunctuation,
           onSaved: (val) => cfgModel.setStopOnPunctuation(val ?? false)
+        ),
+        CardSettingsSwitch(
+          label: 'Undo the text up to ".", "!", "?"',
+          initialValue: cfgModel.undoBySentence,
+          onSaved: (val) => cfgModel.setUndoBySentence(val ?? false)
         )
       ]
     );

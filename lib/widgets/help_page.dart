@@ -340,6 +340,11 @@ class HelpPageState extends State<HelpPage> {
             stops generating the text if any of these punctuation symbols are met.
             It may help to generate messages with models than have problems with newlines (e.g. XGLM or OPT).
           </li>
+          <li>
+            <strong>Undo the text up to ".", "!", "?"</strong> -
+            when pressing the Undo button, only the last sentence will be removed,
+            not the whole message.
+          </li>
         </ul>
 
         <h2>Controls</h2>

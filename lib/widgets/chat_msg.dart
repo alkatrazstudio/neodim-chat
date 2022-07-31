@@ -48,7 +48,7 @@ class ChatMsg extends StatelessWidget {
           if(result.doDelete)
             messages.remove(msg);
           else
-            messages.setText(msg, result.text);
+            messages.setText(msg, result.text, true);
           await ConversationsModel.saveCurrentData(context);
         }
       )

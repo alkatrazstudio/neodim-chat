@@ -289,12 +289,12 @@ class MessagesModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setText(Message m, String newText) {
+  void setText(Message m, String newText, bool unsetGenerated) {
     var i = messages.indexOf(m);
     if(i < 0)
       return;
 
-    m = Message(text: newText, authorIndex: m.authorIndex, isGenerated: false);
+    m = Message(text: newText, authorIndex: m.authorIndex, isGenerated: !unsetGenerated && m.isGenerated);
     messages[i] = m;
     notifyListeners();
   }

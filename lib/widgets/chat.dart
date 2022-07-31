@@ -3,6 +3,7 @@
 
 import 'package:flutter/material.dart';
 
+import 'package:collection/collection.dart';
 import 'package:provider/provider.dart';
 
 import '../models/config.dart';
@@ -216,6 +217,16 @@ class ChatState extends State<Chat> {
   }
 }
 
+class UndoItem {
+  UndoItem({
+    this.message,
+    this.text
+  });
+
+  final Message? message;
+  final String? text;
+}
+
 class ChatButtons extends StatefulWidget {
   const ChatButtons({
     required this.addGenerated,
@@ -230,7 +241,7 @@ class ChatButtons extends StatefulWidget {
 }
 
 class _ChatButtonsState extends State<ChatButtons> {
-  final List<Message> undoQueue = [];
+  final List<UndoItem> undoQueue = [];
   Conversation? undoConversation;
   var msgCountToUndo = -1;
 
@@ -242,6 +253,7 @@ class _ChatButtonsState extends State<ChatButtons> {
       return const SizedBox.shrink();
     var msgModel = Provider.of<MessagesModel>(context);
     var neodimModel = Provider.of<NeodimModel>(context);
+    var cfgModel = Provider.of<ConfigModel>(context);
 
     if(msgModel.messages.length != msgCountToUndo || undoConversation != curConv)
       undoQueue.clear();
@@ -249,15 +261,15 @@ class _ChatButtonsState extends State<ChatButtons> {
     List<List<Widget>> buttonRows;
     switch(curConv.type) {
       case Conversation.typeChat:
-        buttonRows = chatButtons(context, msgModel, curConv, neodimModel);
+        buttonRows = chatButtons(context, msgModel, curConv, neodimModel, cfgModel);
         break;
 
       case Conversation.typeAdventure:
-        buttonRows = adventureButtons(context, msgModel, curConv, neodimModel);
+        buttonRows = adventureButtons(context, msgModel, curConv, neodimModel, cfgModel);
         break;
 
       case Conversation.typeStory:
-        buttonRows = storyButtons(context, msgModel, curConv, neodimModel);
+        buttonRows = storyButtons(context, msgModel, curConv, neodimModel, cfgModel);
         break;
 
       default:
@@ -272,25 +284,67 @@ class _ChatButtonsState extends State<ChatButtons> {
     );
   }
 
-  Future<Message?> undo(MessagesModel msgModel, Conversation curConv) async {
-    msgCountToUndo = msgModel.messages.length - 1;
-    var msg = msgModel.removeLast();
-    if(msg == null)
+  Future<UndoItem?> undo(MessagesModel msgModel, ConfigModel cfgModel, Conversation curConv, bool forRetry) async {
+    var lastMsg = msgModel.messages.lastOrNull;
+    if(lastMsg == null)
       return null;
+
+    var undoBySentence = !forRetry && cfgModel.undoBySentence && lastMsg.text.isNotEmpty;
+    late UndoItem undoItem;
+    if(undoBySentence) {
+      var pos = lastMsg.text.length - 1;
+      var hasNonStop = false;
+      var undoText = '';
+      while(pos >= 0) {
+        var char = lastMsg.text[pos];
+        var stopBeforeQuote =
+          (char == '"' || char == "'")
+            &&
+          pos > 0
+            &&
+          (lastMsg.text[pos - 1] == '.' || lastMsg.text[pos - 1] == '?' || lastMsg.text[pos - 1] == '!');
+        if(stopBeforeQuote || char == '.' || char == '?' || char == '!') {
+          if(hasNonStop)
+            break;
+        } else {
+          hasNonStop = true;
+        }
+        undoText = char + undoText;
+        pos--;
+      }
+
+      if(pos <= 0) {
+        undoBySentence = false;
+      } else {
+        msgCountToUndo = msgModel.messages.length;
+        undoItem = UndoItem(text: undoText);
+        var newText = lastMsg.text.substring(0, lastMsg.text.length - undoText.length);
+        msgModel.setText(lastMsg, newText, false);
+      }
+    }
+
+    if(!undoBySentence) {
+      msgCountToUndo = msgModel.messages.length - 1;
+
+      var msg = msgModel.removeLast();
+      if(msg == null)
+        return null;
+      undoItem = UndoItem(message: msg);
+    }
 
     setState(() {
       undoConversation = curConv;
-      undoQueue.add(msg);
+      undoQueue.add(undoItem);
     });
 
     await ConversationsModel.saveCurrentData(context);
-    return msg;
+    return undoItem;
   }
 
-  Widget btnUndo(BuildContext context, MessagesModel msgModel, Conversation curConv) {
+  Widget btnUndo(BuildContext context, MessagesModel msgModel, ConfigModel cfgModel, Conversation curConv) {
     return IconButton(
       onPressed: msgModel.messages.isEmpty ? null : () async {
-        await undo(msgModel, curConv);
+        await undo(msgModel, cfgModel, curConv, false);
       },
       icon: const Icon(Icons.undo)
     );
@@ -300,9 +354,16 @@ class _ChatButtonsState extends State<ChatButtons> {
     return IconButton(
       onPressed: undoQueue.isEmpty ? null : () async {
         setState(() {
-          msgCountToUndo = msgModel.messages.length + 1;
-          var msg = undoQueue.removeLast();
-          msgModel.add(msg);
+          var undoItem = undoQueue.removeLast();
+          if(undoItem.message != null) {
+            msgCountToUndo = msgModel.messages.length + 1;
+            msgModel.add(undoItem.message!);
+          } else if(undoItem.text != null) {
+            msgCountToUndo = msgModel.messages.length;
+            var lastMsg = msgModel.messages.lastOrNull;
+            if(lastMsg != null)
+              msgModel.setText(lastMsg, lastMsg.text + undoItem.text!, false);
+          }
         });
         await ConversationsModel.saveCurrentData(context);
       },
@@ -310,10 +371,11 @@ class _ChatButtonsState extends State<ChatButtons> {
     );
   }
 
-  Widget btnRetry(BuildContext context, MessagesModel msgModel, Conversation curConv, NeodimModel neodimModel) {
+  Widget btnRetry(BuildContext context, MessagesModel msgModel, ConfigModel cfgModel, Conversation curConv, NeodimModel neodimModel) {
     return IconButton(
       onPressed: (neodimModel.isApiRunning || msgModel.generatedAtEnd == null) ? null : () async {
-        var msg = await undo(msgModel, curConv);
+        var undoItem = await undo(msgModel, cfgModel, curConv, true);
+        var msg = undoItem?.message;
         if(msg == null)
           return;
         widget.addGenerated(msg.authorIndex);
@@ -322,11 +384,17 @@ class _ChatButtonsState extends State<ChatButtons> {
     );
   }
 
-  List<List<Widget>> chatButtons(BuildContext context, MessagesModel msgModel, Conversation curConv, NeodimModel neodimModel) {
+  List<List<Widget>> chatButtons(
+      BuildContext context,
+      MessagesModel msgModel,
+      Conversation curConv,
+      NeodimModel neodimModel,
+      ConfigModel cfgModel
+    ) {
     return [[
-      btnUndo(context, msgModel, curConv),
+      btnUndo(context, msgModel, cfgModel, curConv),
       btnRedo(context, msgModel),
-      btnRetry(context, msgModel, curConv, neodimModel),
+      btnRetry(context, msgModel, cfgModel, curConv, neodimModel)
     ], [
       IconButton(
         onPressed: neodimModel.isApiRunning ? null : () {
@@ -361,11 +429,17 @@ class _ChatButtonsState extends State<ChatButtons> {
     ]];
   }
 
-  List<List<Widget>> adventureButtons(BuildContext context, MessagesModel msgModel, Conversation curConv, NeodimModel neodimModel) {
+  List<List<Widget>> adventureButtons(
+    BuildContext context,
+    MessagesModel msgModel,
+    Conversation curConv,
+    NeodimModel neodimModel,
+    ConfigModel cfgModel
+  ) {
     return [[
-      btnUndo(context, msgModel, curConv),
+      btnUndo(context, msgModel, cfgModel, curConv),
       btnRedo(context, msgModel),
-      btnRetry(context, msgModel, curConv, neodimModel)
+      btnRetry(context, msgModel, cfgModel, curConv, neodimModel)
     ], [
       IconButton(
         onPressed: (neodimModel.isApiRunning || msgModel.messages.isEmpty) ? null : () {
@@ -385,7 +459,13 @@ class _ChatButtonsState extends State<ChatButtons> {
     ]];
   }
 
-  List<List<Widget>> storyButtons(BuildContext context, MessagesModel msgModel, Conversation curConv, NeodimModel neodimModel) {
+  List<List<Widget>> storyButtons(
+    BuildContext context,
+    MessagesModel msgModel,
+    Conversation curConv,
+    NeodimModel neodimModel,
+    ConfigModel cfgModel
+  ) {
     return [[
       IconButton(
         onPressed: (neodimModel.isApiRunning || msgModel.messages.isEmpty) ? null : () {
@@ -393,9 +473,9 @@ class _ChatButtonsState extends State<ChatButtons> {
         },
         icon: const Icon(Icons.speaker_notes_outlined)
       ),
-      btnUndo(context, msgModel, curConv),
+      btnUndo(context, msgModel, cfgModel, curConv),
       btnRedo(context, msgModel),
-      btnRetry(context, msgModel, curConv, neodimModel)
+      btnRetry(context, msgModel, cfgModel, curConv, neodimModel)
     ]];
   }
 }
