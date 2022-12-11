@@ -61,7 +61,7 @@ class Message {
     text = text.replaceAllMapped(RegExp(r'\b(can|won|don|haven|couldn|shouldn|wouldn|mustn|didn|aren|isn|wasn)(t)\b', caseSensitive: false), (m) => "${m[1]}'${m[2]}");
     text = text.replaceAllMapped(RegExp(r'\b(you|she|they|that|this)(ll)\b', caseSensitive: false), (m) => "${m[1]}'${m[2]}");
     text = text.replaceAllMapped(RegExp(r'\b(you|he|they|i|that)(d)\b', caseSensitive: false), (m) => "${m[1]}'${m[2]}");
-    text = text.replaceAllMapped(RegExp(r'\b(he|she|that|what|where|who|she|he|there)(s)\b', caseSensitive: false), (m) => "${m[1]}'${m[2]}");
+    text = text.replaceAllMapped(RegExp(r'\b(he|she|that|what|where|who|there)(s)\b', caseSensitive: false), (m) => "${m[1]}'${m[2]}");
     text = text.replaceAllMapped(RegExp(r'\b(you|they)(re)\b', caseSensitive: false), (m) => "${m[1]}'${m[2]}");
     text = text.replaceAllMapped(RegExp(r'\b(would|should|you|could|must|we|i)(ve)\b', caseSensitive: false), (m) => "${m[1]}'${m[2]}");
     text = text.replaceAllMapped(RegExp(r'\b(m)(r|s|rs)(\.?)\b', caseSensitive: false), (m) => '${m[1]?.toUpperCase()}${m[2]}${m[3] ?? '.'}');
