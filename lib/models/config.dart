@@ -66,8 +66,8 @@ class ConfigModel extends ChangeNotifier {
   @JsonKey(defaultValue: 5)
   int repetitionPenaltyLinesWithNoExtraSymbols = 5;
 
-  @JsonKey(defaultValue: false)
-  bool repetitionPenaltyKeepOriginalPrompt = false;
+  @JsonKey(defaultValue: true)
+  bool repetitionPenaltyKeepOriginalPrompt = true;
 
   @JsonKey(defaultValue: false)
   bool stopOnPunctuation = false;
