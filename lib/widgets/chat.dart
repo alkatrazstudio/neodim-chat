@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // 🄯 2022, Alexey Parfenov <zxed@alkatrazstudio.net>
 
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 
 import 'package:collection/collection.dart';
@@ -26,10 +28,13 @@ class Chat extends StatefulWidget {
 class GeneratedResult {
   const GeneratedResult({
     required this.text,
-    this.preText = ''
+    this.preText = '',
+    this.isError = false
   });
 
   static const GeneratedResult empty = GeneratedResult(text: '');
+
+  bool get isEmpty => text.isEmpty && preText.isEmpty;
 
   static GeneratedResult fromRawOutput(String output, bool chatFormat) {
     var rx = RegExp(r'[\.\!\?\,\:\;\-\)\*\"]+\s+');
@@ -48,6 +53,7 @@ class GeneratedResult {
 
   final String text;
   final String preText;
+  final bool isError;
 }
 
 class ChatState extends State<Chat> {
@@ -55,6 +61,7 @@ class ChatState extends State<Chat> {
 
   List<GeneratedResult> retryCache = [];
   String aiInputForRetryCache = '';
+  Conversation? generatingForConv;
 
   Future submit(BuildContext context, int authorIndex) async {
     var msgModel = Provider.of<MessagesModel>(context, listen: false);
@@ -71,13 +78,13 @@ class ChatState extends State<Chat> {
     await ConversationsModel.saveCurrentData(context);
   }
 
-  String getAiInput(Conversation c, MessagesModel msgModel, Participant nextParticipant) {
+  String getAiInput(Conversation c, MessagesModel msgModel, Participant nextParticipant, int nextParticipantIndex) {
     switch(c.type) {
       case Conversation.typeChat:
         return msgModel.getAiInputForChat(msgModel.messages, nextParticipant);
 
       case Conversation.typeAdventure:
-        return msgModel.aiInputForAdventure;
+        return msgModel.getAiInputForAdventure(msgModel.messages, nextParticipantIndex);
 
       case Conversation.typeStory:
         return msgModel.aiInputForStory;
@@ -122,7 +129,7 @@ class ChatState extends State<Chat> {
     var msgModel = Provider.of<MessagesModel>(context, listen: false);
 
     var promptedParticipant = msgModel.participants[participantIndex];
-    var aiInput = getAiInput(curConv, msgModel, promptedParticipant);
+    var aiInput = getAiInput(curConv, msgModel, promptedParticipant, participantIndex);
 
     if(aiInput == aiInputForRetryCache && retryCache.isNotEmpty) {
       var result = retryCache.removeAt(0);
@@ -156,7 +163,10 @@ class ChatState extends State<Chat> {
           break;
         nTries--;
       } catch(e) {
-        results = [GeneratedResult(text: e.toString().replaceAll('\n', ''))];
+        results = [GeneratedResult(
+          text: e.toString().replaceAll('\n', ''),
+          isError: true
+        )];
         break;
       }
     }
@@ -176,6 +186,9 @@ class ChatState extends State<Chat> {
       return;
 
     var result = await getGenerated(context, authorIndex);
+    if(result.isEmpty)
+      return;
+
     var lastMsg = msgModel.messages.lastOrNull;
     if(
       lastMsg != null
@@ -188,6 +201,58 @@ class ChatState extends State<Chat> {
 
     msgModel.addText(result.text, true, authorIndex);
     await ConversationsModel.saveCurrentData(context);
+
+    if(generatingForConv != null && !result.isError)
+      nextAutoGen();
+
+    if(result.isError && generatingForConv != null && generatingForConv == curConv) {
+      setState(() {
+        generatingForConv = null;
+      });
+    }
+  }
+
+  Future nextAutoGen() async {
+    if(Provider.of<NeodimModel>(context, listen: false).isApiRunning)
+      return;
+    var convModel = Provider.of<ConversationsModel>(context, listen: false);
+    var curConv = convModel.current;
+    if(curConv != generatingForConv) {
+      setState(() {
+        generatingForConv = null;
+      });
+      return;
+    }
+    if(curConv == null)
+      return;
+    if(curConv != generatingForConv)
+      return;
+    var msgModel = Provider.of<MessagesModel>(context, listen: false);
+
+    var nextAuthorIndex = Message.storyIndex;
+    switch(curConv.type)
+    {
+      case Conversation.typeChat:
+        nextAuthorIndex = Random().nextInt(msgModel.participants.length);
+        if(nextAuthorIndex == msgModel.lastParticipantIndex)
+          nextAuthorIndex = Random().nextInt(msgModel.participants.length);
+        break;
+
+      case Conversation.typeAdventure:
+        nextAuthorIndex = msgModel.getNextParticipantIndex(null);
+        if(nextAuthorIndex == Message.youIndex && Random().nextDouble() < 0.6)
+          nextAuthorIndex = Message.dmIndex;
+        break;
+
+      case Conversation.typeStory:
+        nextAuthorIndex = Message.storyIndex;
+        break;
+
+      default:
+        return;
+    }
+
+    addGenerated(context, nextAuthorIndex);
   }
 
   @override
@@ -228,13 +293,25 @@ class ChatState extends State<Chat> {
         ),
 
         Consumer2<MessagesModel, ConversationsModel>(builder: (context, msgModel, convModel, child) {
-          if(convModel.current == null)
+          var curConv = convModel.current;
+          if(curConv == null)
             return const SizedBox.shrink();
 
           return ChatInput(
             addGenerated: (authorIndex) => addGenerated(context, authorIndex),
             submit: (authorIndex) => submit(context, authorIndex),
-            inputController: inputController
+            inputController: inputController,
+            isGenerating: generatingForConv == curConv,
+            onGeneratingSwitch: (newIsGenerating) {
+              setState(() {
+                if(newIsGenerating) {
+                  generatingForConv = curConv;
+                  nextAutoGen();
+                } else {
+                  generatingForConv = null;
+                }
+              });
+            }
           );
         }),
 
@@ -527,11 +604,15 @@ class ChatInput extends StatelessWidget {
   ChatInput({
     required this.addGenerated,
     required this.submit,
-    required this.inputController
+    required this.inputController,
+    required this.isGenerating,
+    required this.onGeneratingSwitch
   });
 
   final Function(int authorIndex) addGenerated;
   final Function(int authorIndex) submit;
+  final bool isGenerating;
+  final Function(bool isGenerating) onGeneratingSwitch;
   final TextEditingController inputController;
   final FocusNode focusNode = FocusNode();
 
@@ -593,31 +674,42 @@ class ChatInput extends StatelessWidget {
       },
       decoration: InputDecoration(
         hintText: nextParticipant.name,
-        suffixIcon: IconButton(
-          icon: const Icon(Icons.send),
-          onPressed: () {
-            if(neodimModel.isApiRunning)
-              return;
+        suffixIcon: GestureDetector(
+          onLongPress: () {
+            Feedback.forLongPress(context);
+            onGeneratingSwitch(!isGenerating);
+          },
+          child:IconButton(
+            icon: Icon(isGenerating ? Icons.fast_forward : Icons.send),
+            onPressed: () {
+              if(isGenerating) {
+                onGeneratingSwitch(false);
+                return;
+              }
 
-            var wasEmpty = inputController.text.isEmpty;
-            submit(nextParticipantIndex);
+              if(neodimModel.isApiRunning)
+                return;
 
-            switch(convModel.current?.type) {
-              case Conversation.typeChat:
-                var genParticipantIndex = msgModel.getNextParticipantIndex(null);
-                addGenerated(genParticipantIndex);
+              var wasEmpty = inputController.text.isEmpty;
+              submit(nextParticipantIndex);
+
+              switch(convModel.current?.type) {
+                case Conversation.typeChat:
+                  var genParticipantIndex = msgModel.getNextParticipantIndex(null);
+                  addGenerated(genParticipantIndex);
+                  break;
+
+                case Conversation.typeAdventure:
+                  addGenerated(Message.dmIndex);
+                  break;
+
+                case Conversation.typeStory:
+                  if(wasEmpty)
+                    addGenerated(Message.storyIndex);
                 break;
-
-              case Conversation.typeAdventure:
-                addGenerated(Message.dmIndex);
-                break;
-
-              case Conversation.typeStory:
-                if(wasEmpty)
-                  addGenerated(Message.storyIndex);
-              break;
+              }
             }
-          }
+          )
         ),
         contentPadding: const EdgeInsets.only(left: 5, top: 15)
       ),

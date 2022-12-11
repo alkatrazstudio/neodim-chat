@@ -413,6 +413,8 @@ class HelpPageState extends State<HelpPage> {
             If the main window is out of focus, then the message may not arrive.</li>
           <li>If the input field is empty then pressing the send button will
             generate a new reply in the chat mode or a new portion of the story in the adventure mode.</li>
+          <li>Long pressing the submit button will start a continuous generation.
+            It can be stopped by pressing the button again.</li>
         </ul>
       '''
     );

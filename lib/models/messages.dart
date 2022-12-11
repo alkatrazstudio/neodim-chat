@@ -120,7 +120,6 @@ class MessagesModel extends ChangeNotifier {
   String get chatText => getTextForChat(messages);
   String get adventureText => getTextForAdventure(messages);
   String get storyText => getTextForStory(messages);
-  String get aiInputForAdventure => adventureText;
   String get aiInputForStory => storyText;
   String get repetitionPenaltyTextForAdventure => getRepetitionPenaltyTextForAdventure(messages);
   String get repetitionPenaltyTextForStory => getRepetitionPenaltyTextForStory(messages);
@@ -178,6 +177,13 @@ class MessagesModel extends ChangeNotifier {
     var text = getTextForChat(msgs);
     var aiInput = text + getPromptForChat(promptedParticipant);
     return aiInput;
+  }
+
+  String getAiInputForAdventure(List<Message> msgs, int participantIndex) {
+     var text = getTextForAdventure(msgs);
+     if(participantIndex == Message.youIndex)
+       text = text + actionSeparator + actionPrompt;
+     return text;
   }
 
   String getTextForAdventure(List<Message> msgs) {
