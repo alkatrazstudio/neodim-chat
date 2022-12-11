@@ -101,6 +101,7 @@ class MessagesModel extends ChangeNotifier {
   static const String actionPrompt = '>';
   static const String sequenceEnd = '<|endoftext|>';
   static const List<String> sentenceStops = ['.', '!', '?'];
+  static const String sentenceStopsRx = r'(?i)(?<!\W(dr|esq|gen|hon|jr|mr|mrs|ms|messrs|mmes|msgr|prof|rev|rt|hon|sr|st|v))[\.\!\?\"](?=\s)';
 
   @JsonKey(defaultValue: <Message>[])
   List<Message> messages = [];

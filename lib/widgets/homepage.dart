@@ -18,8 +18,8 @@ import '../widgets/settings_page.dart';
 class HomePage extends StatelessWidget {
   String outputTextFromSequence(NeodimSequence s) {
     var text = s.generatedText;
-    if(MessagesModel.sentenceStops.contains(s.stopString))
-      text = text + s.stopString;
+    if(s.stopString == MessagesModel.sentenceStopsRx)
+      text = text + s.stopStringMatch;
     return text.trim();
   }
 
@@ -63,9 +63,13 @@ class HomePage extends StatelessWidget {
         default:
           return [];
       }
-      if(cfgModel.stopOnPunctuation)
-        stopStrings.addAll(MessagesModel.sentenceStops);
       stopStrings.add(MessagesModel.sequenceEnd);
+      var stopStringsType = StopStringsType.string;
+      if(cfgModel.stopOnPunctuation) {
+        stopStrings = stopStrings.map(RegExp.escape).toList();
+        stopStrings.add(MessagesModel.sentenceStopsRx);
+        stopStringsType = StopStringsType.regex;
+      }
 
       var request = NeodimRequest(
         prompt: inputText,
@@ -88,6 +92,7 @@ class HomePage extends StatelessWidget {
         repetitionPenaltyPrompt: repPenText,
         sequencesCount: 1 + cfgModel.extraRetries,
         stopStrings: stopStrings,
+        stopStringsType: stopStringsType,
         truncatePromptUntil: truncatePromptUntil
       );
       neodimModel.setRequest(request);

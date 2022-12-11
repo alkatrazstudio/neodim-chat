@@ -11,6 +11,11 @@ class NeodimRepPenGenerated {
   static const String slide = 'slide';
 }
 
+class StopStringsType {
+  static const String string = 'string';
+  static const String regex = 'regex';
+}
+
 class NeodimWarper {
   static const String temperature = 'temperature';
   static const String topK = 'top_k';
@@ -51,6 +56,8 @@ class NeodimRequest {
     this.preamble = '',
     this.sequencesCount = 1,
     this.stopStrings = const [],
+    this.stopStringsType = StopStringsType.string,
+    this.stopStringsRequiredMatchesCount = 1,
     this.truncatePromptUntil = const []
   });
 
@@ -74,6 +81,8 @@ class NeodimRequest {
   final String? repetitionPenaltyPrompt;
   final int sequencesCount;
   final List<String> stopStrings;
+  final String stopStringsType;
+  final int stopStringsRequiredMatchesCount;
   final List<String> truncatePromptUntil;
 
   Map<String, dynamic> toApiRequestMap() {
@@ -98,6 +107,8 @@ class NeodimRequest {
       'repetition_penalty_prompt': repetitionPenaltyPrompt,
       'sequences_count': sequencesCount,
       'stop_strings': stopStrings,
+      'stop_strings_type': stopStringsType,
+      'stop_strings_required_matches_count': stopStringsRequiredMatchesCount,
       'truncate_prompt_until': truncatePromptUntil
     };
   }
@@ -107,12 +118,14 @@ class NeodimSequence {
   const NeodimSequence({
     required this.generatedText,
     required this.stopString,
+    required this.stopStringMatch,
     required this.trimmedTail,
     required this.repetitionPenaltyTextAtEnd
   });
 
   final String generatedText;
   final String stopString;
+  final String stopStringMatch;
   final String trimmedTail;
   final String repetitionPenaltyTextAtEnd;
 
@@ -120,6 +133,7 @@ class NeodimSequence {
     return NeodimSequence(
         generatedText: data['generated_text'] as String,
         stopString: data['stop_string'] as String,
+        stopStringMatch: data['stop_string_match'] as String,
         trimmedTail: data['trimmed_tail'] as String,
         repetitionPenaltyTextAtEnd: data['repetition_penalty_text_at_end'] as String
     );
