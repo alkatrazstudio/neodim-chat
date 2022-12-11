@@ -131,11 +131,11 @@ class NeodimSequence {
 
   static NeodimSequence fromApiResponseMap(Map<String, dynamic> data) {
     return NeodimSequence(
-        generatedText: data['generated_text'] as String,
-        stopString: data['stop_string'] as String,
-        stopStringMatch: data['stop_string_match'] as String,
-        trimmedTail: data['trimmed_tail'] as String,
-        repetitionPenaltyTextAtEnd: data['repetition_penalty_text_at_end'] as String
+      generatedText: data['generated_text'] as String,
+      stopString: data['stop_string'] as String,
+      stopStringMatch: data['stop_string_match'] as String,
+      trimmedTail: data['trimmed_tail'] as String,
+      repetitionPenaltyTextAtEnd: data['repetition_penalty_text_at_end'] as String
     );
   }
 }
@@ -175,20 +175,20 @@ class NeodimGpu {
 
   static NeodimGpu fromApiResponseMap(Map<String, dynamic> data) {
     return NeodimGpu(
-        name: data['name'] as String,
-        memoryTotal: data['memory_total'] as int,
-        memoryReservedStart: data['memory_reserved_start'] as int,
-        memoryAllocatedStart: data['memory_allocated_start'] as int,
-        memoryFreeStart: data['memory_free_start'] as int,
-        memoryReservedEnd: data['memory_reserved_end'] as int,
-        memoryAllocatedEnd: data['memory_allocated_end'] as int,
-        memoryFreeEnd: data['memory_free_end'] as int,
-        memoryReservedMin: data['memory_reserved_min'] as int,
-        memoryAllocatedMin: data['memory_allocated_min'] as int,
-        memoryFreeMin: data['memory_free_min'] as int,
-        memoryReservedMax: data['memory_reserved_max'] as int,
-        memoryAllocatedMax: data['memory_allocated_max'] as int,
-        memoryFreeMax: data['memory_free_max'] as int
+      name: data['name'] as String,
+      memoryTotal: data['memory_total'] as int,
+      memoryReservedStart: data['memory_reserved_start'] as int,
+      memoryAllocatedStart: data['memory_allocated_start'] as int,
+      memoryFreeStart: data['memory_free_start'] as int,
+      memoryReservedEnd: data['memory_reserved_end'] as int,
+      memoryAllocatedEnd: data['memory_allocated_end'] as int,
+      memoryFreeEnd: data['memory_free_end'] as int,
+      memoryReservedMin: data['memory_reserved_min'] as int,
+      memoryAllocatedMin: data['memory_allocated_min'] as int,
+      memoryFreeMin: data['memory_free_min'] as int,
+      memoryReservedMax: data['memory_reserved_max'] as int,
+      memoryAllocatedMax: data['memory_allocated_max'] as int,
+      memoryFreeMax: data['memory_free_max'] as int
     );
   }
 }
@@ -244,11 +244,11 @@ class NeodimResponse {
       generatedTokensCount: data['generated_tokens_count'] as int,
       outputTokensCount: data['output_tokens_count'] as int,
       sequences: (data['sequences'] as List<dynamic>)
-          .map((dynamic s) => NeodimSequence.fromApiResponseMap(s as Map<String, dynamic>))
-          .toList(),
+        .map((dynamic s) => NeodimSequence.fromApiResponseMap(s as Map<String, dynamic>))
+        .toList(),
       gpus: (data['gpus'] as List<dynamic>)
-          .map((dynamic s) => NeodimGpu.fromApiResponseMap(s as Map<String, dynamic>))
-          .toList()
+        .map((dynamic s) => NeodimGpu.fromApiResponseMap(s as Map<String, dynamic>))
+        .toList()
     );
   }
 }
