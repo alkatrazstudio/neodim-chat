@@ -22,6 +22,7 @@ dependencies:
   url_launcher: 6.1.7
   package_info_plus: 3.0.2
   intl: 0.17.0
+  wakelock: 0.6.2
 
 dev_dependencies:
   flutter_lints: 2.0.1

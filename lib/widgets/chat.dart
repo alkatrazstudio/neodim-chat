@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 
 import 'package:collection/collection.dart';
 import 'package:provider/provider.dart';
+import 'package:wakelock/wakelock.dart';
 
 import '../models/config.dart';
 import '../models/conversations.dart';
@@ -207,9 +208,19 @@ class ChatState extends State<Chat> {
 
     if(result.isError && generatingForConv != null && generatingForConv == curConv) {
       setState(() {
-        generatingForConv = null;
+        disableAutoGen();
       });
     }
+  }
+
+  void enableAutoGen(Conversation conv) {
+    generatingForConv = conv;
+    Wakelock.enable();
+  }
+
+  void disableAutoGen() {
+    generatingForConv = null;
+    Wakelock.disable();
   }
 
   Future nextAutoGen() async {
@@ -219,7 +230,7 @@ class ChatState extends State<Chat> {
     var curConv = convModel.current;
     if(curConv != generatingForConv) {
       setState(() {
-        generatingForConv = null;
+        disableAutoGen();
       });
       return;
     }
@@ -305,10 +316,10 @@ class ChatState extends State<Chat> {
             onGeneratingSwitch: (newIsGenerating) {
               setState(() {
                 if(newIsGenerating) {
-                  generatingForConv = curConv;
+                  enableAutoGen(curConv);
                   nextAutoGen();
                 } else {
-                  generatingForConv = null;
+                  disableAutoGen();
                 }
               });
             }
