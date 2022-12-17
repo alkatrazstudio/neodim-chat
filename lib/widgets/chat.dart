@@ -658,7 +658,6 @@ class ChatInput extends StatelessWidget {
       controller: inputController,
       focusNode: focusNode,
       autofocus: true,
-      autocorrect: true,
       onSubmitted: (text) {
         if(neodimModel.isApiRunning)
           return;
