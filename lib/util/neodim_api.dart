@@ -17,6 +17,7 @@ class StopStringsType {
 }
 
 class NeodimWarper {
+  static const String repetitionPenalty = 'repetition_penalty';
   static const String temperature = 'temperature';
   static const String topK = 'top_k';
   static const String topP = 'top_p';
@@ -25,6 +26,7 @@ class NeodimWarper {
   static const String topA = 'top_a';
 
   static const List<String> defaultOrder = [
+    repetitionPenalty,
     temperature,
     topK,
     topP,

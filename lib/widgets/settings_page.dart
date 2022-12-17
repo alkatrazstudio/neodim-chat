@@ -268,10 +268,6 @@ class SettingsPage extends StatelessWidget {
           validator: validateNormalizedDouble,
           onSaved: onDoubleSave((x) => cfgModel.setTopA(x))
         ),
-        CardSettingsWarpersOrder(
-          initialValue: cfgModel.warpersOrder,
-          onSaved: (order) => cfgModel.setWarpersOrder(order)
-        ),
         CardSettingsDouble(
           label: 'Repetition penalty',
           initialValue: cfgModel.repetitionPenalty,
@@ -326,6 +322,10 @@ class SettingsPage extends StatelessWidget {
           label: 'Keep the original repetition penalty text',
           initialValue: cfgModel.repetitionPenaltyKeepOriginalPrompt,
           onSaved: (val) => cfgModel.setRepetitionPenaltyKeepOriginalPrompt(val ?? false)
+        ),
+        CardSettingsWarpersOrder(
+          initialValue: cfgModel.warpersOrder,
+          onSaved: (order) => cfgModel.setWarpersOrder(order)
         ),
         CardSettingsInt(
           label: 'Generate extra sequences for quick retries',

@@ -286,11 +286,6 @@ class HelpPageState extends State<HelpPage> {
             <a href="$serverBaseUrl#top_a-float-optional">more info</a>
           </li>
           <li>
-            <strong>Warpers order</strong> - the order in which the above filters are applied
-            (temperature, top K, top P, tail-free, typical, top A).
-            <a href="$serverBaseUrl#warpers_order-string-optional">more info</a>
-          </li>
-          <li>
             <strong>Repetition penalty</strong> - make generated text more different than the already existing text.
             <a href="$serverBaseUrl#repetition_penalty-float-optional">more info</a>
           </li>
@@ -329,6 +324,11 @@ class HelpPageState extends State<HelpPage> {
             (i.e. it will include punctuation, special symbols, newlines, etc).
             In any case, the repetition penalty text won't include the names of the participants.
             Enabling this setting will disable the "Repetition penalty lines without extra symbols" setting.
+          </li>
+          <li>
+            <strong>Warpers order</strong> - the order in which the filters are applied
+            (repetition penalty, temperature, top K, top P, tail-free, typical, top A).
+            <a href="$serverBaseUrl#warpers_order-string-optional">more info</a>
           </li>
           <li>
             <strong>Generate extra sequences for quick retries</strong> -
