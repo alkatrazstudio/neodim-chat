@@ -1,0 +1,6 @@
+BREAKING CHANGE: Neodim Server v0.8 is required!
+
+- Changed: the original penalty text is now kept intact by default
+- Added: continuous text generation (on long pressing the submit button)
+- Improved: stopping on sentence end
+- Improved: the warpers order now include repetition penalty

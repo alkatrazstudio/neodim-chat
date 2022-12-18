@@ -1,6 +1,15 @@
 # Neodim Chat - CHANGELOG
 
 
+## v0.6.0 (December 18, 2022)
+
+- Changed: Neodim Server v0.8 is required
+- Changed: the original penalty text is now kept intact by default
+- Added: continuous text generation (on long pressing the submit button)
+- Improved: stopping on sentence end
+- Improved: the warpers order now include repetition penalty
+
+
 ## v0.5.0 (July 31, 2022)
 
 - Added: ability to undo the text by sentence
