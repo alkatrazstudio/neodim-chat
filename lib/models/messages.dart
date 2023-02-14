@@ -39,15 +39,16 @@ class Message {
   static String format(String text, bool forChat) {
     text = text.replaceAll(RegExp(r'<s>'), '');
     text = text.replaceAll(RegExp(r'\.{4,}'), '...');
-    text = text.replaceAll(RegExp(r'\!+'), '!');
+    text = text.replaceAll(RegExp(r'!+'), '!');
     text = text.replaceAll(RegExp(r'\?+'), '?');
     text = text.replaceAll(RegExp(r'''^([^\p{Letter}\p{Number}\("\*]|[\s|_])+''', unicode: true), '');
     if(forChat)
       text = text.replaceAll(RegExp(r'''([^\p{Letter}\p{Number}\.!\?\)"\*]|[\s|_])+$''', unicode: true), '');
-    text = text.replaceAllMapped(RegExp(r'([!\?])\s*(\p{Letter})', caseSensitive: false, unicode: true), (m) => '${m[1]} ${m[2]?.toUpperCase()}');
-    text = text.replaceAllMapped(RegExp(r'(?<!\.)(\.)\s*(\p{Letter})', caseSensitive: false, unicode: true), (m) => '${m[1]} ${m[2]?.toUpperCase()}');
-    text = text.replaceAllMapped(RegExp(r'([\,\:\;])\s*(\p{Letter})', caseSensitive: false), (m) => '${m[1]} ${m[2]}');
-    text = text.replaceAllMapped(RegExp(r'([^\p{Number}][\.\!\?\,\:\;])\s*(\p{Number})'), (m) => '${m[1]} ${m[2]}');
+    text = text.replaceAllMapped(RegExp(r'\b(dr|gen|hon|mr|mrs|ms|messrs|mmes|msgr|prof|rev|rt|sr|st|v)(\.)?\b', caseSensitive: false), (m) => '${m[1]?.substring(0, 1).toUpperCase()}${m[1]?.substring(1)}${m[2] ?? '.'}');
+    text = text.replaceAllMapped(RegExp(r'([!?])\s*(\p{Letter})', unicode: true), (m) => '${m[1]} ${m[2]?.toUpperCase()}');
+    text = text.replaceAllMapped(RegExp(r'(?<!\.)(\.)\s*(\p{Letter})', unicode: true), (m) => '${m[1]} ${m[2]?.toUpperCase()}');
+    text = text.replaceAllMapped(RegExp(r'([.,:;])\s*(\p{Letter})', unicode: true), (m) => '${m[1]} ${m[2]}');
+    text = text.replaceAllMapped(RegExp(r'([^\p{Number}][.!?,:;])\s*(\p{Number})', unicode: true), (m) => '${m[1]} ${m[2]}');
     text = text.replaceAll(RegExp(r'\s+'), ' ');
     text = text.trim();
     if(text.isEmpty)
@@ -64,7 +65,7 @@ class Message {
     text = text.replaceAllMapped(RegExp(r'\b(he|she|that|what|where|who|there)(s)\b', caseSensitive: false), (m) => "${m[1]}'${m[2]}");
     text = text.replaceAllMapped(RegExp(r'\b(you|they)(re)\b', caseSensitive: false), (m) => "${m[1]}'${m[2]}");
     text = text.replaceAllMapped(RegExp(r'\b(would|should|you|could|must|we|i)(ve)\b', caseSensitive: false), (m) => "${m[1]}'${m[2]}");
-    text = text.replaceAllMapped(RegExp(r'\b(m)(r|s|rs)(\.?)\b', caseSensitive: false), (m) => '${m[1]?.toUpperCase()}${m[2]}${m[3] ?? '.'}');
+    text = text.replaceAllMapped(RegExp(r'\b(esq|jr)(\.)?\b', caseSensitive: false), (m) => '${m[1]?.substring(0, 1).toUpperCase()}${m[1]?.substring(1)}${m[2] ?? '.'}');
     text = text.replaceAll(RegExp(r'\bim\b', caseSensitive: false), "I'm");
     text = text = text.replaceAll(RegExp(r'\bi\b'), 'I');
     return text;
@@ -101,7 +102,7 @@ class MessagesModel extends ChangeNotifier {
   static const String actionPrompt = '>';
   static const String sequenceEnd = '<|endoftext|>';
   static const List<String> sentenceStops = ['.', '!', '?'];
-  static const String sentenceStopsRx = r'(?i)(?<!\W(dr|esq|gen|hon|jr|mr|mrs|ms|messrs|mmes|msgr|prof|rev|rt|hon|sr|st|v))[\.\!\?\"](?=\s)';
+  static const String sentenceStopsRx = r'(?i)(?<!\W(dr|esq|gen|hon|jr|mr|mrs|ms|messrs|mmes|msgr|prof|rev|rt|sr|st|v))[\.\!\?\"](?=\s)';
 
   @JsonKey(defaultValue: <Message>[])
   List<Message> messages = [];
@@ -150,7 +151,7 @@ class MessagesModel extends ChangeNotifier {
     for(var m in partOne)
       partOneStr += '${m.text} ';
     partOneStr = partOneStr
-      .replaceAll(RegExp(r'[^\p{Letter}\p{Number}\*\(\)\n]', unicode: true), ' ')
+      .replaceAll(RegExp(r'[^\p{Letter}\p{Number}*()\n]', unicode: true), ' ')
       .replaceAll(RegExp(r'\s+'), ' ')
       .trim();
 
@@ -209,7 +210,7 @@ class MessagesModel extends ChangeNotifier {
     if(!isPrevStory && s.isNotEmpty)
       s += messageSeparator;
     s = s.trimLeft();
-    s = s.replaceAll(RegExp(r'[ ]+$'), ''); // trailing spaces make some models go crazy
+    s = s.replaceAll(RegExp(r' +$'), ''); // trailing spaces make some models go crazy
     return s;
   }
 
@@ -227,7 +228,7 @@ class MessagesModel extends ChangeNotifier {
       isPrevEmpty = m.text.isEmpty;
     }
     s = s.trimLeft();
-    s = s.replaceAll(RegExp(r'[ ]+$'), ''); // trailing spaces make some models go crazy
+    s = s.replaceAll(RegExp(r' +$'), ''); // trailing spaces make some models go crazy
     return s;
   }
 

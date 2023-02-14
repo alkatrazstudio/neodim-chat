@@ -38,10 +38,10 @@ class GeneratedResult {
   bool get isEmpty => text.isEmpty && preText.isEmpty;
 
   static GeneratedResult fromRawOutput(String output, bool chatFormat) {
-    var rx = RegExp(r'[\.\!\?\,\:\;\-\)\*\"]+\s+');
+    var rx = RegExp(r'[.!?,:;\-)*"]+\s+');
     var match = rx.matchAsPrefix(output);
     if(match == null) {
-      rx = RegExp(r'[\.\!\?\,\:\;\-\)\*]*');
+      rx = RegExp(r'[.!?,:;\-)]*');
       match = rx.matchAsPrefix(output);
     }
     var preText = match?.group(0) ?? '';
