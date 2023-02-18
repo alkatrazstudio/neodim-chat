@@ -185,10 +185,10 @@ class ConversationsModel extends ChangeNotifier {
   @JsonKey(defaultValue: <Conversation>[])
   List<Conversation> conversations = [];
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   Conversation? current;
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   int notUsedMessagesCount = 0;
 
   Future load() async {
