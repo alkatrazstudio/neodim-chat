@@ -63,7 +63,6 @@ class HomePage extends StatelessWidget {
         default:
           return [];
       }
-      stopStrings.add(MessagesModel.sequenceEnd);
       var stopStringsType = StopStringsType.string;
       if(cfgModel.stopOnPunctuation) {
         stopStrings = stopStrings.map(RegExp.escape).toList();
