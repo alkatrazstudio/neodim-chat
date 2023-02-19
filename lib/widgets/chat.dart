@@ -158,7 +158,7 @@ class ChatState extends State<Chat> {
             ? GeneratedResult.fromRawOutput(text, chatFormat)
             : GeneratedResult(text: Message.format(text, chatFormat))
           )
-          .where((result) => result.text.isNotEmpty)
+          .where((result) => !result.isEmpty)
           .toSet().toList();
         if(results.isNotEmpty || nTries <= 1)
           break;
@@ -176,7 +176,7 @@ class ChatState extends State<Chat> {
       return GeneratedResult.empty;
 
     var result = results.removeAt(0);
-    retryCache = results;
+    retryCache = results.where((result) => result.text.isNotEmpty).toList();
     return result;
   }
 
@@ -200,7 +200,8 @@ class ChatState extends State<Chat> {
       msgModel.setText(lastMsg, lastMsg.text + result.preText, false);
     }
 
-    msgModel.addText(result.text, true, authorIndex);
+    if(result.text.isNotEmpty)
+      msgModel.addText(result.text, true, authorIndex);
     await ConversationsModel.saveCurrentData(context);
 
     if(generatingForConv != null && !result.isError)
