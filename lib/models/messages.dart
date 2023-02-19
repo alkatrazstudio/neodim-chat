@@ -37,7 +37,13 @@ class Message {
   final bool isGenerated;
 
   static String format(String text, bool forChat) {
-    text = text.replaceAll(RegExp(r'<s>'), '');
+    text = text.replaceAll('<s>', '');
+    text = text.replaceAll('</s>', '');
+    text = text.replaceAll('<pad>', '');
+    text = text.replaceAll('<mask>', '');
+    text = text.replaceAll('<unk>', '');
+    text = text.replaceAll('<|endoftext|>', '');
+
     text = text.replaceAll(RegExp(r'\.{4,}'), '...');
     text = text.replaceAll(RegExp(r'!+'), '!');
     text = text.replaceAll(RegExp(r'\?+'), '?');
