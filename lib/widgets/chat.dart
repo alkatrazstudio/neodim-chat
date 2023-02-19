@@ -665,6 +665,7 @@ class ChatInput extends StatelessWidget {
         if(neodimModel.isApiRunning)
           return;
 
+        inputController.text = inputController.text.trim();
         var wasEmpty = inputController.text.isEmpty;
         submit(nextParticipantIndex);
         focusNode.requestFocus();
@@ -703,6 +704,7 @@ class ChatInput extends StatelessWidget {
               if(neodimModel.isApiRunning)
                 return;
 
+              inputController.text = inputController.text.trim();
               var wasEmpty = inputController.text.isEmpty;
               submit(nextParticipantIndex);
 
