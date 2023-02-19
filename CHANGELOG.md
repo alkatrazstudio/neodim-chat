@@ -1,6 +1,12 @@
 # Neodim Chat - CHANGELOG
 
 
+## v0.6.1 (February 19, 2023)
+
+- Improved: messages formatting and auto-corrections
+- Changed: submitting empty text is not allowed anymore
+
+
 ## v0.6.0 (December 18, 2022)
 
 - Changed: Neodim Server v0.8 is required

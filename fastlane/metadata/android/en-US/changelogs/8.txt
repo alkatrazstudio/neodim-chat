@@ -1,0 +1,2 @@
+- Improved: messages formatting and auto-corrections
+- Changed: submitting empty text is not allowed anymore
