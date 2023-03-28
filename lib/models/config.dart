@@ -36,6 +36,9 @@ class ConfigModel extends ChangeNotifier {
   @JsonKey(defaultValue: 0)
   double topA = 0;
 
+  @JsonKey(defaultValue: 0)
+  double penaltyAlpha = 0;
+
   @JsonKey(defaultValue: NeodimWarper.defaultOrder)
   List<String> warpersOrder = NeodimWarper.defaultOrder;
 
@@ -127,6 +130,11 @@ class ConfigModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setPenaltyAlpha(double newPenaltyAlpha) {
+    penaltyAlpha = newPenaltyAlpha;
+    notifyListeners();
+  }
+
   void setWarpersOrder(List<String> newWarpersOrder) {
     warpersOrder = newWarpersOrder.toList();
     notifyListeners();
@@ -202,6 +210,7 @@ class ConfigModel extends ChangeNotifier {
     tfs = other.tfs;
     typical = other.typical;
     topA = other.topA;
+    penaltyAlpha = other.penaltyAlpha;
     warpersOrder = other.warpersOrder.toList();
     repetitionPenalty = other.repetitionPenalty;
     repetitionPenaltyRange = other.repetitionPenaltyRange;

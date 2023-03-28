@@ -286,6 +286,10 @@ class HelpPageState extends State<HelpPage> {
             <a href="$serverBaseUrl#top_a-float-optional">more info</a>
           </li>
           <li>
+            <strong>Penalty alpha</strong> - enables contrastive search.
+            <a href="$serverBaseUrl#penalty_alpha-float-optional">more info</a>.
+          </li>
+          <li>
             <strong>Repetition penalty</strong> - make generated text more different than the already existing text.
             <a href="$serverBaseUrl#repetition_penalty-float-optional">more info</a>
           </li>

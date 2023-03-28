@@ -47,6 +47,7 @@ class NeodimRequest {
     this.tfs,
     this.typical,
     this.topA,
+    this.penaltyAlpha,
     this.warpersOrder,
     this.repetitionPenalty,
     this.repetitionPenaltyRange,
@@ -73,6 +74,7 @@ class NeodimRequest {
   final double? tfs;
   final double? typical;
   final double? topA;
+  final double? penaltyAlpha;
   final List<String>? warpersOrder;
   final double? repetitionPenalty;
   final int? repetitionPenaltyRange;
@@ -99,6 +101,7 @@ class NeodimRequest {
       'tfs': tfs,
       'typical': typical,
       'top_a': topA,
+      'penalty_alpha': penaltyAlpha,
       'warpers_order': warpersOrder,
       'repetition_penalty': repetitionPenalty,
       'repetition_penalty_range': repetitionPenaltyRange,
