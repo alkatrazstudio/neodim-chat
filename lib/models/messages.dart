@@ -65,7 +65,7 @@ class Message {
     if(forChat && !text.endsWith('.') && !text.endsWith('!') && !text.endsWith('?') && !text.endsWith(')') && !text.endsWith('*'))
       text += '.';
 
-    text = text.replaceAllMapped(RegExp(r'\b(can|won|don|haven|couldn|shouldn|wouldn|mustn|didn|aren|isn|wasn)(t)\b', caseSensitive: false), (m) => "${m[1]}'${m[2]}");
+    text = text.replaceAllMapped(RegExp(r'\b(can|won|don|doesn|haven|couldn|shouldn|wouldn|mustn|didn|aren|isn|wasn)(t)\b', caseSensitive: false), (m) => "${m[1]}'${m[2]}");
     text = text.replaceAllMapped(RegExp(r'\b(you|she|they|that|this)(ll)\b', caseSensitive: false), (m) => "${m[1]}'${m[2]}");
     text = text.replaceAllMapped(RegExp(r'\b(you|he|they|i|that)(d)\b', caseSensitive: false), (m) => "${m[1]}'${m[2]}");
     text = text.replaceAllMapped(RegExp(r'\b(he|she|that|what|where|who|there)(s)\b', caseSensitive: false), (m) => "${m[1]}'${m[2]}");
