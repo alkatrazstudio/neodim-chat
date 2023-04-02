@@ -1,16 +1,19 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // 🄯 2022, Alexey Parfenov <zxed@alkatrazstudio.net>
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 
 import '../models/messages.dart';
 
 class MessageDialogResult {
   const MessageDialogResult({
+    required this.participantIndex,
     required this.text,
     required this.doDelete
   });
 
+  final int participantIndex;
   final String text;
   final bool doDelete;
 }
@@ -19,22 +22,33 @@ Future<MessageDialogResult?> showMessageDialog(
   BuildContext context,
   String title,
   String initialText,
-  bool chatFormat
+  bool chatFormat,
+  List<Participant> participants,
+  int participantIndex
 ) async {
   var doFormat = true;
+  var newParticipantIndex = participantIndex;
 
   void submitMsg(BuildContext ctx, String text) {
     text = text.trim();
     if(doFormat)
       text = Message.format(text, chatFormat);
-    if(text.isEmpty || text == initialText)
+    if(text.isEmpty || (text == initialText && newParticipantIndex == participantIndex))
       Navigator.of(context).pop();
     else
-      Navigator.of(context).pop(MessageDialogResult(text: text, doDelete: false));
+      Navigator.of(context).pop(MessageDialogResult(
+        text: text,
+        participantIndex: newParticipantIndex,
+        doDelete: false
+      ));
   }
 
   void deleteMsg(BuildContext ctx) {
-    Navigator.of(context).pop(const MessageDialogResult(text: '', doDelete: true));
+    Navigator.of(context).pop(const MessageDialogResult(
+      text: '',
+      participantIndex: Message.noneIndex,
+      doDelete: true
+    ));
   }
 
   return showDialog<MessageDialogResult>(
@@ -44,11 +58,33 @@ Future<MessageDialogResult?> showMessageDialog(
       inputController.text = initialText;
 
       return AlertDialog(
-        title: Text(title),
         content: StatefulBuilder(builder: (context, StateSetter setState) {
           return Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              Row(
+                children: [
+                  DropdownMenu<int>(
+                    dropdownMenuEntries: participants.mapIndexed(
+                      (i, p) => DropdownMenuEntry<int>(
+                        value: i,
+                        label: p.name,
+                      )
+                    ).toList(),
+                    enableFilter: false,
+                    enableSearch: false,
+                    initialSelection: newParticipantIndex,
+                    onSelected: (newIndex) {
+                      if(newIndex == null)
+                        return;
+                      setState((){
+                        newParticipantIndex = newIndex;
+                      });
+                    }
+                  )
+                ],
+              ),
+
               TextField(
                 minLines: 1,
                 maxLines: 5,

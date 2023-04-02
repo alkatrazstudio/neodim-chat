@@ -42,14 +42,22 @@ class ChatMsg extends StatelessWidget {
         ),
         onTap: () async {
           var chatFormat = conversation.type == Conversation.typeChat || msg.authorIndex == Message.youIndex;
-          var result = await showMessageDialog(context, '${author.name}:', msg.text, chatFormat);
+          var participants = Provider.of<MessagesModel>(context, listen: false).participants;
+          var result = await showMessageDialog(
+            context,
+            '${author.name}:',
+            msg.text,
+            chatFormat,
+            participants,
+            msg.authorIndex
+          );
           if(result == null)
             return;
           var messages = Provider.of<MessagesModel>(context, listen: false);
           if(result.doDelete)
             messages.remove(msg);
           else
-            messages.setText(msg, result.text, true);
+            messages.setTextAndAuthorIndex(msg, result.text, result.participantIndex, true);
           await ConversationsModel.saveCurrentData(context);
         }
       )
