@@ -377,6 +377,7 @@ class ChatButtons extends StatefulWidget {
 class _ChatButtonsState extends State<ChatButtons> {
   final List<UndoItem> undoQueue = [];
   Conversation? undoConversation;
+  static const List<String> undoUntilChars = ['.', '!', '?', '*'];
 
   @override
   Widget build(BuildContext context) {
@@ -435,8 +436,8 @@ class _ChatButtonsState extends State<ChatButtons> {
             &&
           pos > 0
             &&
-          (lastMsg.text[pos - 1] == '.' || lastMsg.text[pos - 1] == '?' || lastMsg.text[pos - 1] == '!');
-        if(stopBeforeQuote || char == '.' || char == '?' || char == '!') {
+          (undoUntilChars.contains(lastMsg.text[pos - 1]));
+        if(stopBeforeQuote || undoUntilChars.contains(char)) {
           if(hasNonStop)
             break;
         } else {
