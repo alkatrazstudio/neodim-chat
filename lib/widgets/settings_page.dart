@@ -202,6 +202,40 @@ class SettingsPage extends StatelessWidget {
     );
   }
 
+  String enumValToText(String val) {
+    var parts = val.split(RegExp(r'(?=[A-Z])'));
+    var text = parts.join(' ').toLowerCase();
+    return text;
+  }
+
+  String textToEnumVal(String text) {
+    var parts = text.split(' ');
+    if(parts.length == 1)
+      return parts[0];
+    var val = '${parts[0]}${parts.sublist(1).map((s) => '${s[0].toUpperCase()}${s.substring(1)}').join('')}';
+    return val;
+  }
+
+  CardSettingsListPicker picker({
+    required String label,
+    required String initialItem,
+    required List<String> items,
+    required Function(String) onSaved,
+    required ConfigModel cfgModel
+  }) {
+    return CardSettingsListPicker<String>(
+      label: label,
+      initialItem: enumValToText(initialItem),
+      items: items.map(enumValToText).toList(),
+      onSaved: (s) {
+        if(s == null)
+          return;
+        var val = textToEnumVal(s);
+        onSaved(val);
+      }
+    );
+  }
+
   CardSettingsSection configSection(BuildContext context, ConfigModel cfgModel) {
     return CardSettingsSection(
       header: CardSettingsHeader(
@@ -300,7 +334,7 @@ class SettingsPage extends StatelessWidget {
           initialValue: cfgModel.repetitionPenaltyIncludePreamble,
           onSaved: (val) => cfgModel.setRepetitionPenaltyIncludePreamble(val ?? false),
         ),
-        CardSettingsListPicker<String>(
+        picker(
           label: 'Include generated text in the repetition penalty range',
           initialItem: cfgModel.repetitionPenaltyIncludeGenerated,
           items: const [
@@ -308,11 +342,8 @@ class SettingsPage extends StatelessWidget {
             NeodimRepPenGenerated.expand,
             NeodimRepPenGenerated.slide
           ],
-          onSaved: (s) {
-            if(s == null)
-              return;
-            cfgModel.setRepetitionPenaltyIncludeGenerated(s);
-          }
+          onSaved: (s) => cfgModel.setRepetitionPenaltyIncludeGenerated(s),
+          cfgModel: cfgModel
         ),
         CardSettingsSwitch(
           label: 'Truncate the repetition penalty range to the input',
@@ -349,6 +380,16 @@ class SettingsPage extends StatelessWidget {
           label: 'Undo the text up to ".", "!", "?", "*"',
           initialValue: cfgModel.undoBySentence,
           onSaved: (val) => cfgModel.setUndoBySentence(val ?? false)
+        ),
+        picker(
+          label: 'Group chat lines',
+          initialItem: cfgModel.groupChatLines,
+          items: const [
+            GroupChatLinesType.no,
+            GroupChatLinesType.onlyForServer
+          ],
+          onSaved: (s) => cfgModel.setGroupChatLines(s),
+          cfgModel: cfgModel
         )
       ]
     );

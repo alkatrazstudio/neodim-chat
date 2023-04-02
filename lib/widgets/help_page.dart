@@ -349,6 +349,13 @@ class HelpPageState extends State<HelpPage> {
             when pressing the Undo button, only the last sentence will be removed,
             not the whole message.
           </li>
+          <li>
+            <strong>Combine chat lines</strong> -
+            whether to combine consecutive chat lines from one participant into one line.
+            "no" - do not combine;
+            "only for server" - combine lines before sending them to the server,
+            but keep them separate in the user interface.
+          </li>
         </ul>
 
         <h2>Controls</h2>

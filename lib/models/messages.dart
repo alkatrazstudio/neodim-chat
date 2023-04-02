@@ -123,7 +123,7 @@ class MessagesModel extends ChangeNotifier {
   bool get isLastGenerated => messages.lastOrNull?.isGenerated ?? false;
   Message? get generatedAtEnd => isLastGenerated ? messages.lastOrNull : null;
 
-  String get chatText => getTextForChat(messages);
+  String get chatText => getTextForChat(messages, false);
   String get adventureText => getTextForAdventure(messages);
   String get storyText => getTextForStory(messages);
   String get aiInputForStory => storyText;
@@ -140,10 +140,24 @@ class MessagesModel extends ChangeNotifier {
 
   String getPromptForChat(Participant p) => '${p.name}:';
 
-  String getTextForChat(List<Message> msgs) {
+  String getTextForChat(List<Message> msgs, bool groupLines) {
     var s = '';
-    for(var m in msgs)
-      s += '${participants[m.authorIndex].name}: ${m.text}$messageSeparator';
+    if(groupLines) {
+      var curParticipantIndex = Message.noneIndex;
+      for(var m in msgs) {
+        if(m.authorIndex != curParticipantIndex) {
+          if(s != '')
+            s += messageSeparator;
+          s += '${participants[m.authorIndex].name}: ${m.text}';
+          curParticipantIndex = m.authorIndex;
+        } else {
+          s += ' ${m.text}';
+        }
+      }
+    } else {
+      for(var m in msgs)
+        s += '${participants[m.authorIndex].name}: ${m.text}$messageSeparator';
+    }
     return s;
   }
 
@@ -179,9 +193,18 @@ class MessagesModel extends ChangeNotifier {
     return text;
   }
 
-  String getAiInputForChat(List<Message> msgs, Participant promptedParticipant) {
-    var text = getTextForChat(msgs);
-    var aiInput = text + getPromptForChat(promptedParticipant);
+  String getAiInputForChat(List<Message> msgs, Participant promptedParticipant, bool groupLines) {
+    var text = getTextForChat(msgs, groupLines);
+    var aiInput = text;
+    var participantIndex = participants.indexOf(promptedParticipant);
+    if(groupLines) {
+      if(participantIndex == lastParticipantIndex)
+        aiInput += ' ';
+      else
+        aiInput += '\n${getPromptForChat(promptedParticipant)}';
+    } else {
+      aiInput += getPromptForChat(promptedParticipant);
+    }
     return aiInput;
   }
 
@@ -260,7 +283,8 @@ class MessagesModel extends ChangeNotifier {
     String usedPrompt,
     Participant promptedParticipant,
     List<Message> inputMessages,
-    String chatType
+    String chatType,
+    bool groupLines
   ) {
     var startIndex = inputMessages.length - 1;
     var usedMessages = <Message>[];
@@ -271,7 +295,7 @@ class MessagesModel extends ChangeNotifier {
       String testText;
       switch(chatType) {
         case Conversation.typeChat:
-          testText = getAiInputForChat(testMessages, promptedParticipant);
+          testText = getAiInputForChat(testMessages, promptedParticipant, groupLines);
           break;
 
         case Conversation.typeAdventure:

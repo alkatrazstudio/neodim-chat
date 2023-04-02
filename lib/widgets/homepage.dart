@@ -99,8 +99,9 @@ class HomePage extends StatelessWidget {
       var response = await api.run(request);
       neodimModel.setResponse(response);
       neodimModel.setApiRunning(false);
+      var groupLines = cfgModel.groupChatLines != GroupChatLinesType.no;
       convModel.updateUsedMessagesCount(
-        response.usedPrompt, promptedParticipant, msgModel, inputMessages);
+        response.usedPrompt, promptedParticipant, msgModel, inputMessages, groupLines);
       return response.sequences.map(outputTextFromSequence).toList();
     } catch (e) {
       neodimModel.setApiRunning(false);

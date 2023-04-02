@@ -79,10 +79,11 @@ class ChatState extends State<Chat> {
     await ConversationsModel.saveCurrentData(context);
   }
 
-  String getAiInput(Conversation c, MessagesModel msgModel, Participant nextParticipant, int nextParticipantIndex) {
+  String getAiInput(Conversation c, MessagesModel msgModel, ConfigModel cfgModel, Participant nextParticipant, int nextParticipantIndex) {
+    var groupLines = cfgModel.groupChatLines != GroupChatLinesType.no;
     switch(c.type) {
       case Conversation.typeChat:
-        return msgModel.getAiInputForChat(msgModel.messages, nextParticipant);
+        return msgModel.getAiInputForChat(msgModel.messages, nextParticipant, groupLines);
 
       case Conversation.typeAdventure:
         return msgModel.getAiInputForAdventure(msgModel.messages, nextParticipantIndex);
@@ -128,16 +129,15 @@ class ChatState extends State<Chat> {
     if(curConv == null)
       return GeneratedResult.empty;
     var msgModel = Provider.of<MessagesModel>(context, listen: false);
+    var cfgModel = Provider.of<ConfigModel>(context, listen: false);
 
     var promptedParticipant = msgModel.participants[participantIndex];
-    var aiInput = getAiInput(curConv, msgModel, promptedParticipant, participantIndex);
+    var aiInput = getAiInput(curConv, msgModel, cfgModel, promptedParticipant, participantIndex);
 
     if(aiInput == aiInputForRetryCache && retryCache.isNotEmpty) {
       var result = retryCache.removeAt(0);
       return result;
     }
-
-    var cfgModel = Provider.of<ConfigModel>(context, listen: false);
 
     var repPenInput = getRepPenInput(curConv, msgModel, cfgModel);
 

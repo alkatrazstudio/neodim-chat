@@ -7,6 +7,11 @@ import 'package:neodim_chat/util/neodim_api.dart';
 
 part 'config.g.dart';
 
+class CombineChatLinesType {
+  static const String no = 'no';
+  static const String onlyForServer = 'onlyForServer';
+}
+
 @JsonSerializable(explicitToJson: true)
 class ConfigModel extends ChangeNotifier {
   @JsonKey(defaultValue: 'http://0.0.0.0:8787/generate')
@@ -77,6 +82,9 @@ class ConfigModel extends ChangeNotifier {
 
   @JsonKey(defaultValue: false)
   bool undoBySentence = false;
+
+  @JsonKey(defaultValue: CombineChatLinesType.no)
+  String combineChatLines = CombineChatLinesType.no;
 
   String get inputPreamble {
     var s = preamble.trim();
@@ -200,6 +208,11 @@ class ConfigModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setGroupChatLines(String newGroupChatLines) {
+    combineChatLines = newGroupChatLines;
+    notifyListeners();
+  }
+
   void load(ConfigModel other) {
     apiEndpoint = other.apiEndpoint;
     generatedTokensCount = other.generatedTokensCount;
@@ -223,6 +236,7 @@ class ConfigModel extends ChangeNotifier {
     repetitionPenaltyKeepOriginalPrompt = other.repetitionPenaltyKeepOriginalPrompt;
     stopOnPunctuation = other.stopOnPunctuation;
     undoBySentence = other.undoBySentence;
+    combineChatLines = other.combineChatLines;
 
     notifyListeners();
   }
