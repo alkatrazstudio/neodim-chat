@@ -13,17 +13,27 @@ import '../util/neodim_api.dart';
 import '../widgets/card_settings_warpers_order.dart';
 import '../widgets/help_page.dart';
 
-class SettingsPage extends StatelessWidget {
-  SettingsPage();
+class SettingsPage extends StatefulWidget {
+  const SettingsPage();
 
+  @override
+  State<SettingsPage> createState() => _SettingsPageState();
+}
+
+class _SettingsPageState extends State<SettingsPage> {
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   final List<String> warpersOrder = [];
+
+  late var convType = '';
 
   @override
   Widget build(BuildContext context) {
     var curConv = Provider.of<ConversationsModel>(context).current;
     if(curConv == null)
       return const SizedBox.shrink();
+
+    if(convType.isEmpty)
+      convType = curConv.type;
 
     return Scaffold(
       appBar: AppBar(
@@ -125,23 +135,31 @@ class SettingsPage extends StatelessWidget {
   }
 
   Widget settings(BuildContext context) {
-    var msgModel = Provider.of<MessagesModel>(context);
-    var convModel = Provider.of<ConversationsModel>(context);
-    var cfgModel = Provider.of<ConfigModel>(context);
+    var msgModel = Provider.of<MessagesModel>(context, listen: false);
+    var convModel = Provider.of<ConversationsModel>(context, listen: false);
+    var cfgModel = Provider.of<ConfigModel>(context, listen: false);
     var curConv = convModel.current;
     if(curConv == null)
       return const SizedBox.shrink();
 
     return CardSettings.sectioned(
       children: [
-        conversationSection(context, convModel, curConv, cfgModel),
-        participantsSection(context, msgModel),
+        conversationSection(context, msgModel, convModel, curConv, cfgModel),
+        participantsSection(context, msgModel, curConv),
         configSection(context, cfgModel)
       ]
     );
   }
 
-  CardSettingsSection conversationSection(BuildContext context, ConversationsModel convModel, Conversation curConv, ConfigModel cfgModel) {
+  CardSettingsSection conversationSection(
+    BuildContext context,
+    MessagesModel msgModel,
+    ConversationsModel convModel,
+    Conversation curConv,
+    ConfigModel cfgModel
+  ) {
+    var typeEditable = msgModel.messages.isEmpty;
+
     return CardSettingsSection(
       header: CardSettingsHeader(
         label: 'Conversation'
@@ -160,21 +178,40 @@ class SettingsPage extends StatelessWidget {
           onSaved: onStringSave((s) => cfgModel.setPreamble(s), allowEmpty: true),
           maxLength: 2048
         ),
-        CardSettingsListPicker<String>(
-          label: 'Type',
+        picker(
+          label: typeEditable ? 'Type' : 'Type (cannot change if messages are present)',
           initialItem: curConv.type,
           items: Conversation.availableTypes,
-          onSaved: (s) {
-            if(s == null)
-              return;
-            convModel.setType(curConv, s);
-          }
+          onSaved: (s) => convModel.setType(curConv, s),
+          onChanged: (s) {
+            setState(() {
+              convType = s;
+            });
+          },
+          cfgModel: cfgModel,
+          enabled: typeEditable
         )
       ]
     );
   }
 
-  CardSettingsSection participantsSection(BuildContext context, MessagesModel msgModel) {
+  String getPersonNameLabel(int authorIndex) {
+    if(authorIndex == Message.youIndex)
+      return 'Person ${authorIndex + 1} (you) name';
+    if(convType == Conversation.typeGroupChat)
+      return 'Group participants names (separate by commas)';
+    return 'Person ${authorIndex + 1} name';
+  }
+
+  String getPersonColorLabel(int authorIndex) {
+    if(authorIndex == Message.youIndex)
+      return 'Person ${authorIndex + 1} (you) color';
+    if(convType == Conversation.typeGroupChat)
+      return 'Group participants color';
+    return 'Person ${authorIndex + 1} name';
+  }
+
+  CardSettingsSection participantsSection(BuildContext context, MessagesModel msgModel, Conversation curConv) {
     return CardSettingsSection(
       header: CardSettingsHeader(
         label: 'Participants'
@@ -183,14 +220,14 @@ class SettingsPage extends StatelessWidget {
         for(var authorIndex = 0; authorIndex < msgModel.participants.length; authorIndex++)
           ...[
             CardSettingsText(
-              label: 'Person ${authorIndex + 1}${authorIndex == Message.youIndex ? ' (you)' : ''} name',
+              label: getPersonNameLabel(authorIndex),
               initialValue: msgModel.participants[authorIndex].name,
               validator: validateRequired,
               onSaved: onStringSave((s) => msgModel.setAuthorName(authorIndex, s)),
-              maxLength: 32
+              maxLength: 64
             ),
             CardSettingsColorPicker(
-              label: 'Person ${authorIndex + 1}${authorIndex == Message.youIndex ? ' (you)' : ''} color',
+              label: getPersonColorLabel(authorIndex),
               initialValue: msgModel.participants[authorIndex].color,
               onSaved: (c) {
                 if(c != null)
@@ -221,7 +258,9 @@ class SettingsPage extends StatelessWidget {
     required String initialItem,
     required List<String> items,
     required Function(String) onSaved,
-    required ConfigModel cfgModel
+    Function(String)? onChanged,
+    required ConfigModel cfgModel,
+    bool enabled = true
   }) {
     return CardSettingsListPicker<String>(
       label: label,
@@ -232,11 +271,20 @@ class SettingsPage extends StatelessWidget {
           return;
         var val = textToEnumVal(s);
         onSaved(val);
-      }
+      },
+      onChanged: onChanged == null ? null : (s) {
+        if(s == null)
+          return;
+        var val = textToEnumVal(s);
+        onChanged(val);
+      },
+      enabled: enabled
     );
   }
 
   CardSettingsSection configSection(BuildContext context, ConfigModel cfgModel) {
+    var combineLinesEditable = convType != Conversation.typeGroupChat;
+
     return CardSettingsSection(
       header: CardSettingsHeader(
         label: 'Configuration'
@@ -382,14 +430,15 @@ class SettingsPage extends StatelessWidget {
           onSaved: (val) => cfgModel.setUndoBySentence(val ?? false)
         ),
         picker(
-          label: 'Group chat lines',
-          initialItem: cfgModel.groupChatLines,
+          label: 'Combine chat lines${combineLinesEditable ? '' : ' (not available for group chat)'}',
+          initialItem: cfgModel.combineChatLines,
           items: const [
-            GroupChatLinesType.no,
-            GroupChatLinesType.onlyForServer
+            CombineChatLinesType.no,
+            CombineChatLinesType.onlyForServer
           ],
           onSaved: (s) => cfgModel.setGroupChatLines(s),
-          cfgModel: cfgModel
+          cfgModel: cfgModel,
+          enabled: combineLinesEditable
         )
       ]
     );

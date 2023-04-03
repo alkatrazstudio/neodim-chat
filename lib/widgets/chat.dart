@@ -72,7 +72,7 @@ class ChatState extends State<Chat> {
     var curConv = convModel.current;
     if(curConv == null)
       return;
-    var chatFormat = curConv.type == Conversation.typeChat || authorIndex == Message.youIndex;
+    var chatFormat = curConv.isChat || authorIndex == Message.youIndex;
     var text = Message.format(inputController.text, chatFormat);
     msgModel.addText(text, false, authorIndex);
     inputController.clear();
@@ -80,10 +80,14 @@ class ChatState extends State<Chat> {
   }
 
   String getAiInput(Conversation c, MessagesModel msgModel, ConfigModel cfgModel, Participant nextParticipant, int nextParticipantIndex) {
-    var groupLines = cfgModel.groupChatLines != GroupChatLinesType.no;
+    var combineLines = cfgModel.combineChatLines != CombineChatLinesType.no && c.type != Conversation.typeGroupChat;
     switch(c.type) {
       case Conversation.typeChat:
-        return msgModel.getAiInputForChat(msgModel.messages, nextParticipant, groupLines);
+        return msgModel.getAiInputForChat(msgModel.messages, nextParticipant, combineLines, false);
+
+      case Conversation.typeGroupChat:
+        var inputText = msgModel.getAiInputForChat(msgModel.messages, nextParticipant, combineLines, true);
+        return inputText;
 
       case Conversation.typeAdventure:
         return msgModel.getAiInputForAdventure(msgModel.messages, nextParticipantIndex);
@@ -100,11 +104,23 @@ class ChatState extends State<Chat> {
     switch(c.type) {
       case Conversation.typeChat:
         if(cfgModel.repetitionPenaltyKeepOriginalPrompt) {
-          return msgModel.getOriginalRepetitionPenaltyTextForChat(msgModel.messages);
+          return msgModel.getOriginalRepetitionPenaltyTextForChat(msgModel.messages, false);
         } else {
           return msgModel.getRepetitionPenaltyTextForChat(
             msgModel.messages,
-            cfgModel.repetitionPenaltyLinesWithNoExtraSymbols
+            cfgModel.repetitionPenaltyLinesWithNoExtraSymbols,
+            false
+          );
+        }
+
+      case Conversation.typeGroupChat:
+        if(cfgModel.repetitionPenaltyKeepOriginalPrompt) {
+          return msgModel.getOriginalRepetitionPenaltyTextForChat(msgModel.messages, true);
+        } else {
+          return msgModel.getRepetitionPenaltyTextForChat(
+            msgModel.messages,
+            cfgModel.repetitionPenaltyLinesWithNoExtraSymbols,
+            true
           );
         }
 
@@ -144,7 +160,7 @@ class ChatState extends State<Chat> {
     aiInputForRetryCache = aiInput;
     retryCache.clear();
 
-    var isChat = curConv.type == Conversation.typeChat;
+    var isChat = curConv.isChat;
     var chatFormat = isChat || participantIndex == Message.youIndex;
 
     var nTries = isChat ? 3 : 1;
@@ -195,7 +211,7 @@ class ChatState extends State<Chat> {
       lastMsg != null
       && result.preText.isNotEmpty
       && lastMsg.authorIndex == authorIndex
-      && curConv.type != Conversation.typeChat
+      && !curConv.isChat
     ) {
       msgModel.setText(lastMsg, lastMsg.text + result.preText, false);
     }
@@ -245,6 +261,7 @@ class ChatState extends State<Chat> {
     switch(curConv.type)
     {
       case Conversation.typeChat:
+      case Conversation.typeGroupChat:
         nextAuthorIndex = Random().nextInt(msgModel.participants.length);
         if(nextAuthorIndex == msgModel.lastParticipantIndex)
           nextAuthorIndex = Random().nextInt(msgModel.participants.length);
@@ -395,6 +412,7 @@ class _ChatButtonsState extends State<ChatButtons> {
     List<List<Widget>> buttonRows;
     switch(curConv.type) {
       case Conversation.typeChat:
+      case Conversation.typeGroupChat:
         buttonRows = chatButtons(context, msgModel, curConv, neodimModel, cfgModel);
         break;
 
@@ -639,6 +657,7 @@ class ChatInput extends StatelessWidget {
 
     switch(convModel.current?.type) {
       case Conversation.typeChat:
+      case Conversation.typeGroupChat:
         nextParticipantIndex = msgModel.getNextParticipantIndex(null);
         break;
 
@@ -673,6 +692,7 @@ class ChatInput extends StatelessWidget {
 
         switch(convModel.current?.type) {
           case Conversation.typeChat:
+          case Conversation.typeGroupChat:
             var genParticipantIndex = msgModel.getNextParticipantIndex(null);
             addGenerated(genParticipantIndex);
             break;
@@ -711,6 +731,7 @@ class ChatInput extends StatelessWidget {
 
               switch(convModel.current?.type) {
                 case Conversation.typeChat:
+                case Conversation.typeGroupChat:
                   var genParticipantIndex = msgModel.getNextParticipantIndex(null);
                   addGenerated(genParticipantIndex);
                   break;

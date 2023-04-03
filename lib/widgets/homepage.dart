@@ -23,29 +23,31 @@ class HomePage extends StatelessWidget {
     return text.trim();
   }
 
-  Future<List<String>> generate(BuildContext context, String inputText, String? repPenText, Participant promptedParticipant) async {
-    var cfgModel = Provider.of<ConfigModel>(context, listen: false);
-    var neodimModel = Provider.of<NeodimModel>(context, listen: false);
-    var msgModel = Provider.of<MessagesModel>(context, listen: false);
+  NeodimRequest? getRequest(BuildContext context, String inputText, String? repPenText, List<String>? participantNames) {
     var convModel = Provider.of<ConversationsModel>(context, listen: false);
     var conv = convModel.current;
     if(conv == null)
-      return [];
+      return null;
 
-    if(neodimModel.isApiRunning)
-      return [];
+    var cfgModel = Provider.of<ConfigModel>(context, listen: false);
 
-    var inputMessages = msgModel.getMessagesSnapshot();
+    List<String> truncatePromptUntil;
+    List<String> stopStrings;
+    List<String>? wordsWhitelist;
 
-    neodimModel.setApiRunning(true);
-    try {
-      final api = NeodimApi(endpoint: cfgModel.apiEndpoint);
-
-      List<String> truncatePromptUntil;
-      List<String> stopStrings;
+    var stopStringsType = StopStringsType.string;
+    int sequencesCount;
+    if(participantNames != null) {
+      truncatePromptUntil = [MessagesModel.messageSeparator];
+      stopStrings = [MessagesModel.chatPromptSeparator];
+      sequencesCount = 1;
+      wordsWhitelist = List.from(participantNames);
+      wordsWhitelist.add(MessagesModel.chatPromptSeparator);
+    } else {
       switch(conv.type)
       {
         case Conversation.typeChat:
+        case Conversation.typeGroupChat:
           truncatePromptUntil = [MessagesModel.messageSeparator];
           stopStrings = [MessagesModel.messageSeparator];
           break;
@@ -61,48 +63,105 @@ class HomePage extends StatelessWidget {
           break;
 
         default:
-          return [];
+          return null;
       }
-      var stopStringsType = StopStringsType.string;
       if(cfgModel.stopOnPunctuation) {
         stopStrings = stopStrings.map(RegExp.escape).toList();
         stopStrings.add(MessagesModel.sentenceStopsRx);
         stopStringsType = StopStringsType.regex;
       }
+      sequencesCount = 1 + cfgModel.extraRetries;
+    }
 
-      var request = NeodimRequest(
-        prompt: inputText,
-        preamble: cfgModel.inputPreamble,
-        generatedTokensCount: cfgModel.generatedTokensCount,
-        maxTotalTokens: cfgModel.maxTotalTokens,
-        temperature: cfgModel.temperature,
-        topP: (cfgModel.topP == 0 ||cfgModel.topP == 1)  ? null : cfgModel.topP,
-        topK: cfgModel.topK == 0 ? null : cfgModel.topK,
-        tfs: (cfgModel.tfs == 0 || cfgModel.tfs == 1) ? null : cfgModel.tfs,
-        typical: (cfgModel.typical == 0 || cfgModel.typical == 1) ? null : cfgModel.typical,
-        topA: cfgModel.topA == 0 ? null : cfgModel.topA,
-        penaltyAlpha: cfgModel.penaltyAlpha == 0 ? null : cfgModel.penaltyAlpha,
-        warpersOrder: cfgModel.warpersOrder,
-        repetitionPenalty: cfgModel.repetitionPenalty,
-        repetitionPenaltyRange: cfgModel.repetitionPenaltyRange,
-        repetitionPenaltySlope: cfgModel.repetitionPenaltySlope,
-        repetitionPenaltyIncludePreamble: cfgModel.repetitionPenaltyIncludePreamble,
-        repetitionPenaltyIncludeGenerated: cfgModel.repetitionPenaltyIncludeGenerated,
-        repetitionPenaltyTruncateToInput: cfgModel.repetitionPenaltyTruncateToInput,
-        repetitionPenaltyPrompt: repPenText,
-        sequencesCount: 1 + cfgModel.extraRetries,
-        stopStrings: stopStrings,
-        stopStringsType: stopStringsType,
-        truncatePromptUntil: truncatePromptUntil
-      );
+    var request = NeodimRequest(
+      prompt: inputText,
+      preamble: cfgModel.inputPreamble,
+      generatedTokensCount: cfgModel.generatedTokensCount,
+      maxTotalTokens: cfgModel.maxTotalTokens,
+      temperature: cfgModel.temperature,
+      topP: (cfgModel.topP == 0 ||cfgModel.topP == 1)  ? null : cfgModel.topP,
+      topK: cfgModel.topK == 0 ? null : cfgModel.topK,
+      tfs: (cfgModel.tfs == 0 || cfgModel.tfs == 1) ? null : cfgModel.tfs,
+      typical: (cfgModel.typical == 0 || cfgModel.typical == 1) ? null : cfgModel.typical,
+      topA: cfgModel.topA == 0 ? null : cfgModel.topA,
+      penaltyAlpha: cfgModel.penaltyAlpha == 0 ? null : cfgModel.penaltyAlpha,
+      warpersOrder: cfgModel.warpersOrder,
+      repetitionPenalty: cfgModel.repetitionPenalty,
+      repetitionPenaltyRange: cfgModel.repetitionPenaltyRange,
+      repetitionPenaltySlope: cfgModel.repetitionPenaltySlope,
+      repetitionPenaltyIncludePreamble: cfgModel.repetitionPenaltyIncludePreamble,
+      repetitionPenaltyIncludeGenerated: cfgModel.repetitionPenaltyIncludeGenerated,
+      repetitionPenaltyTruncateToInput: cfgModel.repetitionPenaltyTruncateToInput,
+      repetitionPenaltyPrompt: repPenText,
+      sequencesCount: sequencesCount,
+      stopStrings: stopStrings,
+      stopStringsType: stopStringsType,
+      truncatePromptUntil: truncatePromptUntil,
+      wordsWhitelist: wordsWhitelist
+    );
+    return request;
+  }
+
+  Future<String?> getNextGroupParticipantName(
+    BuildContext context,
+    String inputText,
+    String? repPenText,
+    List<String> participantNames
+  ) async {
+    var request = getRequest(context, inputText, repPenText, participantNames);
+    if(request == null)
+      return null;
+    var cfgModel = Provider.of<ConfigModel>(context, listen: false);
+    final api = NeodimApi(endpoint: cfgModel.apiEndpoint);
+    var response = await api.run(request);
+    var responseText = response.sequences.map(outputTextFromSequence).first;
+    if(participantNames.contains(responseText))
+      return responseText;
+    return null;
+  }
+
+  Future<List<String>> generate(BuildContext context, String inputText, String? repPenText, Participant promptedParticipant) async {
+    var neodimModel = Provider.of<NeodimModel>(context, listen: false);
+    if(neodimModel.isApiRunning)
+      return [];
+
+    var msgModel = Provider.of<MessagesModel>(context, listen: false);
+    var cfgModel = Provider.of<ConfigModel>(context, listen: false);
+    var convModel = Provider.of<ConversationsModel>(context, listen: false);
+    var conv = convModel.current;
+    if(conv == null)
+      return [];
+
+    var inputMessages = msgModel.getMessagesSnapshot();
+    neodimModel.setApiRunning(true);
+    try {
+      var addedPromptSuffix = '';
+      var promptedParticipantIndex = msgModel.participants.indexOf(promptedParticipant);
+      if(conv.type == Conversation.typeGroupChat && promptedParticipantIndex != Message.youIndex) {
+        var participantNames = msgModel.participants[Message.chatGroupIndex].name.split(',');
+        participantNames = participantNames.map((s) => s.trim()).toList();
+        var participantName = await getNextGroupParticipantName(context, inputText, repPenText, participantNames);
+        if(participantName == null)
+          throw Exception('Cannot get the correct participant name');
+        addedPromptSuffix = '$participantName${MessagesModel.chatPromptSeparator}';
+        inputText += addedPromptSuffix;
+        addedPromptSuffix += ' ';
+      }
+
+      var request = getRequest(context, inputText, repPenText, null);
+      if(request == null)
+        return [];
       neodimModel.setRequest(request);
+      final api = NeodimApi(endpoint: cfgModel.apiEndpoint);
       var response = await api.run(request);
       neodimModel.setResponse(response);
       neodimModel.setApiRunning(false);
-      var groupLines = cfgModel.groupChatLines != GroupChatLinesType.no;
+      var combineLines = cfgModel.combineChatLines != CombineChatLinesType.no && conv.type != Conversation.typeGroupChat;
       convModel.updateUsedMessagesCount(
-        response.usedPrompt, promptedParticipant, msgModel, inputMessages, groupLines);
-      return response.sequences.map(outputTextFromSequence).toList();
+        response.usedPrompt, promptedParticipant, msgModel, inputMessages, combineLines, addedPromptSuffix);
+      var lines = response.sequences.map(outputTextFromSequence).toList();
+      lines = lines.map((line) => addedPromptSuffix + line).toList();
+      return lines;
     } catch (e) {
       neodimModel.setApiRunning(false);
       rethrow;

@@ -41,7 +41,7 @@ class ChatMsg extends StatelessWidget {
           color: Theme.of(context).textTheme.bodyText1?.color?.withOpacity(opacity)
         ),
         onTap: () async {
-          var chatFormat = conversation.type == Conversation.typeChat || msg.authorIndex == Message.youIndex;
+          var chatFormat = conversation.isChat || msg.authorIndex == Message.youIndex;
           var participants = Provider.of<MessagesModel>(context, listen: false).participants;
           var result = await showMessageDialog(
             context,

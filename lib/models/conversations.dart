@@ -22,11 +22,13 @@ class Conversation {
   static const String typeChat = 'chat';
   static const String typeAdventure = 'adventure';
   static const String typeStory = 'story';
+  static const String typeGroupChat = 'groupChat';
 
   static const List<String> availableTypes = [
     Conversation.typeChat,
     Conversation.typeAdventure,
-    Conversation.typeStory
+    Conversation.typeStory,
+    Conversation.typeGroupChat
   ];
 
   Conversation({
@@ -36,6 +38,8 @@ class Conversation {
     this.type = typeChat
   }): id = id ?? uuid.v4(),
       createdAt = createdAt ?? DateTime.now();
+
+  bool get isChat => type == typeChat || type == typeGroupChat;
 
   @JsonKey(defaultValue: 'Conversation')
   String name;
@@ -126,6 +130,9 @@ class Conversation {
     {
       case Conversation.typeChat:
         return msgModel.chatText;
+
+      case Conversation.typeGroupChat:
+        return msgModel.groupChatText;
 
       case Conversation.typeAdventure:
         return msgModel.adventureText;
@@ -261,7 +268,8 @@ class ConversationsModel extends ChangeNotifier {
     Participant promptedParticipant,
     MessagesModel msgModel,
     List<Message> inputMessages,
-    bool groupLines
+    bool combineLines,
+    String addedPromptSuffix
   ) {
     var c = current;
     if(c == null) {
@@ -271,7 +279,7 @@ class ConversationsModel extends ChangeNotifier {
     }
 
     var usedMessages = msgModel.getUsedMessages(
-        usedPrompt, promptedParticipant, inputMessages, c.type, groupLines);
+        usedPrompt, promptedParticipant, inputMessages, c.type, combineLines, addedPromptSuffix);
     var usedMessagesCount = usedMessages.length;
     notUsedMessagesCount = inputMessages.length - usedMessagesCount;
     notifyListeners();

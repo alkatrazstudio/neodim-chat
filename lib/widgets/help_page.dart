@@ -232,6 +232,9 @@ class HelpPageState extends State<HelpPage> {
             "Story" means just writing a story text as-is.
             The first participant (with speech bubbles on the right) represents the player.
             The other participant represents "the story", i.e. it's not a person talking but just simple story text.
+            "Group chat" is a chat where the second participant is a group of different participants.
+            In this case you need to write all the names of these participants
+            in the "Group participants names", separating them with commas.
           </li>
         </ul>
 

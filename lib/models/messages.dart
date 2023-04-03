@@ -24,6 +24,7 @@ class Message {
   static const int youIndex = 0;
   static const int dmIndex = 1;
   static const int storyIndex = dmIndex;
+  static const int chatGroupIndex = dmIndex;
 
   bool get isYou => authorIndex == youIndex;
 
@@ -106,6 +107,7 @@ class MessagesModel extends ChangeNotifier {
   static const String messageSeparator = '\n';
   static const String actionSeparator = '\n\n';
   static const String actionPrompt = '>';
+  static const String chatPromptSeparator = ':';
   static const List<String> sentenceStops = ['.', '!', '?'];
   static const String sentenceStopsRx = r'(?i)(?<!\W(dr|esq|gen|hon|jr|mr|mrs|ms|messrs|mmes|msgr|prof|rev|rt|sr|st|v))[\.\!\?\"](?=\s)';
 
@@ -123,7 +125,8 @@ class MessagesModel extends ChangeNotifier {
   bool get isLastGenerated => messages.lastOrNull?.isGenerated ?? false;
   Message? get generatedAtEnd => isLastGenerated ? messages.lastOrNull : null;
 
-  String get chatText => getTextForChat(messages, false);
+  String get chatText => getTextForChat(messages, false, false);
+  String get groupChatText => getTextForChat(messages, false, true);
   String get adventureText => getTextForAdventure(messages);
   String get storyText => getTextForStory(messages);
   String get aiInputForStory => storyText;
@@ -138,45 +141,64 @@ class MessagesModel extends ChangeNotifier {
     return Message.youIndex;
   }
 
-  String getPromptForChat(Participant p) => '${p.name}:';
+  String getPromptForChat(Participant p) => '${p.name}$chatPromptSeparator';
 
-  String getTextForChat(List<Message> msgs, bool groupLines) {
+  String getTextForChat(List<Message> msgs, bool combineLines, bool groupChat) {
     var s = '';
-    if(groupLines) {
+    if(combineLines) {
       var curParticipantIndex = Message.noneIndex;
       for(var m in msgs) {
         if(m.authorIndex != curParticipantIndex) {
           if(s != '')
             s += messageSeparator;
-          s += '${participants[m.authorIndex].name}: ${m.text}';
+          if(!groupChat || m.isYou)
+            s += '${participants[m.authorIndex].name}$chatPromptSeparator ${m.text}';
+          else
+            s += m.text;
           curParticipantIndex = m.authorIndex;
         } else {
           s += ' ${m.text}';
         }
       }
     } else {
-      for(var m in msgs)
-        s += '${participants[m.authorIndex].name}: ${m.text}$messageSeparator';
+      for(var m in msgs) {
+        if(!groupChat || m.isYou)
+          s += '${participants[m.authorIndex].name}$chatPromptSeparator ${m.text}$messageSeparator';
+        else
+          s += '${m.text}$messageSeparator';
+      }
     }
     return s;
   }
 
-  String getRepetitionPenaltyTextForChat(List<Message> msgs, int nLinesWithNoExtraPenaltySymbols) {
+  String getRepetitionPenaltyTextForChat(
+    List<Message> msgs,
+    int nLinesWithNoExtraPenaltySymbols,
+    bool removeGroupParticipantNames
+  ) {
     var sepIndex = max(0, msgs.length - nLinesWithNoExtraPenaltySymbols);
     var partOne = msgs.slice(0, sepIndex);
     var partTwo = msgs.slice(sepIndex);
 
     var partOneStr = '';
-    for(var m in partOne)
-      partOneStr += '${m.text} ';
+    for(var m in partOne) {
+      if(removeGroupParticipantNames && !m.isYou)
+        partOneStr += '${removeParticipantName(m.text)} ';
+      else
+        partOneStr += '${m.text} ';
+    }
     partOneStr = partOneStr
       .replaceAll(RegExp(r'[^\p{Letter}\p{Number}*()\n]', unicode: true), ' ')
       .replaceAll(RegExp(r'\s+'), ' ')
       .trim();
 
     var partTwoStr = '';
-    for(var m in partTwo)
-      partTwoStr += '${m.text} ';
+    for(var m in partTwo){
+      if(removeGroupParticipantNames && !m.isYou)
+        partTwoStr += '${removeParticipantName(m.text)} ';
+      else
+        partTwoStr += '${m.text} ';
+    }
     partTwoStr = partTwoStr
       .replaceAll(RegExp(r'[^\p{Letter}\p{Number}\n]', unicode: true), ' ')
       .replaceAll(RegExp(r'\s+'), ' ')
@@ -186,24 +208,42 @@ class MessagesModel extends ChangeNotifier {
     return result;
   }
 
-  String getOriginalRepetitionPenaltyTextForChat(List<Message> msgs) {
-    var text = '';
-    for(var m in msgs)
-      text += '${m.text}\n';
+  static String removeParticipantName(String s) {
+    var text = s.replaceFirst(RegExp(r'^\s*[^:]+:\s*'), '');
     return text;
   }
 
-  String getAiInputForChat(List<Message> msgs, Participant promptedParticipant, bool groupLines) {
-    var text = getTextForChat(msgs, groupLines);
+  String getOriginalRepetitionPenaltyTextForChat(List<Message> msgs, bool removeGroupParticipantNames) {
+    var text = '';
+    for(var m in msgs) {
+      if(removeGroupParticipantNames && !m.isYou)
+        text += '${removeParticipantName(m.text)}\n';
+      else
+        text += '${m.text}\n';
+    }
+    return text;
+  }
+
+  String getAiInputForChat(
+    List<Message> msgs,
+    Participant promptedParticipant,
+    bool combineLines,
+    bool groupChat
+  ) {
+    var text = getTextForChat(msgs, combineLines, groupChat);
     var aiInput = text;
     var participantIndex = participants.indexOf(promptedParticipant);
-    if(groupLines) {
-      if(participantIndex == lastParticipantIndex)
+    if(combineLines) {
+      if(participantIndex == lastParticipantIndex) {
         aiInput += ' ';
-      else
-        aiInput += '\n${getPromptForChat(promptedParticipant)}';
+      } else {
+        aiInput += '\n';
+        if(participantIndex == Message.youIndex || !groupChat)
+          aiInput += getPromptForChat(promptedParticipant);
+      }
     } else {
-      aiInput += getPromptForChat(promptedParticipant);
+      if(participantIndex == Message.youIndex || !groupChat)
+        aiInput += getPromptForChat(promptedParticipant);
     }
     return aiInput;
   }
@@ -284,7 +324,8 @@ class MessagesModel extends ChangeNotifier {
     Participant promptedParticipant,
     List<Message> inputMessages,
     String chatType,
-    bool groupLines
+    bool combineLines,
+    String addedPromptSuffix
   ) {
     var startIndex = inputMessages.length - 1;
     var usedMessages = <Message>[];
@@ -295,7 +336,7 @@ class MessagesModel extends ChangeNotifier {
       String testText;
       switch(chatType) {
         case Conversation.typeChat:
-          testText = getAiInputForChat(testMessages, promptedParticipant, groupLines);
+          testText = getAiInputForChat(testMessages, promptedParticipant, combineLines, false);
           break;
 
         case Conversation.typeAdventure:
@@ -306,9 +347,14 @@ class MessagesModel extends ChangeNotifier {
           testText = getTextForStory(testMessages);
           break;
 
+        case Conversation.typeGroupChat:
+          testText = getAiInputForChat(testMessages, promptedParticipant, combineLines, true);
+          break;
+
         default:
           throw Exception('Invalid chat type: $chatType');
       }
+      testText += addedPromptSuffix;
       if(testText.length >= testPromptLength) {
         usedMessages.addAll(testMessages);
         return usedMessages;
