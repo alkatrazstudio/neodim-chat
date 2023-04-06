@@ -352,7 +352,7 @@ class HelpPageState extends State<HelpPage> {
             It may help to generate messages with models than have problems with newlines (e.g. XGLM or OPT).
           </li>
           <li>
-            <strong>Undo the text up to ".", "!", "?", "*"</strong> -
+            <strong>Undo the text up to these symbols: .!?*:</strong> -
             when pressing the Undo button, only the last sentence will be removed,
             not the whole message.
           </li>

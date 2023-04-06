@@ -404,7 +404,7 @@ class ChatButtons extends StatefulWidget {
 class _ChatButtonsState extends State<ChatButtons> {
   final List<UndoItem> undoQueue = [];
   Conversation? undoConversation;
-  static const List<String> undoUntilChars = ['.', '!', '?', '*'];
+  static const List<String> undoUntilChars = ['.', '!', '?', '*', ':'];
 
   @override
   Widget build(BuildContext context) {
