@@ -16,6 +16,8 @@ import '../widgets/main_menu.dart';
 import '../widgets/settings_page.dart';
 
 class HomePage extends StatelessWidget {
+  static const String requiredServerVersion = '>=0.11';
+
   String outputTextFromSequence(NeodimSequence s) {
     var text = s.generatedText;
     if(s.stopString == MessagesModel.sentenceStopsRx)
@@ -97,7 +99,8 @@ class HomePage extends StatelessWidget {
       stopStrings: stopStrings,
       stopStringsType: stopStringsType,
       truncatePromptUntil: truncatePromptUntil,
-      wordsWhitelist: wordsWhitelist
+      wordsWhitelist: wordsWhitelist,
+      requiredServerVersion: requiredServerVersion
     );
     return request;
   }
