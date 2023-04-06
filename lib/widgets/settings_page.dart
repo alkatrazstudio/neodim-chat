@@ -409,6 +409,11 @@ class _SettingsPageState extends State<SettingsPage> {
           initialValue: cfgModel.repetitionPenaltyKeepOriginalPrompt,
           onSaved: (val) => cfgModel.setRepetitionPenaltyKeepOriginalPrompt(val ?? false)
         ),
+        CardSettingsSwitch(
+          label: 'Remove participant names from repetition penalty text',
+          initialValue: cfgModel.repetitionPenaltyRemoveParticipantNames,
+          onSaved: (val) => cfgModel.setRepetitionPenaltyRemoveParticipantNames(val ?? true),
+        ),
         CardSettingsWarpersOrder(
           initialValue: cfgModel.warpersOrder,
           onSaved: (order) => cfgModel.setWarpersOrder(order)

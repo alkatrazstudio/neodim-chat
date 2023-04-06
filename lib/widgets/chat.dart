@@ -104,23 +104,33 @@ class ChatState extends State<Chat> {
     switch(c.type) {
       case Conversation.typeChat:
         if(cfgModel.repetitionPenaltyKeepOriginalPrompt) {
-          return msgModel.getOriginalRepetitionPenaltyTextForChat(msgModel.messages, false);
+          return msgModel.getOriginalRepetitionPenaltyTextForChat(
+              msgModel.messages,
+              false,
+              cfgModel.repetitionPenaltyRemoveParticipantNames
+          );
         } else {
           return msgModel.getRepetitionPenaltyTextForChat(
             msgModel.messages,
             cfgModel.repetitionPenaltyLinesWithNoExtraSymbols,
-            false
+            false,
+            cfgModel.repetitionPenaltyRemoveParticipantNames
           );
         }
 
       case Conversation.typeGroupChat:
         if(cfgModel.repetitionPenaltyKeepOriginalPrompt) {
-          return msgModel.getOriginalRepetitionPenaltyTextForChat(msgModel.messages, true);
+          return msgModel.getOriginalRepetitionPenaltyTextForChat(
+              msgModel.messages,
+              true,
+              cfgModel.repetitionPenaltyRemoveParticipantNames
+          );
         } else {
           return msgModel.getRepetitionPenaltyTextForChat(
             msgModel.messages,
             cfgModel.repetitionPenaltyLinesWithNoExtraSymbols,
-            true
+            true,
+            cfgModel.repetitionPenaltyRemoveParticipantNames
           );
         }
 

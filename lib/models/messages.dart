@@ -174,18 +174,31 @@ class MessagesModel extends ChangeNotifier {
   String getRepetitionPenaltyTextForChat(
     List<Message> msgs,
     int nLinesWithNoExtraPenaltySymbols,
-    bool removeGroupParticipantNames
+    bool hasGroupParticipantNamePrefixes,
+    bool removeParticipantNames
   ) {
+    var participantNames = <String>[];
     var sepIndex = max(0, msgs.length - nLinesWithNoExtraPenaltySymbols);
     var partOne = msgs.slice(0, sepIndex);
     var partTwo = msgs.slice(sepIndex);
 
     var partOneStr = '';
+    String participantName;
     for(var m in partOne) {
-      if(removeGroupParticipantNames && !m.isYou)
-        partOneStr += '${removeParticipantName(m.text)} ';
-      else
+      if(hasGroupParticipantNamePrefixes) {
+        if(!m.isYou) {
+          partOneStr += '${removeParticipantName(m.text)} ';
+          participantName = extractParticipantName(m.text);
+        } else {
+          partOneStr += '${m.text} ';
+          participantName = participants[m.authorIndex].name;
+        }
+      } else {
         partOneStr += '${m.text} ';
+        participantName = participants[m.authorIndex].name;
+      }
+      if(removeParticipantNames && participantName.isNotEmpty && !participantNames.contains(participantName))
+        participantNames.add(participantName);
     }
     partOneStr = partOneStr
       .replaceAll(RegExp(r'[^\p{Letter}\p{Number}*()\n]', unicode: true), ' ')
@@ -194,10 +207,20 @@ class MessagesModel extends ChangeNotifier {
 
     var partTwoStr = '';
     for(var m in partTwo){
-      if(removeGroupParticipantNames && !m.isYou)
-        partTwoStr += '${removeParticipantName(m.text)} ';
-      else
+      if(hasGroupParticipantNamePrefixes) {
+        if(!m.isYou) {
+          partTwoStr += '${removeParticipantName(m.text)} ';
+          participantName = extractParticipantName(m.text);
+        } else {
+          partTwoStr += '${m.text} ';
+          participantName = participants[m.authorIndex].name;
+        }
+      } else {
         partTwoStr += '${m.text} ';
+        participantName = participants[m.authorIndex].name;
+      }
+      if(removeParticipantNames && participantName.isNotEmpty && !participantNames.contains(participantName))
+        participantNames.add(participantName);
     }
     partTwoStr = partTwoStr
       .replaceAll(RegExp(r'[^\p{Letter}\p{Number}\n]', unicode: true), ' ')
@@ -205,6 +228,10 @@ class MessagesModel extends ChangeNotifier {
       .trim();
 
     var result = '$partOneStr $partTwoStr'.trim();
+    for(var participantName in participantNames) {
+      var rx = RegExp.escape(participantName);
+      result = result.replaceAll(rx, '');
+    }
     return result;
   }
 
@@ -213,13 +240,38 @@ class MessagesModel extends ChangeNotifier {
     return text;
   }
 
-  String getOriginalRepetitionPenaltyTextForChat(List<Message> msgs, bool removeGroupParticipantNames) {
+  static String extractParticipantName(String s) {
+    var name = RegExp(r'^\s*[^:]+').stringMatch(s) ?? '';
+    return name;
+  }
+
+  String getOriginalRepetitionPenaltyTextForChat(
+    List<Message> msgs,
+    bool hasGroupParticipantNamePrefixes,
+    bool removeParticipantNames
+  ) {
+    var participantNames = <String>[];
     var text = '';
     for(var m in msgs) {
-      if(removeGroupParticipantNames && !m.isYou)
-        text += '${removeParticipantName(m.text)}\n';
-      else
+      String participantName;
+      if(hasGroupParticipantNamePrefixes) {
+        if(!m.isYou) {
+          participantName = extractParticipantName(m.text);
+          text += '${removeParticipantName(m.text)}\n';
+        } else {
+          text += '${m.text}\n';
+          participantName = participants[m.authorIndex].name;
+        }
+      } else {
         text += '${m.text}\n';
+        participantName = participants[m.authorIndex].name;
+      }
+      if(removeParticipantNames && participantName.isNotEmpty && !participantNames.contains(participantName))
+        participantNames.add(participantName);
+    }
+    for(var participantName in participantNames) {
+      var rx = RegExp.escape(participantName);
+      text = text.replaceAll(rx, '');
     }
     return text;
   }

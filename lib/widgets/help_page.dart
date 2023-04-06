@@ -333,6 +333,10 @@ class HelpPageState extends State<HelpPage> {
             Enabling this setting will disable the "Repetition penalty lines without extra symbols" setting.
           </li>
           <li>
+            <strong>Remove participant names from repetition penalty text</string> -
+            if set then the repetition penalty won't be applied to the tokens that represent participant's names.
+          </li>
+          <li>
             <strong>Warpers order</strong> - the order in which the filters are applied
             (repetition penalty, temperature, top K, top P, tail-free, typical, top A).
             <a href="$serverBaseUrl#warpers_order-string-optional">more info</a>

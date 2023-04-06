@@ -77,6 +77,9 @@ class ConfigModel extends ChangeNotifier {
   @JsonKey(defaultValue: true)
   bool repetitionPenaltyKeepOriginalPrompt = true;
 
+  @JsonKey(defaultValue: true)
+  bool repetitionPenaltyRemoveParticipantNames = true;
+
   @JsonKey(defaultValue: false)
   bool stopOnPunctuation = false;
 
@@ -178,6 +181,11 @@ class ConfigModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setRepetitionPenaltyRemoveParticipantNames(bool newRepetitionPenaltyRemoveParticipantNames) {
+    repetitionPenaltyRemoveParticipantNames = newRepetitionPenaltyRemoveParticipantNames;
+    notifyListeners();
+  }
+
   void setPreamble(String newPreamble) {
     preamble = newPreamble;
     notifyListeners();
@@ -234,6 +242,7 @@ class ConfigModel extends ChangeNotifier {
     extraRetries = other.extraRetries;
     repetitionPenaltyLinesWithNoExtraSymbols = other.repetitionPenaltyLinesWithNoExtraSymbols;
     repetitionPenaltyKeepOriginalPrompt = other.repetitionPenaltyKeepOriginalPrompt;
+    repetitionPenaltyRemoveParticipantNames = other.repetitionPenaltyRemoveParticipantNames;
     stopOnPunctuation = other.stopOnPunctuation;
     undoBySentence = other.undoBySentence;
     combineChatLines = other.combineChatLines;
