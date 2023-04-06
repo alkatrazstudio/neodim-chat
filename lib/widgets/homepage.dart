@@ -111,6 +111,8 @@ class HomePage extends StatelessWidget {
     String? repPenText,
     List<String> participantNames
   ) async {
+    if(participantNames.length == 1)
+      return participantNames[0];
     var request = getRequest(context, inputText, repPenText, participantNames);
     if(request == null)
       return null;
