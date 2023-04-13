@@ -51,7 +51,7 @@ class Message {
     text = text.replaceAll(RegExp(r'''^([^\p{Letter}\p{Number}\("\*]|[\s|_])+''', unicode: true), '');
     if(forChat)
       text = text.replaceAll(RegExp(r'''([^\p{Letter}\p{Number}\.!\?\)"\*]|[\s|_])+$''', unicode: true), '');
-    text = text.replaceAllMapped(RegExp(r'\b(dr|gen|hon|mr|mrs|ms|messrs|mmes|msgr|prof|rev|rt|sr|st|v)(\.)?\b', caseSensitive: false), (m) => '${m[1]?.substring(0, 1).toUpperCase()}${m[1]?.substring(1)}${m[2] ?? '.'}');
+    text = text.replaceAllMapped(RegExp(r'\b(dr|gen|hon|mr|mrs|ms|messrs|mmes|msgr|prof|rev|rt|sr|st|v)\b(\.)?', caseSensitive: false), (m) => '${m[1]?.substring(0, 1).toUpperCase()}${m[1]?.substring(1)}${m[2] ?? '.'}');
     text = text.replaceAllMapped(RegExp(r'([!?])\s*(\p{Letter})', unicode: true), (m) => '${m[1]} ${m[2]?.toUpperCase()}');
     text = text.replaceAllMapped(RegExp(r'(?<!\.)(\.)\s*(\p{Letter})', unicode: true), (m) => '${m[1]} ${m[2]?.toUpperCase()}');
     text = text.replaceAllMapped(RegExp(r'([.,:;])\s*(\p{Letter})', unicode: true), (m) => '${m[1]} ${m[2]}');
