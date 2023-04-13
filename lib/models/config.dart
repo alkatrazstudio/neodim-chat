@@ -89,6 +89,9 @@ class ConfigModel extends ChangeNotifier {
   @JsonKey(defaultValue: CombineChatLinesType.no)
   String combineChatLines = CombineChatLinesType.no;
 
+  @JsonKey(defaultValue: 10)
+  int noRepeatNGramSize = 10;
+
   String get inputPreamble {
     var s = preamble.trim();
     if(s.isEmpty)
@@ -221,6 +224,11 @@ class ConfigModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setNoRepeatNGramSize(int newNoRepeatNGramSize) {
+    noRepeatNGramSize = newNoRepeatNGramSize;
+    notifyListeners();
+  }
+
   void load(ConfigModel other) {
     apiEndpoint = other.apiEndpoint;
     generatedTokensCount = other.generatedTokensCount;
@@ -246,6 +254,7 @@ class ConfigModel extends ChangeNotifier {
     stopOnPunctuation = other.stopOnPunctuation;
     undoBySentence = other.undoBySentence;
     combineChatLines = other.combineChatLines;
+    noRepeatNGramSize = other.noRepeatNGramSize;
 
     notifyListeners();
   }

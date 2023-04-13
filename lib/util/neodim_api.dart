@@ -63,7 +63,8 @@ class NeodimRequest {
     this.stopStringsRequiredMatchesCount = 1,
     this.truncatePromptUntil = const [],
     this.wordsWhitelist,
-    this.requiredServerVersion
+    this.requiredServerVersion,
+    this.noRepeatNGramSize
   });
 
   final String prompt;
@@ -92,6 +93,7 @@ class NeodimRequest {
   final List<String> truncatePromptUntil;
   final List<String>? wordsWhitelist;
   final String? requiredServerVersion;
+  final int? noRepeatNGramSize;
 
   Map<String, dynamic> toApiRequestMap() {
     return <String, dynamic> {
@@ -120,7 +122,8 @@ class NeodimRequest {
       'stop_strings_required_matches_count': stopStringsRequiredMatchesCount,
       'truncate_prompt_until': truncatePromptUntil,
       'words_whitelist': wordsWhitelist,
-      'required_server_version': requiredServerVersion
+      'required_server_version': requiredServerVersion,
+      'no_repeat_ngram_size': noRepeatNGramSize
     };
   }
 }

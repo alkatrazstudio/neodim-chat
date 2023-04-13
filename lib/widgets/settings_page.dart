@@ -414,6 +414,12 @@ class _SettingsPageState extends State<SettingsPage> {
           initialValue: cfgModel.repetitionPenaltyRemoveParticipantNames,
           onSaved: (val) => cfgModel.setRepetitionPenaltyRemoveParticipantNames(val ?? true),
         ),
+        CardSettingsInt(
+          label: 'No repeat N-gram size',
+          initialValue: cfgModel.noRepeatNGramSize,
+          validator: validateNonNegativeInt,
+          onSaved: onIntSave((x) => cfgModel.setNoRepeatNGramSize(x))
+        ),
         CardSettingsWarpersOrder(
           initialValue: cfgModel.warpersOrder,
           onSaved: (order) => cfgModel.setWarpersOrder(order)

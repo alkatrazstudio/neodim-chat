@@ -39,12 +39,14 @@ class HomePage extends StatelessWidget {
 
     var stopStringsType = StopStringsType.string;
     int sequencesCount;
+    int? noRepeatNGramSize;
     if(participantNames != null) {
       truncatePromptUntil = [MessagesModel.messageSeparator];
       stopStrings = [MessagesModel.chatPromptSeparator];
       sequencesCount = 1;
       wordsWhitelist = List.from(participantNames);
       wordsWhitelist.add(MessagesModel.chatPromptSeparator);
+      noRepeatNGramSize = null;
     } else {
       switch(conv.type)
       {
@@ -73,6 +75,7 @@ class HomePage extends StatelessWidget {
         stopStringsType = StopStringsType.regex;
       }
       sequencesCount = 1 + cfgModel.extraRetries;
+      noRepeatNGramSize = cfgModel.noRepeatNGramSize;
     }
 
     var request = NeodimRequest(
@@ -100,6 +103,7 @@ class HomePage extends StatelessWidget {
       stopStringsType: stopStringsType,
       truncatePromptUntil: truncatePromptUntil,
       wordsWhitelist: wordsWhitelist,
+      noRepeatNGramSize: noRepeatNGramSize,
       requiredServerVersion: requiredServerVersion
     );
     return request;
