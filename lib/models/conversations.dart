@@ -26,9 +26,9 @@ class Conversation {
 
   static const List<String> availableTypes = [
     Conversation.typeChat,
+    Conversation.typeGroupChat,
     Conversation.typeAdventure,
-    Conversation.typeStory,
-    Conversation.typeGroupChat
+    Conversation.typeStory
   ];
 
   Conversation({
