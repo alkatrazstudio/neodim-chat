@@ -283,7 +283,7 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   CardSettingsSection configSection(BuildContext context, ConfigModel cfgModel) {
-    var combineLinesEditable = convType != Conversation.typeGroupChat;
+    var combineLinesEditable = convType == Conversation.typeChat;
 
     return CardSettingsSection(
       header: CardSettingsHeader(
@@ -441,7 +441,7 @@ class _SettingsPageState extends State<SettingsPage> {
           onSaved: (val) => cfgModel.setUndoBySentence(val ?? false)
         ),
         picker(
-          label: 'Combine chat lines${combineLinesEditable ? '' : ' (not available for group chat)'}',
+          label: 'Combine chat lines${combineLinesEditable ? '' : ' (only available in chat mode)'}',
           initialItem: cfgModel.combineChatLines,
           items: const [
             CombineChatLinesType.no,
