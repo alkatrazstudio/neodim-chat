@@ -3,8 +3,8 @@ description: Neodim chat
 version: 0.6.1+8
 
 environment:
-  sdk: ">=2.19.2 <3.0.0"
-  flutter: ">=3.7.3 <4.0.0"
+  sdk: ">=2.19.6 <3.0.0"
+  flutter: ">=3.7.11 <4.0.0"
 
 dependencies:
   flutter:
@@ -16,11 +16,11 @@ dependencies:
   bubble: 1.2.1
   collection: 1.17.0
   json_annotation: 4.8.0
-  path_provider: 2.0.12
+  path_provider: 2.0.14
   card_settings: 3.3.0
   flutter_html: 2.2.1
-  url_launcher: 6.1.9
-  package_info_plus: 3.0.3
+  url_launcher: 6.1.10
+  package_info_plus: 3.1.0
   intl: 0.17.0
   wakelock: 0.6.2
 
