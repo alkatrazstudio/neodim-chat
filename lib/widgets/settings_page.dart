@@ -284,6 +284,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
   CardSettingsSection configSection(BuildContext context, ConfigModel cfgModel) {
     var combineLinesEditable = convType == Conversation.typeChat;
+    var autoAlternateEnabled = convType == Conversation.typeChat || convType == Conversation.typeGroupChat;
 
     return CardSettingsSection(
       header: CardSettingsHeader(
@@ -450,6 +451,12 @@ class _SettingsPageState extends State<SettingsPage> {
           onSaved: (s) => cfgModel.setGroupChatLines(s),
           cfgModel: cfgModel,
           enabled: combineLinesEditable
+        ),
+        CardSettingsSwitch(
+          label: 'Always alternate chat participants in continuous mode ${autoAlternateEnabled ? '' : ' (only available in chat or group chat mode)'}',
+          initialValue: cfgModel.continuousChatForceAlternateParticipants,
+          onSaved: (val) => cfgModel.setContinuousChatForceAlternateParticipants(val ?? true),
+          enabled: autoAlternateEnabled
         )
       ]
     );

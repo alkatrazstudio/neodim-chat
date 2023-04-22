@@ -266,15 +266,20 @@ class ChatState extends State<Chat> {
     if(curConv != generatingForConv)
       return;
     var msgModel = Provider.of<MessagesModel>(context, listen: false);
+    var cfgModel = Provider.of<ConfigModel>(context, listen: false);
 
     var nextAuthorIndex = Message.storyIndex;
     switch(curConv.type)
     {
       case Conversation.typeChat:
       case Conversation.typeGroupChat:
-        nextAuthorIndex = Random().nextInt(msgModel.participants.length);
-        if(nextAuthorIndex == msgModel.lastParticipantIndex)
+        if(cfgModel.continuousChatForceAlternateParticipants) {
+          nextAuthorIndex = msgModel.getNextParticipantIndex(null);
+        } else {
           nextAuthorIndex = Random().nextInt(msgModel.participants.length);
+          if(nextAuthorIndex == msgModel.lastParticipantIndex)
+            nextAuthorIndex = Random().nextInt(msgModel.participants.length);
+        }
         break;
 
       case Conversation.typeAdventure:

@@ -367,6 +367,12 @@ class HelpPageState extends State<HelpPage> {
             "only for server" - combine lines before sending them to the server,
             but keep them separate in the user interface.
           </li>
+          <li>
+            <strong>Always alternate chat participants in continuous mode</strong> -
+            if enabled, there will be no two consecutive lines by the same participant
+            when the chat is in continuous generation mode
+            (read more about this mode in the "Miscellaneous" section).
+          </li>
         </ul>
 
         <h2>Controls</h2>

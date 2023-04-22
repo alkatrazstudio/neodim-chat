@@ -89,6 +89,9 @@ class ConfigModel extends ChangeNotifier {
   @JsonKey(defaultValue: CombineChatLinesType.no)
   String combineChatLines = CombineChatLinesType.no;
 
+  @JsonKey(defaultValue: true)
+  bool continuousChatForceAlternateParticipants = true;
+
   @JsonKey(defaultValue: 10)
   int noRepeatNGramSize = 10;
 
@@ -224,6 +227,11 @@ class ConfigModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setContinuousChatForceAlternateParticipants(bool newContinuousChatForceAlternateParticipants) {
+    continuousChatForceAlternateParticipants = newContinuousChatForceAlternateParticipants;
+    notifyListeners();
+  }
+
   void setNoRepeatNGramSize(int newNoRepeatNGramSize) {
     noRepeatNGramSize = newNoRepeatNGramSize;
     notifyListeners();
@@ -254,6 +262,7 @@ class ConfigModel extends ChangeNotifier {
     stopOnPunctuation = other.stopOnPunctuation;
     undoBySentence = other.undoBySentence;
     combineChatLines = other.combineChatLines;
+    continuousChatForceAlternateParticipants = other.continuousChatForceAlternateParticipants;
     noRepeatNGramSize = other.noRepeatNGramSize;
 
     notifyListeners();
