@@ -1,6 +1,6 @@
 name: neodim_chat
 description: Neodim chat
-version: 0.6.1+8
+version: 0.7.0+9
 
 environment:
   sdk: ">=2.19.6 <3.0.0"

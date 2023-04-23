@@ -1,5 +1,19 @@
 # Neodim Chat - CHANGELOG
 
+## v0.7.0 (April 23, 2023)
+
+- Changed: Neodim Server v0.11 is required
+- Added: [group chat mode](README.md#group-chat-mode)
+- Added: ability ot change the author of the message
+- Added: "Always alternate chat participants in continuous mode" option
+- Added: "No repeat N-gram size" option
+- Added: "Remove participant names from repetition penalty text" option
+- Added: "Combine chat lines" option
+- Added: "Penalty alpha" option
+- Changed: treat colon and asterisk as a sentence separator while performing undo
+- Improved: messages formatting and auto-corrections
+- Improved: write error message if using incompatible Neodim Server version
+
 
 ## v0.6.1 (February 19, 2023)
 
