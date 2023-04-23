@@ -5,7 +5,7 @@ NOTE: Before installing this app, make sure that you're able to run Neodim Serve
 
 Neodim Chat allows you to do the following:
 
-* Create a chat between two participants.
+* Create a chat between two or more participants.
 
 * A reply of any participant can be written by you or AI. E.g. AI can talk with itself or you can write messages for it, or vice versa.
 
