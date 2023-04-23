@@ -6,6 +6,4 @@
 - Added: "Remove participant names from repetition penalty text" option
 - Added: "Combine chat lines" option
 - Added: "Penalty alpha" option
-- Changed: treat colon and asterisk as a sentence separator while performing undo
 - Improved: messages formatting and auto-corrections
-- Improved: write error message if using incompatible Neodim Server version
