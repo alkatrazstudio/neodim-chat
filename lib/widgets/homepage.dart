@@ -25,7 +25,13 @@ class HomePage extends StatelessWidget {
     return text.trim();
   }
 
-  NeodimRequest? getRequest(BuildContext context, String inputText, String? repPenText, List<String>? participantNames) {
+  NeodimRequest? getRequest(
+    BuildContext context,
+    String inputText, String?
+    repPenText, List<String>?
+    participantNames,
+    Set<String>? blacklistWordsForRetry
+  ) {
     var convModel = Provider.of<ConversationsModel>(context, listen: false);
     var conv = convModel.current;
     if(conv == null)
@@ -78,6 +84,8 @@ class HomePage extends StatelessWidget {
       noRepeatNGramSize = cfgModel.noRepeatNGramSize;
     }
 
+    List<String> wordsBlacklist = blacklistWordsForRetry?.toList() ?? [];
+
     var request = NeodimRequest(
       prompt: inputText,
       preamble: cfgModel.inputPreamble,
@@ -103,6 +111,7 @@ class HomePage extends StatelessWidget {
       stopStringsType: stopStringsType,
       truncatePromptUntil: truncatePromptUntil,
       wordsWhitelist: wordsWhitelist,
+      wordsBlacklist: wordsBlacklist,
       noRepeatNGramSize: noRepeatNGramSize,
       requiredServerVersion: requiredServerVersion
     );
@@ -117,7 +126,7 @@ class HomePage extends StatelessWidget {
   ) async {
     if(participantNames.length == 1)
       return participantNames[0];
-    var request = getRequest(context, inputText, repPenText, participantNames);
+    var request = getRequest(context, inputText, repPenText, participantNames, null);
     if(request == null)
       return null;
     var cfgModel = Provider.of<ConfigModel>(context, listen: false);
@@ -129,7 +138,13 @@ class HomePage extends StatelessWidget {
     return null;
   }
 
-  Future<List<String>> generate(BuildContext context, String inputText, String? repPenText, Participant promptedParticipant) async {
+  Future<List<String>> generate(
+    BuildContext context,
+    String inputText,
+    String? repPenText,
+    Participant promptedParticipant,
+    Set<String> blacklistWordsForRetry
+  ) async {
     var neodimModel = Provider.of<NeodimModel>(context, listen: false);
     if(neodimModel.isApiRunning)
       return [];
@@ -157,7 +172,7 @@ class HomePage extends StatelessWidget {
         addedPromptSuffix += ' ';
       }
 
-      var request = getRequest(context, inputText, repPenText, null);
+      var request = getRequest(context, inputText, repPenText, null, blacklistWordsForRetry);
       if(request == null)
         return [];
       neodimModel.setRequest(request);
@@ -265,8 +280,8 @@ class HomePage extends StatelessWidget {
             children: [
               Expanded(
                 child: Chat(
-                  generate: (text, repPenText, promptedParticipant) async =>
-                    await generate(context, text, repPenText, promptedParticipant)
+                  generate: (text, repPenText, promptedParticipant, blacklistWordsForRetry) async =>
+                    await generate(context, text, repPenText, promptedParticipant, blacklistWordsForRetry)
                 )
               )
             ]

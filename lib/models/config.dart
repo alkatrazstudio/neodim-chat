@@ -95,6 +95,9 @@ class ConfigModel extends ChangeNotifier {
   @JsonKey(defaultValue: 10)
   int noRepeatNGramSize = 10;
 
+  @JsonKey(defaultValue: 1)
+  int addWordsToBlacklistOnRetry = 1;
+
   String get inputPreamble {
     var s = preamble.trim();
     if(s.isEmpty)
@@ -237,6 +240,11 @@ class ConfigModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setAddWordsToBlacklistOnRetry(int newAddWordsToBlacklistOnRetry) {
+    addWordsToBlacklistOnRetry = newAddWordsToBlacklistOnRetry;
+    notifyListeners();
+  }
+
   void load(ConfigModel other) {
     apiEndpoint = other.apiEndpoint;
     generatedTokensCount = other.generatedTokensCount;
@@ -264,6 +272,7 @@ class ConfigModel extends ChangeNotifier {
     combineChatLines = other.combineChatLines;
     continuousChatForceAlternateParticipants = other.continuousChatForceAlternateParticipants;
     noRepeatNGramSize = other.noRepeatNGramSize;
+    addWordsToBlacklistOnRetry = other.addWordsToBlacklistOnRetry;
 
     notifyListeners();
   }

@@ -20,7 +20,7 @@ class Chat extends StatefulWidget {
     required this.generate
   });
 
-  final Future<List<String>> Function(String, String?, Participant) generate;
+  final Future<List<String>> Function(String, String?, Participant, Set<String>) generate;
 
   @override
   State<Chat> createState() => ChatState();
@@ -63,6 +63,7 @@ class ChatState extends State<Chat> {
   List<GeneratedResult> retryCache = [];
   String aiInputForRetryCache = '';
   Conversation? generatingForConv;
+  Set<String> blacklistWordsForRetry = {};
 
   Future submit(BuildContext context, int authorIndex) async {
     var msgModel = Provider.of<MessagesModel>(context, listen: false);
@@ -149,7 +150,7 @@ class ChatState extends State<Chat> {
     }
   }
 
-  Future<GeneratedResult> getGenerated(BuildContext context, int participantIndex) async {
+  Future<GeneratedResult> getGenerated(BuildContext context, int participantIndex, {Message? undoMessage}) async {
     var convModel = Provider.of<ConversationsModel>(context, listen: false);
     var curConv = convModel.current;
     if(curConv == null)
@@ -164,6 +165,11 @@ class ChatState extends State<Chat> {
       var result = retryCache.removeAt(0);
       return result;
     }
+    if(aiInput != aiInputForRetryCache) {
+      blacklistWordsForRetry = {};
+    } else {
+      updateRetryBlacklist(context, undoMessage);
+    }
 
     var repPenInput = getRepPenInput(curConv, msgModel, cfgModel);
 
@@ -177,7 +183,7 @@ class ChatState extends State<Chat> {
     List<GeneratedResult> results = [];
     while(true) {
       try {
-        var texts = await widget.generate(aiInput, repPenInput, promptedParticipant);
+        var texts = await widget.generate(aiInput, repPenInput, promptedParticipant, blacklistWordsForRetry);
         var isSingle = texts.length == 1;
         results = texts
           .map((text) => isSingle
@@ -206,13 +212,44 @@ class ChatState extends State<Chat> {
     return result;
   }
 
-  Future addGenerated(BuildContext context, int authorIndex) async {
+  void updateRetryBlacklist(BuildContext context, Message? undoMessage) {
+    if(undoMessage == null) {
+      blacklistWordsForRetry = {};
+      return;
+    }
+
+    var cfgModel = Provider.of<ConfigModel>(context, listen: false);
+    if(cfgModel.addWordsToBlacklistOnRetry == 0)
+      return;
+    var curConv = Provider.of<ConversationsModel>(context, listen: false).current;
+    if(curConv == null)
+      return;
+
+    var text = undoMessage.text;
+    if(curConv.type == Conversation.typeGroupChat) {
+      text = text.replaceFirst(RegExp(r'[^:]*:\s*'), '');
+    }
+    var rx = RegExp(r'\W+');
+    var words = text.split(rx).where((s) => s.isNotEmpty).toSet();
+    var availableWords = words.difference(blacklistWordsForRetry);
+    for(var a=0; a<cfgModel.addWordsToBlacklistOnRetry; a++) {
+      if(availableWords.isEmpty)
+        break;
+
+      var wordIndex = Random().nextInt(availableWords.length);
+      var word = availableWords.elementAt(wordIndex);
+      availableWords.remove(word);
+      blacklistWordsForRetry.add(word);
+    }
+  }
+
+  Future addGenerated(BuildContext context, int authorIndex, {Message? undoMessage}) async {
     var msgModel = Provider.of<MessagesModel>(context, listen: false);
     var curConv = Provider.of<ConversationsModel>(context, listen: false).current;
     if(curConv == null)
       return;
 
-    var result = await getGenerated(context, authorIndex);
+    var result = await getGenerated(context, authorIndex, undoMessage: undoMessage);
     if(result.isEmpty)
       return;
 
@@ -360,7 +397,7 @@ class ChatState extends State<Chat> {
         }),
 
         ChatButtons(
-          addGenerated: (authorIndex) => addGenerated(context, authorIndex),
+          addGenerated: (authorIndex, {Message? undoMessage}) => addGenerated(context, authorIndex, undoMessage: undoMessage),
           submit: (authorIndex) => submit(context, authorIndex)
         ),
 
@@ -399,7 +436,7 @@ class ChatButtons extends StatefulWidget {
     required this.submit
   });
 
-  final Function(int authorIndex) addGenerated;
+  final Function(int authorIndex, {Message? undoMessage}) addGenerated;
   final Function(int authorIndex) submit;
 
   @override
@@ -544,7 +581,7 @@ class _ChatButtonsState extends State<ChatButtons> {
         var msg = undoItem?.message;
         if(msg == null)
           return;
-        widget.addGenerated(msg.authorIndex);
+        widget.addGenerated(msg.authorIndex, undoMessage: msg);
       },
       icon: const Icon(Icons.refresh)
     );

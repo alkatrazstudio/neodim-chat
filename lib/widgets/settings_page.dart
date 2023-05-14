@@ -431,6 +431,12 @@ class _SettingsPageState extends State<SettingsPage> {
           validator: validateNonNegativeInt,
           onSaved: onIntSave((x) => cfgModel.setExtraRetries(x))
         ),
+        CardSettingsInt(
+          label: 'Add words to blacklist on retry',
+          initialValue: cfgModel.addWordsToBlacklistOnRetry,
+          validator: validateNonNegativeInt,
+          onSaved: onIntSave((x) => cfgModel.setAddWordsToBlacklistOnRetry(x))
+        ),
         CardSettingsSwitch(
           label: 'Stop the generation on ".", "!", "?"',
           initialValue: cfgModel.stopOnPunctuation,

@@ -351,6 +351,16 @@ class HelpPageState extends State<HelpPage> {
             when pressing the "retry" button without making additional requests to the server.
           </li>
           <li>
+            <strong>Add words to blacklist on retry</strong> -
+            when pressing "retry" button, add this number of random words
+            from the last speech bubble to a blacklist.
+            It means that these words will (probably) not appear on the next try.
+            The blacklist is only valid until all previous text remains the same.
+            When anything, except the last line, changes, the blacklist will be reset.
+            NOTE: this setting highly depends on the model.
+            It may not work or give weird results.
+          </li>
+          <li>
             <strong>Stop the generation on ".", "!", "?"</strong> -
             stops generating the text if any of these punctuation symbols are met.
             It may help to generate messages with models than have problems with newlines (e.g. XGLM or OPT).
