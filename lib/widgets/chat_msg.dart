@@ -38,7 +38,7 @@ class ChatMsg extends StatelessWidget {
         msg.text,
         textAlign: TextAlign.left,
         style: TextStyle(
-          color: Theme.of(context).textTheme.bodyText1?.color?.withOpacity(opacity)
+          color: Theme.of(context).textTheme.bodyLarge?.color?.withOpacity(opacity)
         ),
         onTap: () async {
           var chatFormat = conversation.isChat || msg.authorIndex == Message.youIndex;

@@ -214,7 +214,7 @@ class HomePage extends StatelessWidget {
                         Navigator.pop(context);
                         Navigator.push<void>(
                           context,
-                          MaterialPageRoute(builder: (context) => SettingsPage())
+                          MaterialPageRoute(builder: (context) => const SettingsPage())
                         );
                       },
                       child: const Text('New conversation')

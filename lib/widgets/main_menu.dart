@@ -25,7 +25,7 @@ class MainMenu extends StatelessWidget {
     MainMenuItem('Settings', Icons.settings, (context) {
       Navigator.push<void>(
         context,
-        MaterialPageRoute(builder: (context) => SettingsPage())
+        MaterialPageRoute(builder: (context) => const SettingsPage())
       );
     }),
 
@@ -65,7 +65,7 @@ class MainMenu extends StatelessWidget {
 
       Navigator.push<void>(
         context,
-        MaterialPageRoute(builder: (context) => SettingsPage())
+        MaterialPageRoute(builder: (context) => const SettingsPage())
       );
     }),
 
