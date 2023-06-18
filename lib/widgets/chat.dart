@@ -7,12 +7,12 @@ import 'package:flutter/material.dart';
 
 import 'package:collection/collection.dart';
 import 'package:provider/provider.dart';
-import 'package:wakelock/wakelock.dart';
 
 import '../models/config.dart';
 import '../models/conversations.dart';
 import '../models/messages.dart';
 import '../models/neodim_model.dart';
+import '../util/wakelock.dart';
 import '../widgets/chat_msg.dart';
 
 class Chat extends StatefulWidget {
@@ -279,12 +279,12 @@ class ChatState extends State<Chat> {
 
   void enableAutoGen(Conversation conv) {
     generatingForConv = conv;
-    Wakelock.enable();
+    Wakelock.set(true);
   }
 
   void disableAutoGen() {
     generatingForConv = null;
-    Wakelock.disable();
+    Wakelock.set(false);
   }
 
   Future nextAutoGen() async {
