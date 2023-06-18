@@ -544,8 +544,8 @@ class HelpPageState extends State<HelpPage> {
 
         <h2>Assets</h2>
         <p>
-          Below is the list of all assets that are directly used by {appTitle}.
-          Some libraries that are used in {appTitle} may contain and/otr use other assets.
+          Below is the list of all assets that are directly used by Neodim Chat.
+          Some libraries that are used in Neodim Chat may contain and/or use other assets.
           Tap on an asset name to go to its website. Tap on a license name to read the license text online.
         </p>
 
