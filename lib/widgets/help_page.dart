@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 
 import 'package:flutter_html/flutter_html.dart';
+import 'package:flutter_html_table/flutter_html_table.dart';
 import 'package:intl/intl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher_string.dart';
@@ -59,7 +60,7 @@ class _KeyValRow {
 
   static String renderParagraphs(List<_KeyValRow> rows) {
     return rows.map((row) {
-      return '<strong style="font-size: ${FontSize.larger.size}">${renderLink(row.key, row.keyLink)}:</strong>'
+      return '<strong style="font-size: ${FontSize.large.value}">${renderLink(row.key, row.keyLink)}:</strong>'
         '<div style="padding-bottom: 20">${renderLink(row.val, row.valLink)}</div>';
     }).join();
   }
@@ -126,24 +127,30 @@ class HelpPageState extends State<HelpPage> {
 
                     return Html(
                       data: htmlFuture.data,
+                      extensions: const [
+                        TableHtmlExtension()
+                      ],
                       style: {
                         'th, td': Style(
-                          fontSize: FontSize.larger,
-                          padding: const EdgeInsets.only(top: 10, bottom: 10, right: 20),
+                          fontSize: FontSize.large,
+                          padding: HtmlPaddings.only(top: 10, bottom: 10, right: 20),
                           border: const Border(bottom: BorderSide(color: Colors.grey))
                         ),
                         'th + th, td + td': Style(
-                          padding: const EdgeInsets.only(top: 10, bottom: 10, right: 0)
+                          padding: HtmlPaddings.only(top: 10, bottom: 10, right: 0)
                         ),
                         'h2, h3': Style(
-                          padding: const EdgeInsets.only(top: 20)
+                          padding: HtmlPaddings.only(top: 20)
+                        ),
+                        'ul': Style(
+                          padding: HtmlPaddings.only(left: 5)
                         ),
                         'li': Style(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          listStylePosition: ListStylePosition.INSIDE
+                          padding: HtmlPaddings.only(bottom: 10),
+                          listStylePosition: ListStylePosition.inside
                         )
                       },
-                      onLinkTap: (url, context, attributes, element) async {
+                      onLinkTap: (url, attributes, element) async {
                         if(url == null)
                           return;
                         if(!await canLaunchUrlString(url))
@@ -523,6 +530,7 @@ class HelpPageState extends State<HelpPage> {
             _KeyValRow(key: 'path_provider', keyLink: 'https://pub.dev/packages/path_provider', val: bsd3, valLink: bsd3Url),
             _KeyValRow(key: 'card_settings', keyLink: 'https://pub.dev/packages/card_settings', val: mit, valLink: mitUrl),
             _KeyValRow(key: 'flutter_html', keyLink: 'https://pub.dev/packages/flutter_html', val: mit, valLink: mitUrl),
+            _KeyValRow(key: 'flutter_html_table', keyLink: 'https://pub.dev/packages/flutter_html_table', val: mit, valLink: mitUrl),
             _KeyValRow(key: 'url_launcher', keyLink: 'https://pub.dev/packages/url_launcher', val: bsd3, valLink: bsd3Url),
             _KeyValRow(key: 'package_info_plus', keyLink: 'https://pub.dev/packages/package_info_plus', val: bsd3, valLink: bsd3Url),
             _KeyValRow(key: 'intl', keyLink: 'https://pub.dev/packages/intl', val: bsd3, valLink: bsd3Url),
