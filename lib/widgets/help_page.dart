@@ -333,7 +333,7 @@ class HelpPageState extends State<HelpPage> {
             Enabling this setting will disable the "Repetition penalty lines without extra symbols" setting.
           </li>
           <li>
-            <strong>Remove participant names from repetition penalty text</string> -
+            <strong>Remove participant names from repetition penalty text</strong> -
             if set then the repetition penalty won't be applied to the tokens that represent participant's names.
           </li>
           <li>
