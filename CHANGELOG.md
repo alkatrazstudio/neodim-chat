@@ -1,5 +1,12 @@
 # Neodim Chat - CHANGELOG
 
+
+## v0.7.1 (June 18, 2023)
+
+- Added: "Add words to blacklist on retry" option
+- Fixed: help page formatting and text
+
+
 ## v0.7.0 (April 23, 2023)
 
 - Changed: Neodim Server v0.11 is required

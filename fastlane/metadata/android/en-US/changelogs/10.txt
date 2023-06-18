@@ -1,0 +1,2 @@
+- Added: "Add words to blacklist on retry" option
+- Fixed: help page formatting and text
