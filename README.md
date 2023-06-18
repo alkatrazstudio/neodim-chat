@@ -9,6 +9,25 @@ and that you understand how it works.
 Neodim Chat fully relies on Nedim Server and does not work without it.
 
 
+## Key features
+
+* Chat between [two](#chat-mode) or [more](#group-chat-mode) participants
+* The next chat participant is chosen by AI (when more than participants are involved)
+* Write a [story](#story-mode) (as a "monologue" of one participant)
+* Text [adventure game](#adventure-mode) simulation
+* Quick controls to generate/edit messages for any chat participant and undo/redo/retry messages
+* Only the required amount of tokens are requested, i.e. not wasting GPU time on what is not needed
+* Continuous generation (AI chats with itself or generates a story until manually stopped)
+* Advanced repetition penalty settings
+* Force the use of new words when retrying message generation, i.e. no same message on retry
+* Generate several messages upfront for quick retries (no loss of speed, but requires more VRAM)
+* Auto-correcting some English grammar and punctuation, e.g. `i don't know, mr anderson` => `I don't know, Mr. Anderson.`
+* View/copy the chat/story content as plain text
+* Undo the text by sentence
+* Color customization for speech bubbles.
+* Built-in help
+
+
 ## Chat mode
 
 The main purpose of Neodim Chat is to allow you to have a conversation

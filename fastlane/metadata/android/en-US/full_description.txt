@@ -3,23 +3,23 @@ Neodim Chat allows you to chat with AI-powered bot via Neodim Server (https://gi
 NOTE: Before installing this app, make sure that you're able to run Neodim Server and you understand how it works. Neodim Chat does not work without Neodim Server!
 
 
-Neodim Chat allows you to do the following:
+== KEY FEATURES ==
 
-* Create a chat between two or more participants.
-
-* A reply of any participant can be written by you or AI. E.g. AI can talk with itself or you can write messages for it, or vice versa.
-
-* Setup any model parameters and other parameters that Neodim Server supports, e. g. "temperature", "top-p", "tail-free sampling" etc. Read more about these parameters on the Neodim Server's page (https://github.com/alkatrazstudio/neodim-server#api-request). The app also has a built-in help page.
-
-* Set preamble (https://github.com/alkatrazstudio/neodim-server#prompt-and-preamble).
-
-* Auto-correction of common misspellings.
-
-* Change text in any message by tapping it.
-
-* Undo, redo and retry buttons.
-
+* Chat between two or more participants
+* The next chat participant is chosen by AI (when more than participants are involved)
+* Write a story (as a "monologue" of one participant)
+* Text adventure game simulation
+* Quick controls to generate/edit messages for any chat participant and undo/redo/retry messages
+* Only the required amount of tokens are requested, i.e. not wasting GPU time on what is not needed
+* Continuous generation (AI chats with itself or generates a story until manually stopped)
+* Advanced repetition penalty settings
+* Force the use of new words when retrying message generation, i.e. no same message on retry
+* Generate several messages upfront for quick retries (no loss of speed, but requires more VRAM)
+* Auto-correcting some English grammar and punctuation, e.g. "i don't know, mr anderson" => "I don't know, Mr. Anderson."
+* View/copy the chat/story content as plain text
+* Undo the text by sentence
 * Color customization for speech bubbles.
+* Built-in help
 
 
 More info: https://github.com/alkatrazstudio/neodim-chat
