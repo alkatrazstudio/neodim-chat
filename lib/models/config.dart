@@ -95,8 +95,14 @@ class ConfigModel extends ChangeNotifier {
   @JsonKey(defaultValue: 10)
   int noRepeatNGramSize = 10;
 
+  @JsonKey(defaultValue: 2)
+  int addWordsToBlacklistOnRetry = 2;
+
+  @JsonKey(defaultValue: true)
+  bool addSpecialSymbolsToBlacklist = true;
+
   @JsonKey(defaultValue: 1)
-  int addWordsToBlacklistOnRetry = 1;
+  int removeWordsFromBlacklistOnRetry = 1;
 
   String get inputPreamble {
     var s = preamble.trim();
@@ -245,6 +251,16 @@ class ConfigModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setAddSpecialSymbolsToBlacklist(bool newAddSpecialSymbolsToBlacklist) {
+    addSpecialSymbolsToBlacklist = newAddSpecialSymbolsToBlacklist;
+    notifyListeners();
+  }
+
+  void setRemoveWordsFromBlacklistOnRetry(int newRemoveWordsFromBlacklistOnRetry) {
+    removeWordsFromBlacklistOnRetry = newRemoveWordsFromBlacklistOnRetry;
+    notifyListeners();
+  }
+
   void load(ConfigModel other) {
     apiEndpoint = other.apiEndpoint;
     generatedTokensCount = other.generatedTokensCount;
@@ -273,6 +289,8 @@ class ConfigModel extends ChangeNotifier {
     continuousChatForceAlternateParticipants = other.continuousChatForceAlternateParticipants;
     noRepeatNGramSize = other.noRepeatNGramSize;
     addWordsToBlacklistOnRetry = other.addWordsToBlacklistOnRetry;
+    addSpecialSymbolsToBlacklist = other.addSpecialSymbolsToBlacklist;
+    removeWordsFromBlacklistOnRetry = other.removeWordsFromBlacklistOnRetry;
 
     notifyListeners();
   }

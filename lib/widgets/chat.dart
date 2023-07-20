@@ -219,27 +219,40 @@ class ChatState extends State<Chat> {
     }
 
     var cfgModel = Provider.of<ConfigModel>(context, listen: false);
-    if(cfgModel.addWordsToBlacklistOnRetry == 0)
-      return;
-    var curConv = Provider.of<ConversationsModel>(context, listen: false).current;
-    if(curConv == null)
-      return;
+    var availableWordsToRemove = blacklistWordsForRetry.toSet();
 
-    var text = undoMessage.text;
-    if(curConv.type == Conversation.typeGroupChat) {
-      text = text.replaceFirst(RegExp(r'[^:]*:\s*'), '');
+    if(cfgModel.addWordsToBlacklistOnRetry != 0) {
+      var curConv = Provider.of<ConversationsModel>(context, listen: false).current;
+      if(curConv == null)
+        return;
+
+      var text = undoMessage.text;
+      if(curConv.type == Conversation.typeGroupChat) {
+        text = text.replaceFirst(RegExp(r'[^:]*:\s*'), '');
+      }
+      var rx =  RegExp(cfgModel.addSpecialSymbolsToBlacklist ? r'([^\w()*]|\b)+' : r'\W+');
+      var words = text.split(rx).where((s) => s.isNotEmpty).toSet();
+      var availableWordsToAdd = words.difference(blacklistWordsForRetry);
+
+      for(var a=0; a<cfgModel.addWordsToBlacklistOnRetry; a++) {
+        if(availableWordsToAdd.isEmpty)
+          break;
+
+        var wordIndex = Random().nextInt(availableWordsToAdd.length);
+        var word = availableWordsToAdd.elementAt(wordIndex);
+        availableWordsToAdd.remove(word);
+        blacklistWordsForRetry.add(word);
+      }
     }
-    var rx = RegExp(r'\W+');
-    var words = text.split(rx).where((s) => s.isNotEmpty).toSet();
-    var availableWords = words.difference(blacklistWordsForRetry);
-    for(var a=0; a<cfgModel.addWordsToBlacklistOnRetry; a++) {
-      if(availableWords.isEmpty)
+
+    for(var a=0; a<cfgModel.removeWordsFromBlacklistOnRetry; a++) {
+      if(availableWordsToRemove.isEmpty)
         break;
 
-      var wordIndex = Random().nextInt(availableWords.length);
-      var word = availableWords.elementAt(wordIndex);
-      availableWords.remove(word);
-      blacklistWordsForRetry.add(word);
+      var wordIndex = Random().nextInt(availableWordsToRemove.length);
+      var word = availableWordsToRemove.elementAt(wordIndex);
+      availableWordsToRemove.remove(word);
+      blacklistWordsForRetry.remove(word);
     }
   }
 

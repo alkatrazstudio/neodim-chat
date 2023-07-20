@@ -438,6 +438,17 @@ class _SettingsPageState extends State<SettingsPage> {
           onSaved: onIntSave((x) => cfgModel.setAddWordsToBlacklistOnRetry(x))
         ),
         CardSettingsSwitch(
+          label: 'Also add special symbols to blacklist',
+          initialValue: cfgModel.addSpecialSymbolsToBlacklist,
+          onSaved: (val) => cfgModel.setAddSpecialSymbolsToBlacklist(val ?? false)
+        ),
+        CardSettingsInt(
+          label: 'Remove old words from blacklist on retry',
+          initialValue: cfgModel.removeWordsFromBlacklistOnRetry,
+          validator: validateNonNegativeInt,
+          onSaved: onIntSave((x) => cfgModel.setRemoveWordsFromBlacklistOnRetry(x))
+        ),
+        CardSettingsSwitch(
           label: 'Stop the generation on ".", "!", "?"',
           initialValue: cfgModel.stopOnPunctuation,
           onSaved: (val) => cfgModel.setStopOnPunctuation(val ?? false)

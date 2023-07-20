@@ -368,6 +368,16 @@ class HelpPageState extends State<HelpPage> {
             It may not work or give weird results.
           </li>
           <li>
+            <strong>Also add special symbols to blacklist</strong> -
+            add symbols (, ), * to the blacklist. 
+          </li>
+          <li>
+            <strong>Remove old words from blacklist on retry</strong> -
+            removes the specified amount of words from blacklist befoire adding new words.
+            Removed words may be re-added, but only on subsequent retries
+            (i.e. the removed words won't be re-added immediately).
+          </li>
+          <li>
             <strong>Stop the generation on ".", "!", "?"</strong> -
             stops generating the text if any of these punctuation symbols are met.
             It may help to generate messages with models than have problems with newlines (e.g. XGLM or OPT).
