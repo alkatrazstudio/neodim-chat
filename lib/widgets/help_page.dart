@@ -457,6 +457,17 @@ class HelpPageState extends State<HelpPage> {
         It's preferable to prefix all player's actions with "You",
         e.g. "You steal the crown" instead of just "Steal the crown".
 
+        <h3>Long tap</h3>
+        You can long tap a button to perform its secondary action.
+        Here's the list of secondary actions for each button:
+
+        <ul>
+          <li>Undo - undo the entire speech bubble, ignoring the "Undo the text up to these symbols" setting.</li>
+          <li>Retry - reset the blacklist before retrying</li>
+          <li>Generate - continue the last speech bubble instead of generating a new one</li>
+          <li>Add - add a message without any formatting</li>
+        </ul>
+
         <h2>Miscellaneous</h2>
         <ul>
           <li>The red line(s) at the bottom represents the GPU usage.</li>

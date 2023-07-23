@@ -143,7 +143,8 @@ class HomePage extends StatelessWidget {
     String inputText,
     String? repPenText,
     Participant promptedParticipant,
-    Set<String> blacklistWordsForRetry
+    Set<String> blacklistWordsForRetry,
+    bool continueLastMsg
   ) async {
     var neodimModel = Provider.of<NeodimModel>(context, listen: false);
     if(neodimModel.isApiRunning)
@@ -182,7 +183,7 @@ class HomePage extends StatelessWidget {
       neodimModel.setApiRunning(false);
       var combineLines = cfgModel.combineChatLines != CombineChatLinesType.no && conv.type != Conversation.typeGroupChat;
       convModel.updateUsedMessagesCount(
-        response.usedPrompt, promptedParticipant, msgModel, inputMessages, combineLines, addedPromptSuffix);
+        response.usedPrompt, promptedParticipant, msgModel, inputMessages, combineLines, addedPromptSuffix, continueLastMsg);
       var lines = response.sequences.map(outputTextFromSequence).toList();
       lines = lines.map((line) => addedPromptSuffix + line).toList();
       return lines;
@@ -280,8 +281,8 @@ class HomePage extends StatelessWidget {
             children: [
               Expanded(
                 child: Chat(
-                  generate: (text, repPenText, promptedParticipant, blacklistWordsForRetry) async =>
-                    await generate(context, text, repPenText, promptedParticipant, blacklistWordsForRetry)
+                  generate: (text, repPenText, promptedParticipant, blacklistWordsForRetry, continueLastMsg) async =>
+                    await generate(context, text, repPenText, promptedParticipant, blacklistWordsForRetry, continueLastMsg)
                 )
               )
             ]

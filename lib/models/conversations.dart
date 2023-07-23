@@ -269,7 +269,8 @@ class ConversationsModel extends ChangeNotifier {
     MessagesModel msgModel,
     List<Message> inputMessages,
     bool combineLines,
-    String addedPromptSuffix
+    String addedPromptSuffix,
+    bool continueLastMsg
   ) {
     var c = current;
     if(c == null) {
@@ -279,7 +280,7 @@ class ConversationsModel extends ChangeNotifier {
     }
 
     var usedMessages = msgModel.getUsedMessages(
-        usedPrompt, promptedParticipant, inputMessages, c.type, combineLines, addedPromptSuffix);
+        usedPrompt, promptedParticipant, inputMessages, c.type, combineLines, addedPromptSuffix, continueLastMsg);
     var usedMessagesCount = usedMessages.length;
     notUsedMessagesCount = inputMessages.length - usedMessagesCount;
     notifyListeners();

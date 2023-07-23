@@ -125,8 +125,8 @@ class MessagesModel extends ChangeNotifier {
   bool get isLastGenerated => messages.lastOrNull?.isGenerated ?? false;
   Message? get generatedAtEnd => isLastGenerated ? messages.lastOrNull : null;
 
-  String get chatText => getTextForChat(messages, false, false);
-  String get groupChatText => getTextForChat(messages, false, true);
+  String get chatText => getTextForChat(messages, false, false, false);
+  String get groupChatText => getTextForChat(messages, false, true, false);
   String get adventureText => getTextForAdventure(messages);
   String get storyText => getTextForStory(messages);
   String get aiInputForStory => storyText;
@@ -143,7 +143,7 @@ class MessagesModel extends ChangeNotifier {
 
   String getPromptForChat(Participant p) => '${p.name}$chatPromptSeparator';
 
-  String getTextForChat(List<Message> msgs, bool combineLines, bool groupChat) {
+  String getTextForChat(List<Message> msgs, bool combineLines, bool groupChat, bool continueLastMsg) {
     var s = '';
     if(combineLines) {
       var curParticipantIndex = Message.noneIndex;
@@ -167,6 +167,8 @@ class MessagesModel extends ChangeNotifier {
         else
           s += '${m.text}$messageSeparator';
       }
+      if(continueLastMsg && s.endsWith(messageSeparator))
+        s = s.substring(0, s.length - messageSeparator.length);
     }
     return s;
   }
@@ -280,12 +282,13 @@ class MessagesModel extends ChangeNotifier {
     List<Message> msgs,
     Participant promptedParticipant,
     bool combineLines,
-    bool groupChat
+    bool groupChat,
+    bool continueLastMsg
   ) {
-    var text = getTextForChat(msgs, combineLines, groupChat);
+    var text = getTextForChat(msgs, combineLines, groupChat, continueLastMsg);
     var aiInput = text;
     var participantIndex = participants.indexOf(promptedParticipant);
-    if(combineLines) {
+    if(combineLines || continueLastMsg) {
       if(participantIndex == lastParticipantIndex) {
         aiInput += ' ';
       } else {
@@ -377,7 +380,8 @@ class MessagesModel extends ChangeNotifier {
     List<Message> inputMessages,
     String chatType,
     bool combineLines,
-    String addedPromptSuffix
+    String addedPromptSuffix,
+    bool continueLastMsg
   ) {
     var startIndex = inputMessages.length - 1;
     var usedMessages = <Message>[];
@@ -388,7 +392,7 @@ class MessagesModel extends ChangeNotifier {
       String testText;
       switch(chatType) {
         case Conversation.typeChat:
-          testText = getAiInputForChat(testMessages, promptedParticipant, combineLines, false);
+          testText = getAiInputForChat(testMessages, promptedParticipant, combineLines, false, continueLastMsg);
           break;
 
         case Conversation.typeAdventure:
@@ -400,7 +404,7 @@ class MessagesModel extends ChangeNotifier {
           break;
 
         case Conversation.typeGroupChat:
-          testText = getAiInputForChat(testMessages, promptedParticipant, combineLines, true);
+          testText = getAiInputForChat(testMessages, promptedParticipant, combineLines, true, continueLastMsg);
           break;
 
         default:

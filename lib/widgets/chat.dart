@@ -13,6 +13,7 @@ import '../models/conversations.dart';
 import '../models/messages.dart';
 import '../models/neodim_model.dart';
 import '../util/wakelock.dart';
+import '../widgets/chat_button.dart';
 import '../widgets/chat_msg.dart';
 
 class Chat extends StatefulWidget {
@@ -20,7 +21,7 @@ class Chat extends StatefulWidget {
     required this.generate
   });
 
-  final Future<List<String>> Function(String, String?, Participant, Set<String>) generate;
+  final Future<List<String>> Function(String, String?, Participant, Set<String>, bool continueLastMsg) generate;
 
   @override
   State<Chat> createState() => ChatState();
@@ -65,7 +66,7 @@ class ChatState extends State<Chat> {
   Conversation? generatingForConv;
   Set<String> blacklistWordsForRetry = {};
 
-  Future submit(BuildContext context, int authorIndex) async {
+  Future submit(BuildContext context, int authorIndex, bool format) async {
     var msgModel = Provider.of<MessagesModel>(context, listen: false);
     if(inputController.text.isEmpty)
       return;
@@ -74,20 +75,27 @@ class ChatState extends State<Chat> {
     if(curConv == null)
       return;
     var chatFormat = curConv.isChat || authorIndex == Message.youIndex;
-    var text = Message.format(inputController.text, chatFormat);
+    var text = format ? Message.format(inputController.text, chatFormat) : inputController.text.trim();
     msgModel.addText(text, false, authorIndex);
     inputController.clear();
     await ConversationsModel.saveCurrentData(context);
   }
 
-  String getAiInput(Conversation c, MessagesModel msgModel, ConfigModel cfgModel, Participant nextParticipant, int nextParticipantIndex) {
+  String getAiInput(
+      Conversation c,
+      MessagesModel msgModel,
+      ConfigModel cfgModel,
+      Participant nextParticipant,
+      int nextParticipantIndex,
+      bool continueLastMsg
+  ) {
     var combineLines = cfgModel.combineChatLines != CombineChatLinesType.no && c.type != Conversation.typeGroupChat;
     switch(c.type) {
       case Conversation.typeChat:
-        return msgModel.getAiInputForChat(msgModel.messages, nextParticipant, combineLines, false);
+        return msgModel.getAiInputForChat(msgModel.messages, nextParticipant, combineLines, false, continueLastMsg);
 
       case Conversation.typeGroupChat:
-        var inputText = msgModel.getAiInputForChat(msgModel.messages, nextParticipant, combineLines, true);
+        var inputText = msgModel.getAiInputForChat(msgModel.messages, nextParticipant, combineLines, true, continueLastMsg);
         return inputText;
 
       case Conversation.typeAdventure:
@@ -150,7 +158,13 @@ class ChatState extends State<Chat> {
     }
   }
 
-  Future<GeneratedResult> getGenerated(BuildContext context, int participantIndex, {Message? undoMessage}) async {
+  Future<GeneratedResult> getGenerated(
+    BuildContext context,
+    int participantIndex, {
+    Message? undoMessage,
+    bool useBlacklist = true,
+    bool continueLastMsg = false
+  }) async {
     var convModel = Provider.of<ConversationsModel>(context, listen: false);
     var curConv = convModel.current;
     if(curConv == null)
@@ -159,7 +173,7 @@ class ChatState extends State<Chat> {
     var cfgModel = Provider.of<ConfigModel>(context, listen: false);
 
     var promptedParticipant = msgModel.participants[participantIndex];
-    var aiInput = getAiInput(curConv, msgModel, cfgModel, promptedParticipant, participantIndex);
+    var aiInput = getAiInput(curConv, msgModel, cfgModel, promptedParticipant, participantIndex, continueLastMsg);
 
     if(aiInput == aiInputForRetryCache && retryCache.isNotEmpty) {
       var result = retryCache.removeAt(0);
@@ -168,7 +182,10 @@ class ChatState extends State<Chat> {
     if(aiInput != aiInputForRetryCache) {
       blacklistWordsForRetry = {};
     } else {
-      updateRetryBlacklist(context, undoMessage);
+      if(useBlacklist)
+        updateRetryBlacklist(context, undoMessage);
+      else
+        blacklistWordsForRetry = {};
     }
 
     var repPenInput = getRepPenInput(curConv, msgModel, cfgModel);
@@ -177,13 +194,13 @@ class ChatState extends State<Chat> {
     retryCache.clear();
 
     var isChat = curConv.isChat;
-    var chatFormat = isChat || participantIndex == Message.youIndex;
+    var chatFormat = (isChat || participantIndex == Message.youIndex) && (!continueLastMsg || participantIndex != msgModel.lastParticipantIndex);
 
     var nTries = isChat ? 3 : 1;
     List<GeneratedResult> results = [];
     while(true) {
       try {
-        var texts = await widget.generate(aiInput, repPenInput, promptedParticipant, blacklistWordsForRetry);
+        var texts = await widget.generate(aiInput, repPenInput, promptedParticipant, blacklistWordsForRetry, continueLastMsg);
         var isSingle = texts.length == 1;
         results = texts
           .map((text) => isSingle
@@ -256,19 +273,32 @@ class ChatState extends State<Chat> {
     }
   }
 
-  Future addGenerated(BuildContext context, int authorIndex, {Message? undoMessage}) async {
+  Future addGenerated(
+    BuildContext context,
+    int authorIndex, {
+    Message? undoMessage,
+    bool useBlacklist = true,
+    bool continueLastMsg = false
+  }) async {
     var msgModel = Provider.of<MessagesModel>(context, listen: false);
     var curConv = Provider.of<ConversationsModel>(context, listen: false).current;
     if(curConv == null)
       return;
 
-    var result = await getGenerated(context, authorIndex, undoMessage: undoMessage);
+    var result = await getGenerated(
+      context,
+      authorIndex,
+      undoMessage: undoMessage,
+      useBlacklist: useBlacklist,
+      continueLastMsg: continueLastMsg
+    );
     if(result.isEmpty)
       return;
 
     var lastMsg = msgModel.messages.lastOrNull;
     if(
-      lastMsg != null
+      !result.isError
+      && lastMsg != null
       && result.preText.isNotEmpty
       && lastMsg.authorIndex == authorIndex
       && !curConv.isChat
@@ -276,8 +306,12 @@ class ChatState extends State<Chat> {
       msgModel.setText(lastMsg, lastMsg.text + result.preText, false);
     }
 
-    if(result.text.isNotEmpty)
-      msgModel.addText(result.text, true, authorIndex);
+    if(result.text.isNotEmpty) {
+      if(!result.isError && lastMsg != null && continueLastMsg && authorIndex == msgModel.lastParticipantIndex)
+        msgModel.setText(lastMsg, '${lastMsg.text} ${result.text}', false);
+      else
+        msgModel.addText(result.text, true, authorIndex);
+    }
     await ConversationsModel.saveCurrentData(context);
 
     if(generatingForConv != null && !result.isError)
@@ -393,7 +427,7 @@ class ChatState extends State<Chat> {
 
           return ChatInput(
             addGenerated: (authorIndex) => addGenerated(context, authorIndex),
-            submit: (authorIndex) => submit(context, authorIndex),
+            submit: (authorIndex) => submit(context, authorIndex, true),
             inputController: inputController,
             isGenerating: generatingForConv == curConv,
             onGeneratingSwitch: (newIsGenerating) {
@@ -410,8 +444,19 @@ class ChatState extends State<Chat> {
         }),
 
         ChatButtons(
-          addGenerated: (authorIndex, {Message? undoMessage}) => addGenerated(context, authorIndex, undoMessage: undoMessage),
-          submit: (authorIndex) => submit(context, authorIndex)
+          addGenerated: (
+            authorIndex, {
+            Message? undoMessage,
+            bool useBlacklist = true,
+            bool continueLastMsg = false
+          }) => addGenerated(
+            context,
+            authorIndex,
+            undoMessage: undoMessage,
+            useBlacklist: useBlacklist,
+            continueLastMsg: continueLastMsg
+          ),
+          submit: (authorIndex, format) => submit(context, authorIndex, format)
         ),
 
         Consumer<NeodimModel>(builder: (context, neodimModel, child) {
@@ -449,8 +494,8 @@ class ChatButtons extends StatefulWidget {
     required this.submit
   });
 
-  final Function(int authorIndex, {Message? undoMessage}) addGenerated;
-  final Function(int authorIndex) submit;
+  final Function(int authorIndex, {Message? undoMessage, bool useBlacklist, bool continueLastMsg}) addGenerated;
+  final Function(int authorIndex, bool format) submit;
 
   @override
   State<ChatButtons> createState() => _ChatButtonsState();
@@ -501,12 +546,11 @@ class _ChatButtonsState extends State<ChatButtons> {
     );
   }
 
-  Future<UndoItem?> undo(MessagesModel msgModel, ConfigModel cfgModel, Conversation curConv, bool forRetry) async {
+  Future<UndoItem?> undo(MessagesModel msgModel, ConfigModel cfgModel, Conversation curConv, bool undoBySentence) async {
     var lastMsg = msgModel.messages.lastOrNull;
     if(lastMsg == null)
       return null;
 
-    var undoBySentence = !forRetry && cfgModel.undoBySentence && lastMsg.text.isNotEmpty;
     late UndoItem undoItem;
     if(undoBySentence) {
       var pos = lastMsg.text.length - 1;
@@ -555,18 +599,23 @@ class _ChatButtonsState extends State<ChatButtons> {
     return undoItem;
   }
 
-  Widget btnUndo(BuildContext context, MessagesModel msgModel, ConfigModel cfgModel, Conversation curConv) {
-    return IconButton(
-      onPressed: msgModel.messages.isEmpty ? null : () async {
-        await undo(msgModel, cfgModel, curConv, false);
+  Widget btnUndo(MessagesModel msgModel, ConfigModel cfgModel, Conversation curConv) {
+    return ChatButton(
+      onPressed: (isLong) async {
+        var lastMsg = msgModel.messages.lastOrNull;
+        if(lastMsg == null)
+          return;
+        var undoBySentence = !isLong && cfgModel.undoBySentence && lastMsg.text.isNotEmpty;
+        await undo(msgModel, cfgModel, curConv, undoBySentence);
       },
-      icon: const Icon(Icons.undo)
+      isEnabled: msgModel.messages.isNotEmpty,
+      icon: Icons.undo
     );
   }
 
   Widget btnRedo(BuildContext context, MessagesModel msgModel) {
-    return IconButton(
-      onPressed: undoQueue.isEmpty ? null : () async {
+    return ChatButton(
+      onPressed: (isLong) async {
         setState(() {
           var undoItem = undoQueue.removeLast();
           if(undoItem.text != null) {
@@ -583,20 +632,44 @@ class _ChatButtonsState extends State<ChatButtons> {
         });
         await ConversationsModel.saveCurrentData(context);
       },
-      icon: const Icon(Icons.redo)
+      isEnabled: undoQueue.isNotEmpty,
+      icon: Icons.redo
     );
   }
 
-  Widget btnRetry(BuildContext context, MessagesModel msgModel, ConfigModel cfgModel, Conversation curConv, NeodimModel neodimModel) {
-    return IconButton(
-      onPressed: (neodimModel.isApiRunning || msgModel.generatedAtEnd == null) ? null : () async {
-        var undoItem = await undo(msgModel, cfgModel, curConv, true);
+  Widget btnRetry(MessagesModel msgModel, ConfigModel cfgModel, Conversation curConv, NeodimModel neodimModel) {
+    return ChatButton(
+      onPressed: (isLong) async {
+        var undoItem = await undo(msgModel, cfgModel, curConv, false);
         var msg = undoItem?.message;
         if(msg == null)
           return;
-        widget.addGenerated(msg.authorIndex, undoMessage: msg);
+        widget.addGenerated(msg.authorIndex, undoMessage: msg, useBlacklist: !isLong);
       },
-      icon: const Icon(Icons.refresh)
+      isEnabled: !neodimModel.isApiRunning && msgModel.generatedAtEnd != null,
+      icon: Icons.refresh
+    );
+  }
+
+  Widget btnGenerate(bool isYou, NeodimModel neodimModel) {
+    return ChatButton(
+      onPressed: (isLong) {
+        widget.addGenerated(isYou ? Message.youIndex : Message.storyIndex, continueLastMsg: isLong);
+      },
+      isEnabled: !neodimModel.isApiRunning,
+      icon: Icons.speaker_notes_outlined,
+      flipIcon: isYou
+    );
+  }
+
+  Widget btnAdd(bool isYou, NeodimModel neodimModel) {
+    return ChatButton(
+      onPressed: (isLong) {
+        widget.submit(isYou ? Message.youIndex : Message.storyIndex, !isLong);
+      },
+      isEnabled: !neodimModel.isApiRunning,
+      icon: Icons.add_comment_outlined,
+      flipIcon: !isYou,
     );
   }
 
@@ -608,40 +681,14 @@ class _ChatButtonsState extends State<ChatButtons> {
       ConfigModel cfgModel
     ) {
     return [[
-      btnUndo(context, msgModel, cfgModel, curConv),
+      btnUndo(msgModel, cfgModel, curConv),
       btnRedo(context, msgModel),
-      btnRetry(context, msgModel, cfgModel, curConv, neodimModel)
+      btnRetry(msgModel, cfgModel, curConv, neodimModel)
     ], [
-      IconButton(
-        onPressed: neodimModel.isApiRunning ? null : () {
-          widget.addGenerated(Message.youIndex + 1);
-        },
-        icon: const Icon(Icons.speaker_notes_outlined)
-      ),
-      IconButton(
-        onPressed: neodimModel.isApiRunning ? null : () {
-          widget.addGenerated(Message.youIndex);
-        },
-        icon: Transform.scale(
-          scaleX: -1,
-          child: const Icon(Icons.speaker_notes_outlined)
-        )
-      ),
-      IconButton(
-        onPressed: neodimModel.isApiRunning ? null : () {
-          widget.submit(Message.youIndex + 1);
-        },
-        icon: Transform.scale(
-          scaleX: -1,
-          child: const Icon(Icons.add_comment_outlined)
-        )
-      ),
-      IconButton(
-        onPressed: neodimModel.isApiRunning ? null : () {
-          widget.submit(Message.youIndex);
-        },
-        icon: const Icon(Icons.add_comment_outlined)
-      )
+      btnGenerate(false, neodimModel),
+      btnGenerate(true, neodimModel),
+      btnAdd(false, neodimModel),
+      btnAdd(true, neodimModel)
     ]];
   }
 
@@ -653,25 +700,13 @@ class _ChatButtonsState extends State<ChatButtons> {
     ConfigModel cfgModel
   ) {
     return [[
-      btnUndo(context, msgModel, cfgModel, curConv),
+      btnUndo(msgModel, cfgModel, curConv),
       btnRedo(context, msgModel),
-      btnRetry(context, msgModel, cfgModel, curConv, neodimModel)
+      btnRetry(msgModel, cfgModel, curConv, neodimModel)
     ], [
-      IconButton(
-        onPressed: (neodimModel.isApiRunning || msgModel.messages.isEmpty) ? null : () {
-          widget.addGenerated(Message.dmIndex);
-        },
-        icon: const Icon(Icons.speaker_notes_outlined)
-      ),
-      IconButton(
-        onPressed: neodimModel.isApiRunning ? null : () {
-          widget.submit(Message.dmIndex);
-        },
-        icon: Transform.scale(
-          scaleX: -1,
-          child: const Icon(Icons.add_comment_outlined)
-        )
-      )
+      btnGenerate(false, neodimModel),
+      btnAdd(false, neodimModel),
+      btnAdd(true, neodimModel)
     ]];
   }
 
@@ -683,15 +718,10 @@ class _ChatButtonsState extends State<ChatButtons> {
     ConfigModel cfgModel
   ) {
     return [[
-      IconButton(
-        onPressed: (neodimModel.isApiRunning || msgModel.messages.isEmpty) ? null : () {
-          widget.addGenerated(Message.storyIndex);
-        },
-        icon: const Icon(Icons.speaker_notes_outlined)
-      ),
-      btnUndo(context, msgModel, cfgModel, curConv),
+      btnGenerate(false, neodimModel),
+      btnUndo(msgModel, cfgModel, curConv),
       btnRedo(context, msgModel),
-      btnRetry(context, msgModel, cfgModel, curConv, neodimModel)
+      btnRetry(msgModel, cfgModel, curConv, neodimModel)
     ]];
   }
 }
