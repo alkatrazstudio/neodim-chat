@@ -7,10 +7,10 @@ import 'package:provider/provider.dart';
 
 import '../models/conversations.dart';
 import '../models/messages.dart';
+import '../pages/help_page.dart';
+import '../pages/settings_page.dart';
+import '../pages/textual_view_page.dart';
 import '../widgets/dialogs.dart';
-import '../widgets/help_page.dart';
-import '../widgets/settings_page.dart';
-import '../widgets/textual_view_page.dart';
 
 class MainMenuItem {
   MainMenuItem(this.title, this.icon, this.onSelected);

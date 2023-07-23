@@ -9,11 +9,11 @@ import '../models/config.dart';
 import '../models/conversations.dart';
 import '../models/messages.dart';
 import '../models/neodim_model.dart';
+import '../pages/help_page.dart';
+import '../pages/settings_page.dart';
 import '../util/neodim_api.dart';
 import '../widgets/chat.dart';
-import '../widgets/help_page.dart';
 import '../widgets/main_menu.dart';
-import '../widgets/settings_page.dart';
 
 class HomePage extends StatelessWidget {
   static const String requiredServerVersion = '>=0.11';

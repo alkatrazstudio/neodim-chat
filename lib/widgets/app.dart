@@ -9,7 +9,7 @@ import '../models/config.dart';
 import '../models/conversations.dart';
 import '../models/messages.dart';
 import '../models/neodim_model.dart';
-import '../widgets/homepage.dart';
+import '../pages/home_page.dart';
 
 void appMain() {
   runApp(MultiProvider(

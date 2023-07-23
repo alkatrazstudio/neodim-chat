@@ -9,9 +9,9 @@ import 'package:provider/provider.dart';
 import '../models/config.dart';
 import '../models/conversations.dart';
 import '../models/messages.dart';
+import '../pages/help_page.dart';
 import '../util/neodim_api.dart';
 import '../widgets/card_settings_warpers_order.dart';
-import '../widgets/help_page.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage();
