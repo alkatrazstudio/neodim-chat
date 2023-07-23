@@ -16,7 +16,7 @@ import '../widgets/chat.dart';
 import '../widgets/main_menu.dart';
 
 class HomePage extends StatelessWidget {
-  static const String requiredServerVersion = '>=0.11';
+  static const String requiredServerVersion = '>=0.13';
 
   String outputTextFromSequence(NeodimSequence s) {
     var text = s.generatedText;
@@ -112,6 +112,7 @@ class HomePage extends StatelessWidget {
       truncatePromptUntil: truncatePromptUntil,
       wordsWhitelist: wordsWhitelist,
       wordsBlacklist: wordsBlacklist,
+      wordsBlacklistAtStart: ['\n', '<'], // typical tokens that may end the inference
       noRepeatNGramSize: noRepeatNGramSize,
       requiredServerVersion: requiredServerVersion
     );

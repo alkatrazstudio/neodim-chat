@@ -64,6 +64,7 @@ class NeodimRequest {
     this.truncatePromptUntil = const [],
     this.wordsWhitelist,
     this.wordsBlacklist,
+    this.wordsBlacklistAtStart,
     this.requiredServerVersion,
     this.noRepeatNGramSize
   });
@@ -94,6 +95,7 @@ class NeodimRequest {
   final List<String> truncatePromptUntil;
   final List<String>? wordsWhitelist;
   final List<String>? wordsBlacklist;
+  final List<String>? wordsBlacklistAtStart;
   final String? requiredServerVersion;
   final int? noRepeatNGramSize;
 
@@ -126,7 +128,8 @@ class NeodimRequest {
       'words_whitelist': wordsWhitelist,
       'words_blacklist': wordsBlacklist,
       'required_server_version': requiredServerVersion,
-      'no_repeat_ngram_size': noRepeatNGramSize
+      'no_repeat_ngram_size': noRepeatNGramSize,
+      'words_blacklist_at_start': wordsBlacklistAtStart
     };
   }
 }
