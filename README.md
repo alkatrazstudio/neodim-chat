@@ -12,7 +12,7 @@ Neodim Chat fully relies on Nedim Server and does not work without it.
 ## Key features
 
 * Chat between [two](#chat-mode) or [more](#group-chat-mode) participants
-* The next chat participant is chosen by AI (when more than participants are involved)
+* The next chat participant is chosen by AI (when more than two participants are involved)
 * Write a [story](#story-mode) (as a "monologue" of one participant)
 * Text [adventure game](#adventure-mode) simulation
 * Quick controls to generate/edit messages for any chat participant and undo/redo/retry messages
@@ -21,10 +21,10 @@ Neodim Chat fully relies on Nedim Server and does not work without it.
 * Advanced repetition penalty settings
 * Force the use of new words when retrying message generation, i.e. no same message on retry
 * Generate several messages upfront for quick retries (no loss of speed, but requires more VRAM)
-* Auto-correcting some English grammar and punctuation, e.g. `i don't know, mr anderson` => `I don't know, Mr. Anderson.`
+* Auto-correcting some English grammar and punctuation, e.g. `i dont know, mr anderson` => `I don't know, Mr. Anderson.`
 * View/copy the chat/story content as plain text
 * Undo the text by sentence
-* Color customization for speech bubbles.
+* Color customization for speech bubbles
 * Built-in help
 
 
@@ -34,30 +34,6 @@ The main purpose of Neodim Chat is to allow you to have a conversation
 with a chat bot that is powered by a GPT-compatible language model.
 Read more about supported models
 [here](https://github.com/alkatrazstudio/neodim-server#supported-models).
-
-The application will allow you to do the following:
-
-* Create a chat between two "persons".
-
-* A reply of any participant can be written by you or AI.
-  E.g. AI can talk with itself or you can write messages for it, or vice versa.
-
-* Setup any model parameters and other parameters
-  that Neodim Server supports,
-  e. g. "temperature", "top-p", "tail-free sampling" etc.
-  Read more about these parameters
-  [here](https://github.com/alkatrazstudio/neodim-server#api-request)
-  and inside the application's built-in help page.
-
-* Set [preamble](https://github.com/alkatrazstudio/neodim-server#prompt-and-preamble).
-
-* Auto-correction of common misspellings.
-
-* Change text in any message by tapping it.
-
-* Undo, redo and retry buttons.
-
-* Color customization for speech bubbles.
 
 **An example of the chat mode**
 
@@ -95,9 +71,18 @@ and the other one is the "story" (or a game master).
 AI can't generate the player actions,
 but you can write the story.
 
-It's preferable to prefix all player's actions with "You",
-e.g. "You pat the goblin." instead of just "Pat the goblin.",
-but it really depends on the model.
+You may want to prefix all player's actions with "You",
+e.g. "You pat the goblin" instead of just "Pat the goblin".
+Or, you can write something like this in the preamble:
+```
+This is a transcript of a text adventure game.
+Player choices start with ">" prompt.
+```
+The `>` symbol is used internally as the player's prompt,
+so you may want to inform the AI about it in the preable.
+With this preamble you may try to write your actions without "you",
+e.g. just "Pat the goblin".
+But in the end, the method of achieving the best text adventure experience really depends on the model.
 
 **An example of the adventure mode**
 
