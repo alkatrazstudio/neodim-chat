@@ -272,7 +272,7 @@ class MessagesModel extends ChangeNotifier {
   }
 
   static String extractParticipantName(String s) {
-    var name = RegExp(r'^\s*[^:]+').stringMatch(s) ?? '';
+    var name = RegExp(r'^[^:]+').stringMatch(s)?.trim() ?? '';
     return name;
   }
 
