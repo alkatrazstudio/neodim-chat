@@ -182,7 +182,7 @@ class HomePage extends StatelessWidget {
       var response = await api.run(request);
       neodimModel.setResponse(response);
       neodimModel.setApiRunning(false);
-      var combineLines = cfgModel.combineChatLines != CombineChatLinesType.no && conv.type != Conversation.typeGroupChat;
+      var combineLines = conv.type == Conversation.typeChat ? CombineChatLinesType.no : cfgModel.combineChatLines;
       convModel.updateUsedMessagesCount(
         response.usedPrompt, promptedParticipant, msgModel, inputMessages, combineLines, addedPromptSuffix, continueLastMsg);
       var lines = response.sequences.map(outputTextFromSequence).toList();

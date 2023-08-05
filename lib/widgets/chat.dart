@@ -89,7 +89,7 @@ class ChatState extends State<Chat> {
       int nextParticipantIndex,
       bool continueLastMsg
   ) {
-    var combineLines = cfgModel.combineChatLines != CombineChatLinesType.no && c.type != Conversation.typeGroupChat;
+    var combineLines = c.type != Conversation.typeChat ? CombineChatLinesType.no : cfgModel.combineChatLines;
     switch(c.type) {
       case Conversation.typeChat:
         return msgModel.getAiInputForChat(msgModel.messages, nextParticipant, combineLines, false, continueLastMsg);

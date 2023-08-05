@@ -268,7 +268,7 @@ class ConversationsModel extends ChangeNotifier {
     Participant promptedParticipant,
     MessagesModel msgModel,
     List<Message> inputMessages,
-    bool combineLines,
+    String combineLines,
     String addedPromptSuffix,
     bool continueLastMsg
   ) {

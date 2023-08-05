@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:neodim_chat/models/conversations.dart';
 
+import '../models/config.dart';
 import '../util/json_converters.dart';
 
 part 'messages.g.dart';
@@ -125,8 +126,8 @@ class MessagesModel extends ChangeNotifier {
   bool get isLastGenerated => messages.lastOrNull?.isGenerated ?? false;
   Message? get generatedAtEnd => isLastGenerated ? messages.lastOrNull : null;
 
-  String get chatText => getTextForChat(messages, false, false, false);
-  String get groupChatText => getTextForChat(messages, false, true, false);
+  String get chatText => getTextForChat(messages, CombineChatLinesType.no, false, false);
+  String get groupChatText => getTextForChat(messages, CombineChatLinesType.no, true, false);
   String get adventureText => getTextForAdventure(messages);
   String get storyText => getTextForStory(messages);
   String get aiInputForStory => storyText;
@@ -143,9 +144,9 @@ class MessagesModel extends ChangeNotifier {
 
   String getPromptForChat(Participant p) => '${p.name}$chatPromptSeparator';
 
-  String getTextForChat(List<Message> msgs, bool combineLines, bool groupChat, bool continueLastMsg) {
+  String getTextForChat(List<Message> msgs, String combineLines, bool groupChat, bool continueLastMsg) {
     var s = '';
-    if(combineLines) {
+    if(combineLines != CombineChatLinesType.no) {
       var curParticipantIndex = Message.noneIndex;
       for(var m in msgs) {
         if(m.authorIndex != curParticipantIndex) {
@@ -160,6 +161,8 @@ class MessagesModel extends ChangeNotifier {
           s += ' ${m.text}';
         }
       }
+      if(!continueLastMsg && combineLines == CombineChatLinesType.previousLines && s.isNotEmpty)
+        s += messageSeparator;
     } else {
       for(var m in msgs) {
         if(!groupChat || m.isYou)
@@ -281,14 +284,14 @@ class MessagesModel extends ChangeNotifier {
   String getAiInputForChat(
     List<Message> msgs,
     Participant promptedParticipant,
-    bool combineLines,
+    String combineLines,
     bool groupChat,
     bool continueLastMsg
   ) {
     var text = getTextForChat(msgs, combineLines, groupChat, continueLastMsg);
     var aiInput = text;
     var participantIndex = participants.indexOf(promptedParticipant);
-    if(combineLines || continueLastMsg) {
+    if(combineLines == CombineChatLinesType.onlyForServer || continueLastMsg) {
       if(participantIndex == lastParticipantIndex) {
         aiInput += ' ';
       } else {
@@ -379,7 +382,7 @@ class MessagesModel extends ChangeNotifier {
     Participant promptedParticipant,
     List<Message> inputMessages,
     String chatType,
-    bool combineLines,
+    String combineLines,
     String addedPromptSuffix,
     bool continueLastMsg
   ) {

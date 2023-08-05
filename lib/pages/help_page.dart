@@ -390,9 +390,18 @@ class HelpPageState extends State<HelpPage> {
           <li>
             <strong>Combine chat lines</strong> -
             whether to combine consecutive chat lines from one participant into one line.
+            This may help AI to generate longer lines in the long run,
+            but may confuse some language models.
             "no" - do not combine;
             "only for server" - combine lines before sending them to the server,
-            but keep them separate in the user interface.
+            but keep them separate in the user interface,
+            the newly generated line will be the continuation of the previous one (only on the server)
+            if it has the same participant
+            (with this mode AI may not generate anything if it thinks that it won't be able to continue the previous line);
+            "previous lines" - the same as "only for server",
+            but the server will be told to generate a new line as a separate line of a dialog,
+            not a continuation of the previous line
+            (however that line will still be concatenated with the previous one on next generations)
           </li>
           <li>
             <strong>Always alternate chat participants in continuous mode</strong> -

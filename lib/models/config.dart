@@ -10,6 +10,7 @@ part 'config.g.dart';
 class CombineChatLinesType {
   static const String no = 'no';
   static const String onlyForServer = 'onlyForServer';
+  static const String previousLines = 'previousLines';
 }
 
 @JsonSerializable(explicitToJson: true)

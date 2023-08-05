@@ -463,7 +463,8 @@ class _SettingsPageState extends State<SettingsPage> {
           initialItem: cfgModel.combineChatLines,
           items: const [
             CombineChatLinesType.no,
-            CombineChatLinesType.onlyForServer
+            CombineChatLinesType.onlyForServer,
+            CombineChatLinesType.previousLines
           ],
           onSaved: (s) => cfgModel.setGroupChatLines(s),
           cfgModel: cfgModel,
