@@ -17,11 +17,11 @@ class ConfigModel extends ChangeNotifier {
   @JsonKey(defaultValue: 'http://0.0.0.0:8787/generate')
   String apiEndpoint = 'http://0.0.0.0:8787/generate';
 
-  @JsonKey(defaultValue: 32)
-  int generatedTokensCount = 32;
+  @JsonKey(defaultValue: 64)
+  int generatedTokensCount = 64;
 
-  @JsonKey(defaultValue: 1024)
-  int maxTotalTokens = 1024;
+  @JsonKey(defaultValue: 2048)
+  int maxTotalTokens = 2048;
 
   @JsonKey(defaultValue: 0.7)
   double temperature = 0.7;
@@ -51,7 +51,7 @@ class ConfigModel extends ChangeNotifier {
   double repetitionPenalty = 1.15;
 
   @JsonKey(defaultValue: 0)
-  int repetitionPenaltyRange = 1024;
+  int repetitionPenaltyRange = 2048;
 
   @JsonKey(defaultValue: 0.75)
   double repetitionPenaltySlope = 0.75;
@@ -83,8 +83,8 @@ class ConfigModel extends ChangeNotifier {
   @JsonKey(defaultValue: false)
   bool stopOnPunctuation = false;
 
-  @JsonKey(defaultValue: false)
-  bool undoBySentence = false;
+  @JsonKey(defaultValue: true)
+  bool undoBySentence = true;
 
   @JsonKey(defaultValue: CombineChatLinesType.no)
   String combineChatLines = CombineChatLinesType.no;
