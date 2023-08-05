@@ -15,6 +15,7 @@ Neodim Chat fully relies on Nedim Server and does not work without it.
 * The next chat participant is chosen by AI (when more than two participants are involved)
 * Write a [story](#story-mode) (as a "monologue" of one participant)
 * Text [adventure game](#adventure-mode) simulation
+* Write comments in between chat lines (i.e. non-dialog text)
 * Quick controls to generate/edit messages for any chat participant and undo/redo/retry messages
 * Only the required amount of tokens are requested, i.e. not wasting GPU time on what is not needed
 * Continuous generation (AI chats with itself or generates a story until manually stopped)

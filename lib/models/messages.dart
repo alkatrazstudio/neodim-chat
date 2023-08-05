@@ -146,32 +146,58 @@ class MessagesModel extends ChangeNotifier {
 
   String getTextForChat(List<Message> msgs, String combineLines, bool groupChat, bool continueLastMsg) {
     var s = '';
-    if(combineLines != CombineChatLinesType.no) {
-      var curParticipantIndex = Message.noneIndex;
-      for(var m in msgs) {
-        if(m.authorIndex != curParticipantIndex) {
-          if(s != '')
-            s += messageSeparator;
-          if(!groupChat || m.isYou)
-            s += '${participants[m.authorIndex].name}$chatPromptSeparator ${m.text}';
-          else
-            s += m.text;
-          curParticipantIndex = m.authorIndex;
+    bool isPrevComment = false; // the previous line was a "comment" (a group chat line without a participant)
+    var curParticipantIndex = Message.noneIndex;
+    for(var m in msgs) {
+      var isComment = !m.isYou && groupChat && !m.text.contains(chatPromptSeparator);
+      if(isComment) {
+        if(s != '') {
+           if(isPrevComment) {
+             s += ' '; // the previous line was also a comment, concatenate it with space
+           } else {
+             s += messageSeparator; // the previous line was not a comment, separate it with the extra newline
+             if(combineLines != CombineChatLinesType.no)
+               s += messageSeparator; // the previous line was not a comment, separate it with the extra newline
+           }
+        }
+        s += m.text; // add comment text
+      } else {
+        if(isPrevComment)
+          s += messageSeparator + messageSeparator; // separate comments from chat lines
+        if(combineLines != CombineChatLinesType.no) {
+          if(m.authorIndex != curParticipantIndex) {
+            if(s != '')
+              s += messageSeparator; // this is a different participant, put it on new line
+            if(!groupChat || m.isYou) {
+              // add participant name
+              s += '${participants[m.authorIndex].name}$chatPromptSeparator ${m.text}';
+            } else {
+              // do not add participant name because it is already contained in the message text
+              s += m.text;
+            }
+            curParticipantIndex = m.authorIndex;
+          } else {
+            // this line is from the same participant and we need concatenate lines
+            s += ' ${m.text}';
+          }
         } else {
-          s += ' ${m.text}';
+          if(!groupChat || m.isYou) {
+            // add a participant name
+            s += '${participants[m.authorIndex].name}$chatPromptSeparator ${m.text}$messageSeparator';
+          } else {
+            // do not add participant name because it is already contained in the message text
+            s += '${m.text}$messageSeparator';
+          }
         }
       }
-      if(!continueLastMsg && combineLines == CombineChatLinesType.previousLines && s.isNotEmpty)
+      isPrevComment = isComment;
+    }
+    if(!continueLastMsg && combineLines != CombineChatLinesType.onlyForServer && s.isNotEmpty) {
+      s += messageSeparator;
+      if(isPrevComment)
         s += messageSeparator;
-    } else {
-      for(var m in msgs) {
-        if(!groupChat || m.isYou)
-          s += '${participants[m.authorIndex].name}$chatPromptSeparator ${m.text}$messageSeparator';
-        else
-          s += '${m.text}$messageSeparator';
-      }
-      if(continueLastMsg && s.endsWith(messageSeparator))
-        s = s.substring(0, s.length - messageSeparator.length);
+    } else if(continueLastMsg && s.endsWith(messageSeparator)) {
+      s = s.substring(0, s.length - messageSeparator.length);
     }
     return s;
   }
