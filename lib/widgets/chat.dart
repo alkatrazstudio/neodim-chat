@@ -74,7 +74,6 @@ class ChatState extends State<Chat> {
     var curConv = convModel.current;
     if(curConv == null)
       return;
-    var chatFormat = curConv.isChat || authorIndex == Message.youIndex;
     var text = inputController.text.trim();
     var isYou = authorIndex == Message.youIndex;
     if(!isYou && curConv.type == Conversation.typeGroupChat && text.startsWith(MessagesModel.chatPromptSeparator)) {
@@ -92,6 +91,22 @@ class ChatState extends State<Chat> {
     }
     var chatFormat = curConv.isChat || authorIndex == Message.youIndex;
     text = Message.format(text, chatFormat);
+    if(format) {
+      var chatFormat = curConv.isChat || authorIndex == Message.youIndex;
+      if(!isYou && curConv.type == Conversation.typeGroupChat) {
+        var match = RegExp(r'^\s*([^:]+):\s*(.*)$').firstMatch(text);
+        if(match != null) {
+          var participantName = (match.group(1) ?? '').trim();
+          var textPart = match.group(2) ?? '';
+          textPart = Message.format(textPart, chatFormat);
+          text = '$participantName${MessagesModel.chatPromptSeparator} $textPart';
+        } else {
+          text = Message.format(text, chatFormat);
+        }
+      } else {
+        text = Message.format(text, chatFormat);
+      }
+    }
     msgModel.addText(text, false, authorIndex);
     inputController.clear();
     await ConversationsModel.saveCurrentData(context);
