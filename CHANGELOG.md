@@ -1,6 +1,20 @@
 # Neodim Chat - CHANGELOG
 
 
+## v0.8.0 (August 6, 2023)
+
+- Changed: Neodim Server v0.13 is required
+- Changed: default settings
+- Added: secondary actions to the buttons
+- Added: new options for retry blacklist
+  ("Also add special symbols to blacklist" and "Remove old words from blacklist on retry")
+- Added: ability to write comments in a group chat
+- Added: ability to auto-generate the previous participant name in the group chat mode
+- Added: new way to concatenate dialog lines (Combine chat lines = `previous lines`)
+- Improved: try not to generate just an empty text
+- Improved: formatting and auto-correction
+
+
 ## v0.7.1 (June 18, 2023)
 
 - Added: "Add words to blacklist on retry" option
