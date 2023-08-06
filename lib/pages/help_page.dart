@@ -369,7 +369,7 @@ class HelpPageState extends State<HelpPage> {
           </li>
           <li>
             <strong>Also add special symbols to blacklist</strong> -
-            add symbols (, ), * to the blacklist. 
+            add symbols (, ), * to the blacklist.
           </li>
           <li>
             <strong>Remove old words from blacklist on retry</strong> -
