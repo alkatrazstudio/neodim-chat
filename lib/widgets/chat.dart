@@ -698,7 +698,7 @@ class _ChatButtonsState extends State<ChatButtons> {
       },
       isEnabled: !neodimModel.isApiRunning,
       icon: Icons.add_comment_outlined,
-      flipIcon: !isYou,
+      flipIcon: !isYou
     );
   }
 

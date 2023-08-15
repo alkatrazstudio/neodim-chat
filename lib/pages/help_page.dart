@@ -490,10 +490,10 @@ class HelpPageState extends State<HelpPage> {
             generate a new reply in the chat mode or a new portion of the story in the adventure mode.</li>
           <li>Long pressing the submit button will start a continuous generation.
             It can be stopped by pressing the button again.</li>
-           <li>In the group chat mode, you can write non-dialog comments.
-             Enter a line without ":" as the left participant, it will be recognized as a comment.</li>
-           <li>In the group chap mode, you can start the message of the left participant with a ":".
-             This will automatically prepend the previous participant's name.</li>
+          <li>In the group chat mode, you can write non-dialog comments.
+            Enter a line without ":" as the left participant, it will be recognized as a comment.</li>
+          <li>In the group chap mode, you can start the message of the left participant with a ":".
+            This will automatically prepend the previous participant's name.</li>
         </ul>
       '''
     );
