@@ -285,6 +285,7 @@ class _SettingsPageState extends State<SettingsPage> {
   CardSettingsSection configSection(BuildContext context, ConfigModel cfgModel) {
     var combineLinesEditable = convType == Conversation.typeChat;
     var autoAlternateEnabled = convType == Conversation.typeChat || convType == Conversation.typeGroupChat;
+    var colonStartIsPreviousNameEnabled = convType == Conversation.typeGroupChat;
 
     return CardSettingsSection(
       header: CardSettingsHeader(
@@ -475,6 +476,14 @@ class _SettingsPageState extends State<SettingsPage> {
           initialValue: cfgModel.continuousChatForceAlternateParticipants,
           onSaved: (val) => cfgModel.setContinuousChatForceAlternateParticipants(val ?? true),
           enabled: autoAlternateEnabled
+        ),
+        CardSettingsSwitch(
+          label: 'Colon at the start inserts the previous participant\'s name',
+          initialValue: cfgModel.colonStartIsPreviousName,
+          onSaved: (val) => cfgModel.setColonStartIsPreviousName(val ?? true),
+          enabled: colonStartIsPreviousNameEnabled,
+          trueLabel: 'Yes, and no colon means a non-dialog line',
+          falseLabel: 'No, colon inserts a non-dialog line'
         )
       ]
     );

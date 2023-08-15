@@ -105,6 +105,9 @@ class ConfigModel extends ChangeNotifier {
   @JsonKey(defaultValue: 1)
   int removeWordsFromBlacklistOnRetry = 1;
 
+  @JsonKey(defaultValue: true)
+  bool colonStartIsPreviousName = true;
+
   String get inputPreamble {
     var s = preamble.trim();
     if(s.isEmpty)
@@ -262,6 +265,11 @@ class ConfigModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setColonStartIsPreviousName(bool newColonStartIsPreviousName) {
+    colonStartIsPreviousName = newColonStartIsPreviousName;
+    notifyListeners();
+  }
+
   void load(ConfigModel other) {
     apiEndpoint = other.apiEndpoint;
     generatedTokensCount = other.generatedTokensCount;
@@ -292,6 +300,7 @@ class ConfigModel extends ChangeNotifier {
     addWordsToBlacklistOnRetry = other.addWordsToBlacklistOnRetry;
     addSpecialSymbolsToBlacklist = other.addSpecialSymbolsToBlacklist;
     removeWordsFromBlacklistOnRetry = other.removeWordsFromBlacklistOnRetry;
+    colonStartIsPreviousName = other.colonStartIsPreviousName;
 
     notifyListeners();
   }

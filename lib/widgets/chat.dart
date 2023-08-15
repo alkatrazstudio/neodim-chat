@@ -71,22 +71,39 @@ class ChatState extends State<Chat> {
     if(inputController.text.isEmpty)
       return;
     var convModel = Provider.of<ConversationsModel>(context, listen: false);
+    var cfgModel = Provider.of<ConfigModel>(context, listen: false);
     var curConv = convModel.current;
     if(curConv == null)
       return;
     var text = inputController.text.trim();
     var isYou = authorIndex == Message.youIndex;
-    if(!isYou && curConv.type == Conversation.typeGroupChat && text.startsWith(MessagesModel.chatPromptSeparator)) {
-      var messages = msgModel.messages;
-      var msgIndex = messages.length - 1;
-      while(msgIndex >= 0) {
-        var msg = messages[msgIndex];
-        if(!msg.isYou && msg.text.contains(MessagesModel.chatPromptSeparator)) {
-          var participantName = MessagesModel.extractParticipantName(msg.text);
-          text = participantName + text;
-          break;
+    if(!isYou && curConv.type == Conversation.typeGroupChat) {
+      var startsWithColon = text.startsWith(MessagesModel.chatPromptSeparator);
+      var hasColon = text.contains(MessagesModel.chatPromptSeparator);
+      if(
+        (cfgModel.colonStartIsPreviousName && startsWithColon)
+        ||
+        (!cfgModel.colonStartIsPreviousName && !hasColon)
+      ) {
+        // use the previous participant name
+        var messages = msgModel.messages;
+        var msgIndex = messages.length - 1;
+        while(msgIndex >= 0) {
+          var msg = messages[msgIndex];
+          if(!msg.isYou && msg.text.contains(MessagesModel.chatPromptSeparator)) {
+            var participantName = MessagesModel.extractParticipantName(msg.text);
+            if(startsWithColon)
+              text = participantName + text;
+            else
+              text = '$participantName${MessagesModel.chatPromptSeparator} $text';
+            break;
+          }
+          msgIndex--;
         }
-        msgIndex--;
+      } else if (!cfgModel.colonStartIsPreviousName && startsWithColon) {
+        // remove the colon to treat as comment
+        // (does not work if the line has more than one comma)
+        text = text.substring(1);
       }
     }
     if(format) {

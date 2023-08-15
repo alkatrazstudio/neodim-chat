@@ -409,6 +409,17 @@ class HelpPageState extends State<HelpPage> {
             when the chat is in continuous generation mode
             (read more about this mode in the "Miscellaneous" section).
           </li>
+          <li>
+            <strong>Colon at the start inserts the previous participant's name</strong> -
+            if enabled, then if you start the message of the left participant with a colon in group chat mode
+            the previous participant's name will be used.
+            And if you write the message without a colon at all,
+            then it will be added as a comment (non-dialog line).
+            If this setting is not enabled, then the above logic is inverted:
+            starting message with a colon writes a comment
+            (does not work if the original line has more than one comma),
+            and no colon means the previous participant.
+          </li>
         </ul>
 
         <h2>Controls</h2>
@@ -491,7 +502,9 @@ class HelpPageState extends State<HelpPage> {
           <li>Long pressing the submit button will start a continuous generation.
             It can be stopped by pressing the button again.</li>
           <li>In the group chat mode, you can write non-dialog comments.
-            Enter a line without ":" as the left participant, it will be recognized as a comment.</li>
+            Enter a line without ":" as the left participant, it will be recognized as a comment,
+            unless you set the "Insert previous participant name if not manually set" option.
+          </li>
           <li>In the group chap mode, you can start the message of the left participant with a ":".
             This will automatically prepend the previous participant's name.</li>
         </ul>
