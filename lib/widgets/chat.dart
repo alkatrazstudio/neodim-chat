@@ -89,8 +89,6 @@ class ChatState extends State<Chat> {
         msgIndex--;
       }
     }
-    var chatFormat = curConv.isChat || authorIndex == Message.youIndex;
-    text = Message.format(text, chatFormat);
     if(format) {
       var chatFormat = curConv.isChat || authorIndex == Message.youIndex;
       if(!isYou && curConv.type == Conversation.typeGroupChat) {
