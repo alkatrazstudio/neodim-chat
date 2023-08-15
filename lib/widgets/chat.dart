@@ -112,6 +112,8 @@ class ChatState extends State<Chat> {
         var match = RegExp(r'^\s*([^:]+):\s*(.*)$').firstMatch(text);
         if(match != null) {
           var participantName = (match.group(1) ?? '').trim();
+          if(participantName.isNotEmpty)
+            participantName = participantName.substring(0, 1).toUpperCase() +  participantName.substring(1);
           var textPart = match.group(2) ?? '';
           textPart = Message.format(textPart, chatFormat);
           text = '$participantName${MessagesModel.chatPromptSeparator} $textPart';
