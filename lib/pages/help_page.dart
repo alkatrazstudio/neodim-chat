@@ -430,6 +430,7 @@ class HelpPageState extends State<HelpPage> {
 
         <h4>First row</h4>
         <ul>
+          <li>Participants (only in group chat mode) - choose a participant's name.</li>
           <li>Undo - removes the last message.</li>
           <li>Redo - restores the previously removed message.</li>
           <li>Retry - generates new text for the last message.</li>

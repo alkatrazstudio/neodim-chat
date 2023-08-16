@@ -4,6 +4,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'package:collection/collection.dart';
 import 'package:provider/provider.dart';
@@ -504,7 +505,19 @@ class ChatState extends State<Chat> {
             useBlacklist: useBlacklist,
             continueLastMsg: continueLastMsg
           ),
-          submit: (authorIndex, format) => submit(context, authorIndex, format)
+          submit: (authorIndex, format) => submit(context, authorIndex, format),
+          changeGroupParticipantName: (name) {
+            var text = inputController.text;
+            var sepPos = text.indexOf(MessagesModel.chatPromptSeparator);
+            if(sepPos >= 0)
+              text = text.substring(sepPos + 1);
+            else
+              text = ' $text';
+            if(text.isEmpty)
+              text += ' ';
+            text = '$name${MessagesModel.chatPromptSeparator}$text';
+            inputController.text = text;
+          }
         ),
 
         Consumer<NeodimModel>(builder: (context, neodimModel, child) {
@@ -539,11 +552,13 @@ class UndoItem {
 class ChatButtons extends StatefulWidget {
   const ChatButtons({
     required this.addGenerated,
-    required this.submit
+    required this.submit,
+    required this.changeGroupParticipantName
   });
 
   final Function(int authorIndex, {Message? undoMessage, bool useBlacklist, bool continueLastMsg}) addGenerated;
   final Function(int authorIndex, bool format) submit;
+  final Function(String newName) changeGroupParticipantName;
 
   @override
   State<ChatButtons> createState() => _ChatButtonsState();
@@ -570,8 +585,11 @@ class _ChatButtonsState extends State<ChatButtons> {
     List<List<Widget>> buttonRows;
     switch(curConv.type) {
       case Conversation.typeChat:
+        buttonRows = chatButtons(context, msgModel, curConv, neodimModel, cfgModel, false);
+        break;
+
       case Conversation.typeGroupChat:
-        buttonRows = chatButtons(context, msgModel, curConv, neodimModel, cfgModel);
+        buttonRows = chatButtons(context, msgModel, curConv, neodimModel, cfgModel, true);
         break;
 
       case Conversation.typeAdventure:
@@ -721,14 +739,36 @@ class _ChatButtonsState extends State<ChatButtons> {
     );
   }
 
+  Widget btnParticipants(MessagesModel msgModel) {
+    return PopupMenuButton<String>(
+      onSelected: (name) {
+        widget.changeGroupParticipantName(name);
+      },
+      icon: const Icon(Icons.person),
+      itemBuilder: (context) {
+        // hide the keyboard, because otherwise the popup may be overlapped by it
+        SystemChannels.textInput.invokeMethod('TextInput.hide');
+        var names = msgModel.getGroupParticipantNames(true);
+        return names.map((name) => PopupMenuItem(
+          value: name,
+          child: ListTile(
+            title: Text(name)
+          )
+        )).toList();
+      }
+    );
+  }
+
   List<List<Widget>> chatButtons(
       BuildContext context,
       MessagesModel msgModel,
       Conversation curConv,
       NeodimModel neodimModel,
-      ConfigModel cfgModel
+      ConfigModel cfgModel,
+      bool groupChat
     ) {
     return [[
+      if(groupChat) btnParticipants(msgModel),
       btnUndo(msgModel, cfgModel, curConv),
       btnRedo(context, msgModel),
       btnRetry(msgModel, cfgModel, curConv, neodimModel)

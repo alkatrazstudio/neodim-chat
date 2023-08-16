@@ -544,6 +544,26 @@ class MessagesModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  List<String> getGroupParticipantNames(bool gatherAll) {
+    var names = participants[Message.chatGroupIndex].name.split(',');
+    names = names.map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
+    if(!gatherAll)
+      return names;
+
+    for(var msg in messages) {
+      if(msg.isYou)
+        continue;
+      var newName = extractParticipantName(msg.text);
+      if(newName.isEmpty)
+        continue;
+      if(names.firstWhereOrNull((name) => name == newName) != null)
+        continue;
+      names.add(newName);
+    }
+
+    return names;
+  }
+
   static MessagesModel fromJson(Map<String, dynamic> json) {
     var participants = (json['participants'] as List<dynamic>?) ?? <dynamic>[];
     while(participants.length < 2)

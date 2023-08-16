@@ -164,8 +164,7 @@ class HomePage extends StatelessWidget {
       var addedPromptSuffix = '';
       var promptedParticipantIndex = msgModel.participants.indexOf(promptedParticipant);
       if(conv.type == Conversation.typeGroupChat && promptedParticipantIndex != Message.youIndex) {
-        var participantNames = msgModel.participants[Message.chatGroupIndex].name.split(',');
-        participantNames = participantNames.map((s) => s.trim()).toList();
+        var participantNames = msgModel.getGroupParticipantNames(false);
         var participantName = await getNextGroupParticipantName(context, inputText, repPenText, participantNames);
         if(participantName == null)
           throw Exception('Cannot get the correct participant name');
