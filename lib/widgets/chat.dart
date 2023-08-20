@@ -125,6 +125,7 @@ class ChatState extends State<Chat> {
         text = Message.format(text, chatFormat);
       }
     }
+    text = text.trim();
     msgModel.addText(text, false, authorIndex);
     inputController.clear();
     await ConversationsModel.saveCurrentData(context);
