@@ -193,7 +193,8 @@ class MessagesModel extends ChangeNotifier {
       isPrevComment = isComment;
     }
     if(!continueLastMsg && combineLines != CombineChatLinesType.onlyForServer && s.isNotEmpty) {
-      s += messageSeparator;
+      if(!s.endsWith(messageSeparator))
+        s += messageSeparator;
       if(isPrevComment)
         s += messageSeparator;
     } else if(continueLastMsg && s.endsWith(messageSeparator)) {
