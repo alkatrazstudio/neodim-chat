@@ -163,7 +163,7 @@ class HomePage extends StatelessWidget {
     try {
       var addedPromptSuffix = '';
       var promptedParticipantIndex = msgModel.participants.indexOf(promptedParticipant);
-      if(conv.type == Conversation.typeGroupChat && promptedParticipantIndex != Message.youIndex) {
+      if(conv.type == Conversation.typeGroupChat && promptedParticipantIndex != Message.youIndex && !continueLastMsg) {
         var participantNames = msgModel.getGroupParticipantNames(false);
         var participantName = await getNextGroupParticipantName(context, inputText, repPenText, participantNames);
         if(participantName == null)
