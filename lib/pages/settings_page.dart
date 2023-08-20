@@ -455,7 +455,7 @@ class _SettingsPageState extends State<SettingsPage> {
           onSaved: (val) => cfgModel.setStopOnPunctuation(val ?? false)
         ),
         CardSettingsSwitch(
-          label: 'Undo the text up to these symbols: .!?*:',
+          label: 'Undo the text up to these symbols: .!?*:()',
           initialValue: cfgModel.undoBySentence,
           onSaved: (val) => cfgModel.setUndoBySentence(val ?? false)
         ),

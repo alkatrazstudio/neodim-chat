@@ -567,7 +567,9 @@ class ChatButtons extends StatefulWidget {
 class _ChatButtonsState extends State<ChatButtons> {
   final List<UndoItem> undoQueue = [];
   Conversation? undoConversation;
-  static const List<String> undoUntilChars = ['.', '!', '?', '*', ':'];
+  static const List<String> undoUntilChars = ['.', '!', '?', '*', ':', ')'];
+  static const List<String> undoUntilOnChars = ['('];
+  static const List<String> undoUntilOnCharsBeforeSpace = ['*', '"', "'"];
 
   @override
   Widget build(BuildContext context) {
@@ -620,21 +622,58 @@ class _ChatButtonsState extends State<ChatButtons> {
     late UndoItem undoItem;
     if(undoBySentence) {
       var pos = lastMsg.text.length - 1;
-      var hasNonStop = false;
       var undoText = '';
+      var canStop = false;
       while(pos >= 0) {
         var char = lastMsg.text[pos];
-        var stopBeforeQuote =
+        var stopSymbolBeforeQuote =
           (char == '"' || char == "'")
             &&
           pos > 0
             &&
           (undoUntilChars.contains(lastMsg.text[pos - 1]));
-        if(stopBeforeQuote || undoUntilChars.contains(char)) {
-          if(hasNonStop)
+        if(
+          stopSymbolBeforeQuote
+            ||
+          (
+            undoUntilChars.contains(char)
+              &&
+            (
+              pos == 0
+                ||
+              lastMsg.text[pos - 1] != ' '
+            )
+          )
+            ||
+          (
+            (pos < lastMsg.text.length - 1)
+              &&
+            undoUntilOnChars.contains(lastMsg.text[pos + 1])
+          )
+            ||
+          (
+            (pos < lastMsg.text.length - 1)
+              &&
+            undoUntilOnCharsBeforeSpace.contains(lastMsg.text[pos + 1])
+              &&
+            char == ' '
+          )
+        ) {
+          // do not stop if the first symbol (from the end) is a stop symbol
+          if(canStop) {
+            while(pos >= 0) {
+              if(lastMsg.text[pos] == ' ') {
+                // remove all spaces from the right
+                undoText = lastMsg.text[pos] + undoText;
+                pos--;
+              } else {
+                break;
+              }
+            }
             break;
+          }
         } else {
-          hasNonStop = true;
+          canStop = true;
         }
         undoText = char + undoText;
         pos--;
