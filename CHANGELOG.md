@@ -1,6 +1,17 @@
 # Neodim Chat - CHANGELOG
 
 
+## v0.8.1 (August 26, 2023)
+
+- Added: a button to choose a participant name for the group chat
+- Added: "Colon at the start inserts the previous participant's name" flag
+- Fixed: long tap on the Add button
+- Fixed: continuing the message (by long tap on the Generate button) in group chat mode
+- Changed: capitalize first letter of a group chat participant
+- Improved: "Undo the text up to these symbols" algorithm
+- Improved: message formatting
+
+
 ## v0.8.0 (August 6, 2023)
 
 - Changed: Neodim Server v0.13 is required
