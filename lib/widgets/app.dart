@@ -5,10 +5,10 @@ import 'package:flutter/material.dart';
 
 import 'package:provider/provider.dart';
 
+import '../models/api_model.dart';
 import '../models/config.dart';
 import '../models/conversations.dart';
 import '../models/messages.dart';
-import '../models/neodim_model.dart';
 import '../pages/home_page.dart';
 
 void appMain() {
@@ -17,7 +17,7 @@ void appMain() {
       ChangeNotifierProvider(create: (_) => MessagesModel()),
       ChangeNotifierProvider(create: (_) => ConversationsModel()),
       ChangeNotifierProvider(create: (_) => ConfigModel()),
-      ChangeNotifierProvider(create: (_) => NeodimModel())
+      ChangeNotifierProvider(create: (_) => ApiModel())
     ],
     child: App()
   ));

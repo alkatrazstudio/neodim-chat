@@ -9,10 +9,10 @@ import 'package:flutter/services.dart';
 import 'package:collection/collection.dart';
 import 'package:provider/provider.dart';
 
+import '../models/api_model.dart';
 import '../models/config.dart';
 import '../models/conversations.dart';
 import '../models/messages.dart';
-import '../models/neodim_model.dart';
 import '../util/wakelock.dart';
 import '../widgets/chat_button.dart';
 import '../widgets/chat_msg.dart';
@@ -385,7 +385,7 @@ class ChatState extends State<Chat> {
   }
 
   Future nextAutoGen() async {
-    if(Provider.of<NeodimModel>(context, listen: false).isApiRunning)
+    if(Provider.of<ApiModel>(context, listen: false).isApiRunning)
       return;
     var convModel = Provider.of<ConversationsModel>(context, listen: false);
     var curConv = convModel.current;
@@ -462,7 +462,7 @@ class ChatState extends State<Chat> {
           })
         ),
 
-        Consumer<NeodimModel>(
+        Consumer<ApiModel>(
           builder: (context, value, child) {
             if (value.isApiRunning)
               return const LinearProgressIndicator(minHeight: 3);
@@ -521,7 +521,7 @@ class ChatState extends State<Chat> {
           }
         ),
 
-        Consumer<NeodimModel>(builder: (context, neodimModel, child) {
+        Consumer<ApiModel>(builder: (context, neodimModel, child) {
           var gpus = neodimModel.lastResponse?.gpus;
           if(gpus == null)
             return const SizedBox.shrink();
@@ -579,7 +579,7 @@ class _ChatButtonsState extends State<ChatButtons> {
     if(curConv == null)
       return const SizedBox.shrink();
     var msgModel = Provider.of<MessagesModel>(context);
-    var neodimModel = Provider.of<NeodimModel>(context);
+    var neodimModel = Provider.of<ApiModel>(context);
     var cfgModel = Provider.of<ConfigModel>(context);
 
     if(undoConversation != curConv)
@@ -743,7 +743,7 @@ class _ChatButtonsState extends State<ChatButtons> {
     );
   }
 
-  Widget btnRetry(MessagesModel msgModel, ConfigModel cfgModel, Conversation curConv, NeodimModel neodimModel) {
+  Widget btnRetry(MessagesModel msgModel, ConfigModel cfgModel, Conversation curConv, ApiModel neodimModel) {
     return ChatButton(
       onPressed: (isLong) async {
         var undoItem = await undo(msgModel, cfgModel, curConv, false);
@@ -757,7 +757,7 @@ class _ChatButtonsState extends State<ChatButtons> {
     );
   }
 
-  Widget btnGenerate(bool isYou, NeodimModel neodimModel) {
+  Widget btnGenerate(bool isYou, ApiModel neodimModel) {
     return ChatButton(
       onPressed: (isLong) {
         widget.addGenerated(isYou ? Message.youIndex : Message.storyIndex, continueLastMsg: isLong);
@@ -768,7 +768,7 @@ class _ChatButtonsState extends State<ChatButtons> {
     );
   }
 
-  Widget btnAdd(bool isYou, NeodimModel neodimModel) {
+  Widget btnAdd(bool isYou, ApiModel neodimModel) {
     return ChatButton(
       onPressed: (isLong) {
         widget.submit(isYou ? Message.youIndex : Message.storyIndex, !isLong);
@@ -803,7 +803,7 @@ class _ChatButtonsState extends State<ChatButtons> {
       BuildContext context,
       MessagesModel msgModel,
       Conversation curConv,
-      NeodimModel neodimModel,
+      ApiModel neodimModel,
       ConfigModel cfgModel,
       bool groupChat
     ) {
@@ -824,7 +824,7 @@ class _ChatButtonsState extends State<ChatButtons> {
     BuildContext context,
     MessagesModel msgModel,
     Conversation curConv,
-    NeodimModel neodimModel,
+    ApiModel neodimModel,
     ConfigModel cfgModel
   ) {
     return [[
@@ -842,7 +842,7 @@ class _ChatButtonsState extends State<ChatButtons> {
     BuildContext context,
     MessagesModel msgModel,
     Conversation curConv,
-    NeodimModel neodimModel,
+    ApiModel neodimModel,
     ConfigModel cfgModel
   ) {
     return [[
@@ -872,7 +872,7 @@ class ChatInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var neodimModel = Provider.of<NeodimModel>(context, listen: false);
+    var neodimModel = Provider.of<ApiModel>(context, listen: false);
     var convModel = Provider.of<ConversationsModel>(context, listen: false);
     var msgModel = Provider.of<MessagesModel>(context, listen: false);
 

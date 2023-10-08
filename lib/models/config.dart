@@ -3,7 +3,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:neodim_chat/util/neodim_api.dart';
+
+import '../apis/request.dart';
 
 part 'config.g.dart';
 
@@ -45,8 +46,8 @@ class ConfigModel extends ChangeNotifier {
   @JsonKey(defaultValue: 0)
   double penaltyAlpha = 0;
 
-  @JsonKey(defaultValue: NeodimWarper.defaultOrder)
-  List<String> warpersOrder = NeodimWarper.defaultOrder;
+  @JsonKey(defaultValue: Warper.defaultOrder)
+  List<String> warpersOrder = Warper.defaultOrder;
 
   @JsonKey(defaultValue: 1.15)
   double repetitionPenalty = 1.15;
@@ -60,8 +61,8 @@ class ConfigModel extends ChangeNotifier {
   @JsonKey(defaultValue: false)
   bool repetitionPenaltyIncludePreamble = false;
 
-  @JsonKey(defaultValue: NeodimRepPenGenerated.slide)
-  String repetitionPenaltyIncludeGenerated = NeodimRepPenGenerated.slide;
+  @JsonKey(defaultValue: RepPenGenerated.slide)
+  String repetitionPenaltyIncludeGenerated = RepPenGenerated.slide;
 
   @JsonKey(defaultValue: false)
   bool repetitionPenaltyTruncateToInput = false;

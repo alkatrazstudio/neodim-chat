@@ -1,40 +1,16 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// 🄯 2022, Alexey Parfenov <zxed@alkatrazstudio.net>
+// 🄯 2023, Alexey Parfenov <zxed@alkatrazstudio.net>
 
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+import 'package:neodim_chat/apis/request.dart';
 
-class NeodimRepPenGenerated {
-  static const String ignore = 'ignore';
-  static const String expand = 'expand';
-  static const String slide = 'slide';
-}
-
-class StopStringsType {
-  static const String string = 'string';
-  static const String regex = 'regex';
-}
-
-class NeodimWarper {
-  static const String repetitionPenalty = 'repetition_penalty';
-  static const String temperature = 'temperature';
-  static const String topK = 'top_k';
-  static const String topP = 'top_p';
-  static const String typical = 'typical';
-  static const String tfs = 'tfs';
-  static const String topA = 'top_a';
-
-  static const List<String> defaultOrder = [
-    repetitionPenalty,
-    temperature,
-    topK,
-    topP,
-    tfs,
-    typical,
-    topA
-  ];
-}
+import '../apis/response.dart';
+import '../models/config.dart';
+import '../models/conversations.dart';
+import '../models/messages.dart';
+import '../pages/home_page.dart';
 
 class NeodimRequest {
   const NeodimRequest({
@@ -53,7 +29,7 @@ class NeodimRequest {
     this.repetitionPenaltyRange,
     this.repetitionPenaltySlope,
     this.repetitionPenaltyIncludePreamble = false,
-    this.repetitionPenaltyIncludeGenerated = NeodimRepPenGenerated.slide,
+    this.repetitionPenaltyIncludeGenerated = RepPenGenerated.slide,
     this.repetitionPenaltyTruncateToInput = false,
     this.repetitionPenaltyPrompt,
     this.preamble = '',
@@ -302,5 +278,130 @@ class NeodimApi {
 
     var resp = NeodimResponse.fromApiResponseMap(respData);
     return resp;
+  }
+}
+
+class ApiRequestNeodim {
+  static NeodimRequest? getRequest(
+    String inputText,
+    String? repPenText,
+    List<String>? participantNames,
+    Set<String>? blacklistWordsForRetry,
+    Conversation conv,
+    ConfigModel cfgModel
+  ) {
+    List<String> truncatePromptUntil;
+    List<String> stopStrings;
+    List<String>? wordsWhitelist;
+
+    var stopStringsType = StopStringsType.string;
+    int sequencesCount;
+    int? noRepeatNGramSize;
+    if(participantNames != null) {
+      truncatePromptUntil = [MessagesModel.messageSeparator];
+      stopStrings = [MessagesModel.chatPromptSeparator];
+      sequencesCount = 1;
+      wordsWhitelist = List.from(participantNames);
+      wordsWhitelist.add(MessagesModel.chatPromptSeparator);
+      noRepeatNGramSize = null;
+    } else {
+      switch(conv.type)
+      {
+        case Conversation.typeChat:
+        case Conversation.typeGroupChat:
+          truncatePromptUntil = [MessagesModel.messageSeparator];
+          stopStrings = [MessagesModel.messageSeparator];
+          break;
+
+        case Conversation.typeAdventure:
+          truncatePromptUntil = [...MessagesModel.sentenceStops, MessagesModel.actionPrompt];
+          stopStrings = [MessagesModel.actionPrompt];
+          break;
+
+        case Conversation.typeStory:
+          truncatePromptUntil = MessagesModel.sentenceStops;
+          stopStrings = [];
+          break;
+
+        default:
+          return null;
+      }
+      if(cfgModel.stopOnPunctuation) {
+        stopStrings = stopStrings.map(RegExp.escape).toList();
+        stopStrings.add(MessagesModel.sentenceStopsRx);
+        stopStringsType = StopStringsType.regex;
+      }
+      sequencesCount = 1 + cfgModel.extraRetries;
+      noRepeatNGramSize = cfgModel.noRepeatNGramSize;
+    }
+
+    List<String> wordsBlacklist = blacklistWordsForRetry?.toList() ?? [];
+
+    var request = NeodimRequest(
+      prompt: inputText,
+      preamble: cfgModel.inputPreamble,
+      generatedTokensCount: cfgModel.generatedTokensCount,
+      maxTotalTokens: cfgModel.maxTotalTokens,
+      temperature: cfgModel.temperature,
+      topP: (cfgModel.topP == 0 ||cfgModel.topP == 1)  ? null : cfgModel.topP,
+      topK: cfgModel.topK == 0 ? null : cfgModel.topK,
+      tfs: (cfgModel.tfs == 0 || cfgModel.tfs == 1) ? null : cfgModel.tfs,
+      typical: (cfgModel.typical == 0 || cfgModel.typical == 1) ? null : cfgModel.typical,
+      topA: cfgModel.topA == 0 ? null : cfgModel.topA,
+      penaltyAlpha: cfgModel.penaltyAlpha == 0 ? null : cfgModel.penaltyAlpha,
+      warpersOrder: cfgModel.warpersOrder,
+      repetitionPenalty: cfgModel.repetitionPenalty,
+      repetitionPenaltyRange: cfgModel.repetitionPenaltyRange,
+      repetitionPenaltySlope: cfgModel.repetitionPenaltySlope,
+      repetitionPenaltyIncludePreamble: cfgModel.repetitionPenaltyIncludePreamble,
+      repetitionPenaltyIncludeGenerated: cfgModel.repetitionPenaltyIncludeGenerated,
+      repetitionPenaltyTruncateToInput: cfgModel.repetitionPenaltyTruncateToInput,
+      repetitionPenaltyPrompt: repPenText,
+      sequencesCount: sequencesCount,
+      stopStrings: stopStrings,
+      stopStringsType: stopStringsType,
+      truncatePromptUntil: truncatePromptUntil,
+      wordsWhitelist: wordsWhitelist,
+      wordsBlacklist: wordsBlacklist,
+      wordsBlacklistAtStart: ['\n', '<'], // typical tokens that may end the inference
+      noRepeatNGramSize: noRepeatNGramSize,
+      requiredServerVersion: HomePage.requiredServerVersion
+    );
+    return request;
+  }
+
+  static ApiResponse toResponse(NeodimResponse response) {
+    var sequences = response.sequences.map((seq) => ApiResponseSequence(
+      generatedText: seq.generatedText,
+      stopStringMatch: seq.stopStringMatch,
+      stopStringMatchIsSentenceEnd: seq.stopString == MessagesModel.sentenceStopsRx
+    )).toList();
+    var gpus = response.gpus.map((gpu) => ApiResponseGpu(
+      memoryFreeMin: gpu.memoryFreeMin,
+      memoryTotal: gpu.memoryTotal
+    )).toList();
+    var result = ApiResponse(
+      sequences: sequences,
+      usedPrompt: response.usedPrompt,
+      gpus: gpus
+    );
+    return result;
+  }
+
+  static Future<ApiResponse?> run(
+    String inputText,
+    String? repPenText,
+    List<String>? participantNames,
+    Set<String>? blacklistWordsForRetry,
+    Conversation conv,
+    ConfigModel cfgModel
+  ) async {
+    var request = getRequest(inputText, repPenText, participantNames, blacklistWordsForRetry, conv, cfgModel);
+    if(request == null)
+      return null;
+    final api = NeodimApi(endpoint: cfgModel.apiEndpoint);
+    var response = await api.run(request);
+    var result = toResponse(response);
+    return result;
   }
 }

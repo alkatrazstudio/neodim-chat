@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:card_settings/card_settings.dart';
 import 'package:collection/collection.dart';
 
-import '../util/neodim_api.dart';
+import '../apis/request.dart';
 
 class CardSettingsWarpersOrder extends FormField<List<String>> implements CardSettingsWidget {
   CardSettingsWarpersOrder({
@@ -38,9 +38,9 @@ class CardSettingsWarpersOrderState extends FormFieldState<List<String>> {
     order
       ..clear()
       ..addAll(widget.initialValue ?? [])
-      ..where((warper) => NeodimWarper.defaultOrder.contains(warper));
+      ..where((warper) => Warper.defaultOrder.contains(warper));
 
-    for(var warper in NeodimWarper.defaultOrder) {
+    for(var warper in Warper.defaultOrder) {
       if(!order.contains(warper))
         order.add(warper);
     }

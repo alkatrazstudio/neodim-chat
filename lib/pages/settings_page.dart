@@ -6,11 +6,11 @@ import 'package:flutter/material.dart';
 import 'package:card_settings/card_settings.dart';
 import 'package:provider/provider.dart';
 
+import '../apis/request.dart';
 import '../models/config.dart';
 import '../models/conversations.dart';
 import '../models/messages.dart';
 import '../pages/help_page.dart';
-import '../util/neodim_api.dart';
 import '../widgets/card_settings_warpers_order.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -388,9 +388,9 @@ class _SettingsPageState extends State<SettingsPage> {
           label: 'Include generated text in the repetition penalty range',
           initialItem: cfgModel.repetitionPenaltyIncludeGenerated,
           items: const [
-            NeodimRepPenGenerated.ignore,
-            NeodimRepPenGenerated.expand,
-            NeodimRepPenGenerated.slide
+            RepPenGenerated.ignore,
+            RepPenGenerated.expand,
+            RepPenGenerated.slide
           ],
           onSaved: (s) => cfgModel.setRepetitionPenaltyIncludeGenerated(s),
           cfgModel: cfgModel

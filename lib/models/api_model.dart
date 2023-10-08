@@ -3,19 +3,13 @@
 
 import 'package:flutter/foundation.dart';
 
-import '../util/neodim_api.dart';
+import '../apis/response.dart';
 
-class NeodimModel extends ChangeNotifier {
-  NeodimRequest? lastRequest;
-  NeodimResponse? lastResponse;
+class ApiModel extends ChangeNotifier {
+  ApiResponse? lastResponse;
   bool isApiRunning = false;
 
-  void setRequest(NeodimRequest request) {
-    lastRequest = request;
-    notifyListeners();
-  }
-
-  void setResponse(NeodimResponse response) {
+  void setResponse(ApiResponse response) {
     lastResponse = response;
     notifyListeners();
   }
