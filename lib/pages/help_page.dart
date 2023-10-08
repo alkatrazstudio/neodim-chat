@@ -258,8 +258,22 @@ class HelpPageState extends State<HelpPage> {
         <h3>Configuration</h3>
         <ul>
           <li>
+            <strong>API type</strong> - the type of server-side API to connect to.
+            Neodim Chat is mostly designed to work with Neodim Server.
+            All other APIs that are listed here are may not be documented properly,
+            and not guaranteed to work properly.
+            Different APIs may support different sets of config parameters, features
+            and can behave differently.
+            Currently supported APIs:
+            <ul>
+              <li>Neodim - <a href="$serverBaseUrl">Neodim Server</a></li>
+            </ul>
+            The documentation below may link to the Neodim Server documentation
+            even if the parameter can be used by other APIs.
+          </li>
+          <li>
             <strong>API endpoint</strong> - the full URL that points to your Neodim Server instance.
-            Must contain the protocol, the port and the "/generate" part,
+            For Neodim Server must contain the protocol, the port and the "/generate" part,
             e.g. "http://192.168.1.123:8787/generate".
           </li>
           <li>

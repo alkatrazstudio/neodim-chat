@@ -16,6 +16,9 @@ class CombineChatLinesType {
 
 @JsonSerializable(explicitToJson: true)
 class ConfigModel extends ChangeNotifier {
+  @JsonKey(defaultValue: ApiType.neodim, unknownEnumValue: ApiType.neodim)
+  ApiType apiType = ApiType.neodim;
+
   @JsonKey(defaultValue: 'http://0.0.0.0:8787/generate')
   String apiEndpoint = 'http://0.0.0.0:8787/generate';
 
@@ -114,6 +117,11 @@ class ConfigModel extends ChangeNotifier {
     if(s.isEmpty)
       return '';
     return '$preamble\n\n';
+  }
+
+  void setApiType(String newApiType) {
+    apiType = ApiType.byNameOrDefault(newApiType);
+    notifyListeners();
   }
 
   void setApiEndpoint(String newApiEndpoint) {
@@ -272,6 +280,7 @@ class ConfigModel extends ChangeNotifier {
   }
 
   void load(ConfigModel other) {
+    apiType = other.apiType;
     apiEndpoint = other.apiEndpoint;
     generatedTokensCount = other.generatedTokensCount;
     maxTotalTokens = other.maxTotalTokens;

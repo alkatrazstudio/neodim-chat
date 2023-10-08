@@ -292,6 +292,13 @@ class _SettingsPageState extends State<SettingsPage> {
         label: 'Configuration'
       ),
       children: [
+        picker(
+          label: 'API type',
+          initialItem: cfgModel.apiType.name,
+          items: ApiType.values.map((v) => v.name).toList(),
+          onSaved: (s) => cfgModel.setApiType(s),
+          cfgModel: cfgModel
+        ),
         CardSettingsText(
           label: 'API endpoint',
           initialValue: cfgModel.apiEndpoint,

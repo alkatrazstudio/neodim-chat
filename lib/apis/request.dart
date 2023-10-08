@@ -41,6 +41,22 @@ class Warper {
   ];
 }
 
+enum ApiType {
+  neodim('Neodim');
+
+  const ApiType(this.title);
+
+  final String title;
+
+  static ApiType byNameOrDefault(String name) {
+    try {
+      return ApiType.values.byName(name);
+    } on Exception catch (_) {
+      return ApiType.values.first;
+    }
+  }
+}
+
 class ApiRequest {
   static Future<ApiResponse?> run(
     BuildContext context,
@@ -56,14 +72,20 @@ class ApiRequest {
 
     var cfgModel = Provider.of<ConfigModel>(context, listen: false);
 
-    var result = await ApiRequestNeodim.run(
-      inputText,
-      repPenText,
-      participantNames,
-      blacklistWordsForRetry,
-      conv,
-      cfgModel
-    );
+    ApiResponse? result;
+    switch(cfgModel.apiType)
+    {
+      case ApiType.neodim:
+        result = await ApiRequestNeodim.run(
+          inputText,
+          repPenText,
+          participantNames,
+          blacklistWordsForRetry,
+          conv,
+          cfgModel
+        );
+        break;
+    }
     return result;
   }
 }
