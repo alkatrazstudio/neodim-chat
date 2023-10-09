@@ -7,7 +7,6 @@ import 'package:http/http.dart' as http;
 import 'package:neodim_chat/apis/request.dart';
 
 import '../apis/response.dart';
-import '../models/config.dart';
 import '../models/conversations.dart';
 import '../models/messages.dart';
 import '../pages/home_page.dart';
@@ -282,14 +281,7 @@ class NeodimApi {
 }
 
 class ApiRequestNeodim {
-  static NeodimRequest? getRequest(
-    String inputText,
-    String? repPenText,
-    List<String>? participantNames,
-    Set<String>? blacklistWordsForRetry,
-    Conversation conv,
-    ConfigModel cfgModel
-  ) {
+  static NeodimRequest? getRequest(ApiRequestParams params) {
     List<String> truncatePromptUntil;
     List<String> stopStrings;
     List<String>? wordsWhitelist;
@@ -297,15 +289,15 @@ class ApiRequestNeodim {
     var stopStringsType = StopStringsType.string;
     int sequencesCount;
     int? noRepeatNGramSize;
-    if(participantNames != null) {
+    if(params.participantNames != null) {
       truncatePromptUntil = [MessagesModel.messageSeparator];
       stopStrings = [MessagesModel.chatPromptSeparator];
       sequencesCount = 1;
-      wordsWhitelist = List.from(participantNames);
+      wordsWhitelist = List.from(params.participantNames!);
       wordsWhitelist.add(MessagesModel.chatPromptSeparator);
       noRepeatNGramSize = null;
     } else {
-      switch(conv.type)
+      switch(params.conversation.type)
       {
         case Conversation.typeChat:
         case Conversation.typeGroupChat:
@@ -326,37 +318,37 @@ class ApiRequestNeodim {
         default:
           return null;
       }
-      if(cfgModel.stopOnPunctuation) {
+      if(params.cfgModel.stopOnPunctuation) {
         stopStrings = stopStrings.map(RegExp.escape).toList();
         stopStrings.add(MessagesModel.sentenceStopsRx);
         stopStringsType = StopStringsType.regex;
       }
-      sequencesCount = 1 + cfgModel.extraRetries;
-      noRepeatNGramSize = cfgModel.noRepeatNGramSize;
+      sequencesCount = 1 + params.cfgModel.extraRetries;
+      noRepeatNGramSize = params.cfgModel.noRepeatNGramSize;
     }
 
-    List<String> wordsBlacklist = blacklistWordsForRetry?.toList() ?? [];
+    List<String> wordsBlacklist = params.blacklistWordsForRetry?.toList() ?? [];
 
     var request = NeodimRequest(
-      prompt: inputText,
-      preamble: cfgModel.inputPreamble,
-      generatedTokensCount: cfgModel.generatedTokensCount,
-      maxTotalTokens: cfgModel.maxTotalTokens,
-      temperature: cfgModel.temperature,
-      topP: (cfgModel.topP == 0 ||cfgModel.topP == 1)  ? null : cfgModel.topP,
-      topK: cfgModel.topK == 0 ? null : cfgModel.topK,
-      tfs: (cfgModel.tfs == 0 || cfgModel.tfs == 1) ? null : cfgModel.tfs,
-      typical: (cfgModel.typical == 0 || cfgModel.typical == 1) ? null : cfgModel.typical,
-      topA: cfgModel.topA == 0 ? null : cfgModel.topA,
-      penaltyAlpha: cfgModel.penaltyAlpha == 0 ? null : cfgModel.penaltyAlpha,
-      warpersOrder: cfgModel.warpersOrder,
-      repetitionPenalty: cfgModel.repetitionPenalty,
-      repetitionPenaltyRange: cfgModel.repetitionPenaltyRange,
-      repetitionPenaltySlope: cfgModel.repetitionPenaltySlope,
-      repetitionPenaltyIncludePreamble: cfgModel.repetitionPenaltyIncludePreamble,
-      repetitionPenaltyIncludeGenerated: cfgModel.repetitionPenaltyIncludeGenerated,
-      repetitionPenaltyTruncateToInput: cfgModel.repetitionPenaltyTruncateToInput,
-      repetitionPenaltyPrompt: repPenText,
+      prompt: params.inputText,
+      preamble: params.cfgModel.inputPreamble,
+      generatedTokensCount: params.cfgModel.generatedTokensCount,
+      maxTotalTokens: params.cfgModel.maxTotalTokens,
+      temperature: params.cfgModel.temperature,
+      topP: (params.cfgModel.topP == 0 || params.cfgModel.topP == 1)  ? null : params.cfgModel.topP,
+      topK: params.cfgModel.topK == 0 ? null : params.cfgModel.topK,
+      tfs: (params.cfgModel.tfs == 0 || params.cfgModel.tfs == 1) ? null : params.cfgModel.tfs,
+      typical: (params.cfgModel.typical == 0 || params.cfgModel.typical == 1) ? null : params.cfgModel.typical,
+      topA: params.cfgModel.topA == 0 ? null : params.cfgModel.topA,
+      penaltyAlpha: params.cfgModel.penaltyAlpha == 0 ? null : params.cfgModel.penaltyAlpha,
+      warpersOrder: params.cfgModel.warpersOrder,
+      repetitionPenalty: params.cfgModel.repetitionPenalty,
+      repetitionPenaltyRange: params.cfgModel.repetitionPenaltyRange,
+      repetitionPenaltySlope: params.cfgModel.repetitionPenaltySlope,
+      repetitionPenaltyIncludePreamble: params.cfgModel.repetitionPenaltyIncludePreamble,
+      repetitionPenaltyIncludeGenerated: params.cfgModel.repetitionPenaltyIncludeGenerated,
+      repetitionPenaltyTruncateToInput: params.cfgModel.repetitionPenaltyTruncateToInput,
+      repetitionPenaltyPrompt: params.repPenText,
       sequencesCount: sequencesCount,
       stopStrings: stopStrings,
       stopStringsType: stopStringsType,
@@ -388,18 +380,11 @@ class ApiRequestNeodim {
     return result;
   }
 
-  static Future<ApiResponse?> run(
-    String inputText,
-    String? repPenText,
-    List<String>? participantNames,
-    Set<String>? blacklistWordsForRetry,
-    Conversation conv,
-    ConfigModel cfgModel
-  ) async {
-    var request = getRequest(inputText, repPenText, participantNames, blacklistWordsForRetry, conv, cfgModel);
+  static Future<ApiResponse?> run(ApiRequestParams params) async {
+    var request = getRequest(params);
     if(request == null)
       return null;
-    final api = NeodimApi(endpoint: cfgModel.apiEndpoint);
+    final api = NeodimApi(endpoint: params.cfgModel.apiEndpoint);
     var response = await api.run(request);
     var result = toResponse(response);
     return result;

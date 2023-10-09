@@ -6,9 +6,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../apis/neodim.dart';
+import '../apis/llama_cpp.dart';
 import '../apis/response.dart';
 import '../models/config.dart';
 import '../models/conversations.dart';
+import '../models/messages.dart';
 
 class RepPenGenerated {
   static const String ignore = 'ignore';
@@ -42,11 +44,8 @@ class Warper {
 }
 
 enum ApiType {
-  neodim('Neodim');
-
-  const ApiType(this.title);
-
-  final String title;
+  neodim,
+  llamaCpp;
 
   static ApiType byNameOrDefault(String name) {
     try {
@@ -55,6 +54,26 @@ enum ApiType {
       return ApiType.values.first;
     }
   }
+}
+
+class ApiRequestParams {
+  const ApiRequestParams({
+    required this.inputText,
+    this.repPenText,
+    this.participantNames,
+    this.blacklistWordsForRetry,
+    required this.conversation,
+    required this.cfgModel,
+    required this.msgModel
+  });
+
+  final String inputText;
+  final String? repPenText;
+  final List<String>? participantNames;
+  final Set<String>? blacklistWordsForRetry;
+  final Conversation conversation;
+  final ConfigModel cfgModel;
+  final MessagesModel msgModel;
 }
 
 class ApiRequest {
@@ -66,24 +85,32 @@ class ApiRequest {
     Set<String>? blacklistWordsForRetry
   ) async {
     var convModel = Provider.of<ConversationsModel>(context, listen: false);
-    var conv = convModel.current;
-    if(conv == null)
+    var conversation = convModel.current;
+    if(conversation == null)
       return null;
 
     var cfgModel = Provider.of<ConfigModel>(context, listen: false);
+    var msgModel = Provider.of<MessagesModel>(context, listen: false);
+
+    var params = ApiRequestParams(
+      inputText: inputText,
+      repPenText: repPenText,
+      participantNames: participantNames,
+      blacklistWordsForRetry: blacklistWordsForRetry,
+      conversation: conversation,
+      cfgModel: cfgModel,
+      msgModel: msgModel
+    );
 
     ApiResponse? result;
     switch(cfgModel.apiType)
     {
       case ApiType.neodim:
-        result = await ApiRequestNeodim.run(
-          inputText,
-          repPenText,
-          participantNames,
-          blacklistWordsForRetry,
-          conv,
-          cfgModel
-        );
+        result = await ApiRequestNeodim.run(params);
+        break;
+
+      case ApiType.llamaCpp:
+        result = await ApiRequestLlamaCpp.run(params);
         break;
     }
     return result;
