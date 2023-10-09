@@ -302,22 +302,20 @@ class ApiRequestNeodim {
         case Conversation.typeChat:
         case Conversation.typeGroupChat:
           truncatePromptUntil = [MessagesModel.messageSeparator];
-          stopStrings = [MessagesModel.messageSeparator];
           break;
 
         case Conversation.typeAdventure:
           truncatePromptUntil = [...MessagesModel.sentenceStops, MessagesModel.actionPrompt];
-          stopStrings = [MessagesModel.actionPrompt];
           break;
 
         case Conversation.typeStory:
           truncatePromptUntil = MessagesModel.sentenceStops;
-          stopStrings = [];
           break;
 
         default:
           return null;
       }
+      stopStrings = ApiRequest.getPlainTextStopStrings(params.msgModel, params.conversation);
       if(params.cfgModel.stopOnPunctuation) {
         stopStrings = stopStrings.map(RegExp.escape).toList();
         stopStrings.add(MessagesModel.sentenceStopsRx);

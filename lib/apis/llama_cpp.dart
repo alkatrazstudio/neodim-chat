@@ -153,23 +153,7 @@ class ApiRequestLlamaCpp {
       var separatorJson = jsonEncode(MessagesModel.chatPromptSeparator);
       grammar = 'root ::= ($rules) $separatorJson';
     } else {
-      switch(params.conversation.type) {
-        case Conversation.typeChat:
-        case Conversation.typeGroupChat:
-          stopStrings = [MessagesModel.messageSeparator];
-          break;
-
-        case Conversation.typeAdventure:
-          stopStrings = [MessagesModel.actionPrompt];
-          break;
-
-        case Conversation.typeStory:
-          stopStrings = [];
-          break;
-
-        default:
-          return null;
-      }
+      stopStrings = ApiRequest.getPlainTextStopStrings(params.msgModel, params.conversation);
     }
 
     List<int> bannedTokens = [];

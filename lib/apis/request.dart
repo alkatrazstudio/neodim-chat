@@ -115,4 +115,33 @@ class ApiRequest {
     }
     return result;
   }
+
+  static List<String> getParticipantNameStopStrings(MessagesModel msgModel, Conversation conv) {
+    var participantNames = conv.isChat
+      ? msgModel.participants.map((p) => p.name).toList()
+      : [msgModel.participants[Message.youIndex].name] + msgModel.getGroupParticipantNames(true);
+    var stopStrings = participantNames.map((name) => '$name${MessagesModel.chatPromptSeparator}').toList();
+    return stopStrings;
+  }
+
+  static List<String> getStopStringsForConversationType(String type) {
+    switch(type) {
+        case Conversation.typeChat:
+        case Conversation.typeGroupChat:
+          return [MessagesModel.messageSeparator];
+
+        case Conversation.typeAdventure:
+          return [MessagesModel.actionPrompt];
+
+        default:
+          return [];
+      }
+  }
+
+  static List<String> getPlainTextStopStrings(MessagesModel msgModel, Conversation conv) {
+    var forType = getStopStringsForConversationType(conv.type);
+    var forNames = getParticipantNameStopStrings(msgModel, conv);
+    var stopStrings = forType + forNames;
+    return stopStrings;
+  }
 }
