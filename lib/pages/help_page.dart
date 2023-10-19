@@ -272,9 +272,12 @@ class HelpPageState extends State<HelpPage> {
             even if the parameter can be used by other APIs.
           </li>
           <li>
-            <strong>API endpoint</strong> - the full URL that points to your Neodim Server instance.
-            For Neodim Server must contain the protocol, the port and the "/generate" part,
+            <strong>API endpoint</strong> - the full URL that points to the API server.
+            For Neodim Server should contain the protocol, the port and the "/generate" part,
             e.g. "http://192.168.1.123:8787/generate".
+            For llama.cpp server it should contain the protocol and the port,
+            e.g. "http://192.168.1.123:8080".
+            However, for both servers, you can just specify only IP or the hostname, e.g. "192.168.1.123".
           </li>
           <li>
             <strong>Generated tokens</strong> - how many tokens to generate for a reply.
