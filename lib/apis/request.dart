@@ -144,4 +144,38 @@ class ApiRequest {
     var stopStrings = forType + forNames;
     return stopStrings;
   }
+
+  static normalizeEndpoint(String endpoint, int port, String path) {
+    Uri url;
+    try {
+      url = Uri.parse(endpoint);
+    } catch(e) {
+      return endpoint;
+    }
+    if(url.host.isEmpty)
+      url = Uri(host: endpoint);
+    var isIP = false;
+    if(!url.hasScheme) {
+      try {
+        Uri.parseIPv4Address(url.host);
+        url = url.replace(scheme: 'http');
+        isIP = true;
+      } catch(e) {
+        try {
+          Uri.parseIPv6Address(url.host);
+          url = url.replace(scheme: 'http');
+          isIP = true;
+        } catch(e) {
+          url = url.replace(scheme: 'https');
+        }
+      }
+    }
+    if(!url.hasPort && isIP)
+      url = url.replace(port: port);
+    if(url.hasEmptyPath || !url.hasAbsolutePath || url.path.isEmpty || url.path == '/') {
+      url = url.replace(path: path);
+    }
+    endpoint = url.toString();
+    return endpoint;
+  }
 }

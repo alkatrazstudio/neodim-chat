@@ -382,7 +382,8 @@ class ApiRequestNeodim {
     var request = getRequest(params);
     if(request == null)
       return null;
-    final api = NeodimApi(endpoint: params.cfgModel.apiEndpoint);
+    var endpoint = ApiRequest.normalizeEndpoint(params.cfgModel.apiEndpoint, 8787, '/generate');
+    final api = NeodimApi(endpoint: endpoint);
     var response = await api.run(request);
     var result = toResponse(response);
     return result;

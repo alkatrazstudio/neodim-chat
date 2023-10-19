@@ -109,7 +109,7 @@ class ApiRequestLlamaCpp {
   }
 
   static Future<ApiResponse?> run(ApiRequestParams params) async {
-    var endpoint = params.cfgModel.apiEndpoint;
+    var endpoint = ApiRequest.normalizeEndpoint(params.cfgModel.apiEndpoint, 8080, '');
 
     int preambleTokensCount;
 
