@@ -176,7 +176,7 @@ class _SettingsPageState extends State<SettingsPage> {
           label: 'Preamble',
           initialValue: cfgModel.preamble,
           onSaved: onStringSave((s) => cfgModel.setPreamble(s), allowEmpty: true),
-          maxLength: 2048
+          maxLength: 65535,
         ),
         picker(
           label: typeEditable ? 'Type' : 'Type (cannot change if messages are present)',
