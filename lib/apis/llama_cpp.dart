@@ -24,6 +24,7 @@ class LlamaCppRequest {
     this.typicalP,
     this.repeatPenalty,
     this.repeatLastN,
+    this.penaltyPrompt,
     this.grammar,
     this.ignoreEos,
     this.logitBias
@@ -39,6 +40,7 @@ class LlamaCppRequest {
   final double? tfsZ;
   final double? typicalP;
   final double? repeatPenalty;
+  final String? penaltyPrompt;
   final int? repeatLastN;
   final String? grammar;
   final bool? ignoreEos;
@@ -57,6 +59,7 @@ class LlamaCppRequest {
       'typical_p': typicalP,
       'repeat_penalty': repeatPenalty,
       'repeat_last_n': repeatLastN,
+      'penalty_prompt': penaltyPrompt,
       'grammar': grammar,
       'ignore_eos': ignoreEos,
       'logit_bias': logitBias?.map((b) => [b.$1, b.$2]).toList()
@@ -177,6 +180,7 @@ class ApiRequestLlamaCpp {
       typicalP: params.cfgModel.typical != 0 ? params.cfgModel.typical : 1,
       repeatPenalty: params.cfgModel.repetitionPenalty != 0 ? params.cfgModel.repetitionPenalty : 1,
       repeatLastN: min(params.cfgModel.repetitionPenaltyRange, maxRepeatLastN),
+      penaltyPrompt: params.repPenText,
       grammar: grammar,
       ignoreEos: grammar == null,
       logitBias: logitBias
