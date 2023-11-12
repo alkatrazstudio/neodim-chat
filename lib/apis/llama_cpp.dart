@@ -62,7 +62,8 @@ class LlamaCppRequest {
       'penalty_prompt': penaltyPrompt,
       'grammar': grammar,
       'ignore_eos': ignoreEos,
-      'logit_bias': logitBias?.map((b) => [b.$1, b.$2]).toList()
+      'logit_bias': logitBias?.map((b) => [b.$1, b.$2]).toList(),
+      'cache_prompt': true
     };
   }
 }
