@@ -2,12 +2,12 @@
 // 🄯 2022, Alexey Parfenov <zxed@alkatrazstudio.net>
 
 import 'package:flutter/material.dart';
-import 'package:neodim_chat/pages/debug_page.dart';
 
 import 'package:provider/provider.dart';
 
 import '../models/conversations.dart';
 import '../models/messages.dart';
+import '../pages/debug_page.dart';
 import '../pages/help_page.dart';
 import '../pages/settings_page.dart';
 import '../pages/textual_view_page.dart';

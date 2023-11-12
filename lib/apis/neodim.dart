@@ -4,10 +4,10 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
-import 'package:neodim_chat/apis/request.dart';
-import 'package:neodim_chat/models/api_model.dart';
 
+import '../apis/request.dart';
 import '../apis/response.dart';
+import '../models/api_model.dart';
 import '../models/conversations.dart';
 import '../models/messages.dart';
 import '../pages/home_page.dart';

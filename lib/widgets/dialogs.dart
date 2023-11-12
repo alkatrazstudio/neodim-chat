@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // 🄯 2022, Alexey Parfenov <zxed@alkatrazstudio.net>
 
-import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+
+import 'package:collection/collection.dart';
 
 import '../models/messages.dart';
 

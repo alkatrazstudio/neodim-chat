@@ -2,13 +2,13 @@
 // 🄯 2023, Alexey Parfenov <zxed@alkatrazstudio.net>
 
 import 'package:flutter/material.dart';
-import 'package:neodim_chat/models/api_model.dart';
 
 import 'package:provider/provider.dart';
 
 import '../apis/neodim.dart';
 import '../apis/llama_cpp.dart';
 import '../apis/response.dart';
+import '../models/api_model.dart';
 import '../models/config.dart';
 import '../models/conversations.dart';
 import '../models/messages.dart';

@@ -1,15 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // 🄯 2023, Alexey Parfenov <zxed@alkatrazstudio.net>
 
-
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:json_view/json_view.dart';
 
+import 'package:json_view/json_view.dart';
 import 'package:provider/provider.dart';
 
-import 'package:neodim_chat/models/api_model.dart';
-import 'package:neodim_chat/models/conversations.dart';
+import '../models/api_model.dart';
+import '../models/conversations.dart';
 
 class DebugPage extends StatelessWidget {
   const DebugPage();

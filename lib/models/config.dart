@@ -2,6 +2,7 @@
 // 🄯 2022, Alexey Parfenov <zxed@alkatrazstudio.net>
 
 import 'package:flutter/material.dart';
+
 import 'package:json_annotation/json_annotation.dart';
 
 import '../apis/request.dart';

@@ -5,13 +5,14 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+
 import 'package:json_annotation/json_annotation.dart';
-import 'package:neodim_chat/models/messages.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 
-import 'config.dart';
+import '../models/config.dart';
+import '../models/messages.dart';
 
 part 'conversations.g.dart';
 

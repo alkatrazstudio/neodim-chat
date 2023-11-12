@@ -3,12 +3,13 @@
 
 import 'dart:math';
 
-import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+
+import 'package:collection/collection.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:neodim_chat/models/conversations.dart';
 
 import '../models/config.dart';
+import '../models/conversations.dart';
 import '../util/json_converters.dart';
 
 part 'messages.g.dart';
