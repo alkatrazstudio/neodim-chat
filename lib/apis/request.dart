@@ -117,9 +117,19 @@ class ApiRequest {
   }
 
   static List<String> getParticipantNameStopStrings(MessagesModel msgModel, Conversation conv) {
-    var participantNames = conv.isChat
-      ? msgModel.participants.map((p) => p.name).toList()
-      : [msgModel.participants[Message.youIndex].name] + msgModel.getGroupParticipantNames(true);
+    List<String> participantNames;
+    switch(conv.type) {
+      case Conversation.typeChat:
+        participantNames = msgModel.participants.map((p) => p.name).toList();
+        break;
+
+      case Conversation.typeGroupChat:
+        participantNames = [msgModel.participants[Message.youIndex].name] + msgModel.getGroupParticipantNames(true);
+        break;
+
+      default:
+        return [];
+    }
     var stopStrings = participantNames.map((name) => '$name${MessagesModel.chatPromptSeparator}').toList();
     return stopStrings;
   }
