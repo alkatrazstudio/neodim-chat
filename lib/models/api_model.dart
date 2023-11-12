@@ -9,6 +9,9 @@ class ApiModel extends ChangeNotifier {
   ApiResponse? lastResponse;
   bool isApiRunning = false;
 
+  Map<String, dynamic>? rawRequest;
+  Map<String, dynamic>? rawResponse;
+
   void setResponse(ApiResponse response) {
     lastResponse = response;
     notifyListeners();
@@ -16,6 +19,16 @@ class ApiModel extends ChangeNotifier {
 
   void setApiRunning(bool newValue) {
     isApiRunning = newValue;
+    notifyListeners();
+  }
+
+  void setRawRequest(Map<String, dynamic>? req) {
+    rawRequest = req;
+    notifyListeners();
+  }
+
+  void setRawResponse(Map<String, dynamic>? resp) {
+    rawResponse = resp;
     notifyListeners();
   }
 }

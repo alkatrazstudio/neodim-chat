@@ -2,6 +2,7 @@
 // 🄯 2022, Alexey Parfenov <zxed@alkatrazstudio.net>
 
 import 'package:flutter/material.dart';
+import 'package:neodim_chat/pages/debug_page.dart';
 
 import 'package:provider/provider.dart';
 
@@ -101,6 +102,13 @@ class MainMenu extends StatelessWidget {
       Navigator.push<void>(
         context,
         MaterialPageRoute(builder: (context) => const HelpPage())
+      );
+    }),
+
+    MainMenuItem('Debug', Icons.bug_report, (context) {
+      Navigator.push<void>(
+        context,
+        MaterialPageRoute(builder: (context) => const DebugPage())
       );
     }),
   ];

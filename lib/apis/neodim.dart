@@ -5,6 +5,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:neodim_chat/apis/request.dart';
+import 'package:neodim_chat/models/api_model.dart';
 
 import '../apis/response.dart';
 import '../models/conversations.dart';
@@ -257,8 +258,10 @@ class NeodimApi {
 
   late final Uri endpoint;
 
-  Future<NeodimResponse> run(NeodimRequest req) async {
+  Future<NeodimResponse> run(NeodimRequest req, ApiModel apiModel) async {
     var reqData = req.toApiRequestMap();
+    apiModel.setRawRequest(reqData);
+    apiModel.setRawResponse(null);
     var reqJson = jsonEncode(reqData);
 
     var response = await http.post(endpoint,
@@ -270,6 +273,7 @@ class NeodimApi {
 
     var respJson = response.body;
     var respData = jsonDecode(respJson) as Map<String, dynamic>;
+    apiModel.setRawResponse(respData);
     if(respData.containsKey('error')) {
       String error = respData['error'] as String;
       throw Exception(error);
@@ -384,7 +388,7 @@ class ApiRequestNeodim {
       return null;
     var endpoint = ApiRequest.normalizeEndpoint(params.cfgModel.apiEndpoint, 8787, '/generate');
     final api = NeodimApi(endpoint: endpoint);
-    var response = await api.run(request);
+    var response = await api.run(request, params.apiModel);
     var result = toResponse(response);
     return result;
   }

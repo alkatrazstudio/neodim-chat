@@ -2,6 +2,7 @@
 // 🄯 2023, Alexey Parfenov <zxed@alkatrazstudio.net>
 
 import 'package:flutter/material.dart';
+import 'package:neodim_chat/models/api_model.dart';
 
 import 'package:provider/provider.dart';
 
@@ -64,7 +65,8 @@ class ApiRequestParams {
     this.blacklistWordsForRetry,
     required this.conversation,
     required this.cfgModel,
-    required this.msgModel
+    required this.msgModel,
+    required this.apiModel
   });
 
   final String inputText;
@@ -74,6 +76,7 @@ class ApiRequestParams {
   final Conversation conversation;
   final ConfigModel cfgModel;
   final MessagesModel msgModel;
+  final ApiModel apiModel;
 }
 
 class ApiRequest {
@@ -91,6 +94,7 @@ class ApiRequest {
 
     var cfgModel = Provider.of<ConfigModel>(context, listen: false);
     var msgModel = Provider.of<MessagesModel>(context, listen: false);
+    var apiModel = Provider.of<ApiModel>(context, listen: false);
 
     var params = ApiRequestParams(
       inputText: inputText,
@@ -99,7 +103,8 @@ class ApiRequest {
       blacklistWordsForRetry: blacklistWordsForRetry,
       conversation: conversation,
       cfgModel: cfgModel,
-      msgModel: msgModel
+      msgModel: msgModel,
+      apiModel: apiModel
     );
 
     ApiResponse? result;

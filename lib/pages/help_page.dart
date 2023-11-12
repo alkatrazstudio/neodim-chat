@@ -602,7 +602,8 @@ class HelpPageState extends State<HelpPage> {
             _KeyValRow(key: 'flutter_lints', keyLink: 'https://pub.dev/packages/flutter_lints', val: bsd3, valLink: bsd3Url),
             _KeyValRow(key: 'build_runner', keyLink: 'https://pub.dev/packages/build_runner', val: bsd3, valLink: bsd3Url),
             _KeyValRow(key: 'json_serializable', keyLink: 'https://pub.dev/packages/json_serializable', val: bsd3, valLink: bsd3Url),
-            _KeyValRow(key: 'wakelock', keyLink: 'https://pub.dev/packages/wakelock', val: bsd3, valLink: bsd3Url)
+            _KeyValRow(key: 'wakelock', keyLink: 'https://pub.dev/packages/wakelock', val: bsd3, valLink: bsd3Url),
+            _KeyValRow(key: 'json_view', keyLink: 'https://pub.dev/packages/json_view', val: mit, valLink: mitUrl)
           ])}
           </tbody>
         </table>

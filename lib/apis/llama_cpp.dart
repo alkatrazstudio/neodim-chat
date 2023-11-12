@@ -188,7 +188,10 @@ class ApiRequestLlamaCpp {
     );
 
     var requestMap = request.toApiRequestMap();
+    params.apiModel.setRawRequest(requestMap);
+    params.apiModel.setRawResponse(null);
     var responseMap = await runRaw('$endpoint/completion', requestMap);
+    params.apiModel.setRawResponse(responseMap);
     var response = LlamaCppResponse.fromApiResponseMap(responseMap);
 
     String usedPrompt;
