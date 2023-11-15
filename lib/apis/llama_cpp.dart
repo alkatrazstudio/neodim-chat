@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:http/http.dart' as http;
+import 'package:neodim_chat/models/config.dart';
 
 import '../apis/request.dart';
 import '../apis/response.dart';
@@ -21,6 +22,9 @@ class LlamaCppRequest {
     this.stop,
     this.tfsZ,
     this.typicalP,
+    this.mirostat,
+    this.mirostatTau,
+    this.mirostatEta,
     this.repeatPenalty,
     this.repeatLastN,
     this.penaltyPrompt,
@@ -38,6 +42,9 @@ class LlamaCppRequest {
   final List<String>? stop;
   final double? tfsZ;
   final double? typicalP;
+  final int? mirostat;
+  final double? mirostatTau;
+  final double? mirostatEta;
   final double? repeatPenalty;
   final String? penaltyPrompt;
   final int? repeatLastN;
@@ -56,6 +63,9 @@ class LlamaCppRequest {
       'stop': stop,
       'tfs_z': tfsZ,
       'typical_p': typicalP,
+      'mirostat': mirostat,
+      'mirostat_tau': mirostatTau,
+      'mirostat_eta': mirostatEta,
       'repeat_penalty': repeatPenalty,
       'repeat_last_n': repeatLastN,
       'penalty_prompt': penaltyPrompt,
@@ -168,6 +178,12 @@ class ApiRequestLlamaCpp {
     }
     var logitBias = bannedTokens.toSet().map((token) => (token, false)).toList();
 
+    var mirostat = switch(params.cfgModel.mirostat) {
+      Mirostat.v1 => 1,
+      Mirostat.v2 => 2,
+      _ => 0
+    };
+
     var request = LlamaCppRequest(
       temperature: params.cfgModel.temperature != 0 ? params.cfgModel.temperature : 1,
       topK: params.cfgModel.topK,
@@ -178,6 +194,9 @@ class ApiRequestLlamaCpp {
       stop: stopStrings,
       tfsZ: params.cfgModel.tfs != 0 ? params.cfgModel.tfs : 1,
       typicalP: params.cfgModel.typical != 0 ? params.cfgModel.typical : 1,
+      mirostat: mirostat,
+      mirostatTau: params.cfgModel.mirostatTau,
+      mirostatEta: params.cfgModel.mirostatEta,
       repeatPenalty: params.cfgModel.repetitionPenalty != 0 ? params.cfgModel.repetitionPenalty : 1,
       repeatLastN: min(params.cfgModel.repetitionPenaltyRange, maxRepeatLastN),
       penaltyPrompt: params.repPenText,

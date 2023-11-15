@@ -318,6 +318,23 @@ class HelpPageState extends State<HelpPage> {
             <a href="$serverBaseUrl#penalty_alpha-float-optional">more info</a>.
           </li>
           <li>
+            <strong>Mirostat</strong> - enables Mirostat sampling.
+            This sampling will automatically adjust other hyper-params to make the generated text
+            not too repetitive, and not too random.
+          </li>
+          <li>
+            <strong>Mirostat Tau</strong> - Mirostat Tau parameter.
+            A lower value will result in more focused and coherent text,
+            while a higher value will lead to more diverse and potentially less coherent text.
+            Proposed values are 3-5.
+          </li>
+          <li>
+            <strong>Mirostat Eta</strong> - Mirostat Eta parameter.
+            Influences how quickly the algorithm responds to feedback from the generated text.
+            A lower value will result in slower adjustments,
+            while a higher learning rate will make the algorithm more responsive.
+          </li>
+          <li>
             <strong>Repetition penalty</strong> - make generated text more different than the already existing text.
             <a href="$serverBaseUrl#repetition_penalty-float-optional">more info</a>
           </li>

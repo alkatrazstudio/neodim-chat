@@ -15,6 +15,20 @@ class CombineChatLinesType {
   static const String previousLines = 'previousLines';
 }
 
+enum Mirostat {
+  none,
+  v1,
+  v2;
+
+  static Mirostat byNameOrDefault(String name) {
+    try {
+      return Mirostat.values.byName(name);
+    } on Exception catch (_) {
+      return Mirostat.values.first;
+    }
+  }
+}
+
 @JsonSerializable(explicitToJson: true)
 class ConfigModel extends ChangeNotifier {
   @JsonKey(defaultValue: ApiType.neodim, unknownEnumValue: ApiType.neodim)
@@ -49,6 +63,15 @@ class ConfigModel extends ChangeNotifier {
 
   @JsonKey(defaultValue: 0)
   double penaltyAlpha = 0;
+
+  @JsonKey(defaultValue: Mirostat.none, unknownEnumValue: Mirostat.none)
+  Mirostat mirostat = Mirostat.none;
+
+  @JsonKey(defaultValue: 5.0)
+  double mirostatTau = 5.0;
+
+  @JsonKey(defaultValue: 0.1)
+  double mirostatEta = 0.1;
 
   @JsonKey(defaultValue: Warper.defaultOrder)
   List<String> warpersOrder = Warper.defaultOrder;
@@ -120,8 +143,13 @@ class ConfigModel extends ChangeNotifier {
     return '$preamble\n\n';
   }
 
-  void setApiType(String newApiType) {
-    apiType = ApiType.byNameOrDefault(newApiType);
+  void setApiTypeByName(String newApiTypeName) {
+    var newApiType = ApiType.byNameOrDefault(newApiTypeName);
+    setApiType(newApiType);
+  }
+
+  void setApiType(ApiType newApiType) {
+    apiType = newApiType;
     notifyListeners();
   }
 
@@ -172,6 +200,26 @@ class ConfigModel extends ChangeNotifier {
 
   void setPenaltyAlpha(double newPenaltyAlpha) {
     penaltyAlpha = newPenaltyAlpha;
+    notifyListeners();
+  }
+
+  void setMirostatByName(String newMirostatName) {
+    var newMirostat = Mirostat.byNameOrDefault(newMirostatName);
+    setMirostat(newMirostat);
+  }
+
+  void setMirostat(Mirostat newMirostat) {
+    mirostat = newMirostat;
+    notifyListeners();
+  }
+
+  void setMirostatTau(double newMirostatTau) {
+    mirostatTau = newMirostatTau;
+    notifyListeners();
+  }
+
+  void setMirostatEta(double newMirostatEta) {
+    mirostatEta = newMirostatEta;
     notifyListeners();
   }
 
@@ -292,6 +340,9 @@ class ConfigModel extends ChangeNotifier {
     typical = other.typical;
     topA = other.topA;
     penaltyAlpha = other.penaltyAlpha;
+    mirostat = other.mirostat;
+    mirostatEta = other.mirostatEta;
+    mirostatTau = other.mirostatTau;
     warpersOrder = other.warpersOrder.toList();
     repetitionPenalty = other.repetitionPenalty;
     repetitionPenaltyRange = other.repetitionPenaltyRange;

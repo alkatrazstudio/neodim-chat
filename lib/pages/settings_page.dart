@@ -296,7 +296,7 @@ class _SettingsPageState extends State<SettingsPage> {
           label: 'API type',
           initialItem: cfgModel.apiType.name,
           items: ApiType.values.map((v) => v.name).toList(),
-          onSaved: (s) => cfgModel.setApiType(s),
+          onSaved: (s) => cfgModel.setApiTypeByName(s),
           cfgModel: cfgModel
         ),
         CardSettingsText(
@@ -365,6 +365,27 @@ class _SettingsPageState extends State<SettingsPage> {
           decimalDigits: 3,
           validator: validateNormalizedDouble,
           onSaved: onDoubleSave((x) => cfgModel.setPenaltyAlpha(x))
+        ),
+        picker(
+          label: 'Mirostat',
+          initialItem: cfgModel.mirostat.name,
+          items: Mirostat.values.map((v) => v.name).toList(),
+          onSaved: (s) => cfgModel.setMirostatByName(s),
+          cfgModel: cfgModel
+        ),
+        CardSettingsDouble(
+          label: 'Mirostat Tau',
+          initialValue: cfgModel.mirostatTau,
+          decimalDigits: 3,
+          validator: validatePositiveDouble,
+          onSaved: onDoubleSave((x) => cfgModel.setMirostatTau(x))
+        ),
+        CardSettingsDouble(
+          label: 'Mirostat Eta',
+          initialValue: cfgModel.mirostatEta,
+          decimalDigits: 3,
+          validator: validateNormalizedDouble,
+          onSaved: onDoubleSave((x) => cfgModel.setMirostatEta(x))
         ),
         CardSettingsDouble(
           label: 'Repetition penalty',
