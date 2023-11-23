@@ -80,16 +80,19 @@ class LlamaCppRequest {
 class LlamaCppResponse {
   const LlamaCppResponse({
     required this.content,
-    required this.stoppingWord
+    required this.stoppingWord,
+    required this.tokensEvaluated
   });
 
   final String content;
   final String stoppingWord;
+  final int tokensEvaluated;
 
   static LlamaCppResponse fromApiResponseMap(Map<String, dynamic> data) {
     return LlamaCppResponse(
       content: data['content'] as String,
-      stoppingWord: data['stopping_word'] as String
+      stoppingWord: data['stopping_word'] as String,
+      tokensEvaluated: data['tokens_evaluated'] as int
     );
   }
 }
@@ -139,23 +142,22 @@ class ApiRequestLlamaCpp {
       preambleTokensCount = 0;
     }
 
-    List<int> promptTokens;
-    List<int> usedPromptTokens;
+    List<int> allInputTokens;
+    int maxRepeatLastN;
     if(params.inputText.isEmpty) {
-      promptTokens = [];
-      usedPromptTokens = [];
+      allInputTokens = [];
+      maxRepeatLastN = 0;
     } else {
-      promptTokens = await tokenize(endpoint, params.inputText);
+      allInputTokens = await tokenize(endpoint, params.inputText);
       var allowedPromptTokensCount = params.cfgModel.maxTotalTokens - preambleTokensCount - params.cfgModel.generatedTokensCount - 1;
       if(allowedPromptTokensCount <= 0)
         throw Exception('No tokens left for prompt.');
-      allowedPromptTokensCount = min(allowedPromptTokensCount, promptTokens.length);
-      usedPromptTokens = promptTokens.sublist(promptTokens.length - allowedPromptTokensCount);
+      allowedPromptTokensCount = min(allowedPromptTokensCount, allInputTokens.length);
+      maxRepeatLastN = allInputTokens.length - allowedPromptTokensCount;
     }
 
-    var maxRepeatLastN = params.cfgModel.repetitionPenaltyIncludePreamble
-        ? (usedPromptTokens.length + preambleTokensCount)
-        : usedPromptTokens.length;
+    if(params.cfgModel.repetitionPenaltyIncludePreamble)
+      maxRepeatLastN += preambleTokensCount;
 
     String? grammar;
     List<String> stopStrings;
@@ -212,14 +214,11 @@ class ApiRequestLlamaCpp {
     params.apiModel.setRawResponse(responseMap);
     var response = LlamaCppResponse.fromApiResponseMap(responseMap);
 
-    String usedPrompt;
-    if(usedPromptTokens.length == promptTokens.length) {
-      usedPrompt = params.inputText;
-    } else {
-      usedPrompt = await detokenize(endpoint, usedPromptTokens);
-      if(usedPrompt.startsWith(' '))
-        usedPrompt = usedPrompt.substring(1);
-    }
+    var usedPromptTokensCount = response.tokensEvaluated - preambleTokensCount;
+    var usedTokens = allInputTokens.sublist(max(0, allInputTokens.length - usedPromptTokensCount));
+    var usedPrompt = await detokenize(endpoint, usedTokens);
+    if(usedPrompt.startsWith(' '))
+      usedPrompt = usedPrompt.substring(1);
 
     var result = ApiResponse(
       sequences: [ApiResponseSequence(
