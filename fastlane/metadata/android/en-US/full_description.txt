@@ -1,6 +1,6 @@
-Neodim Chat allows you to chat with AI-powered bot via Neodim Server (https://github.com/alkatrazstudio/neodim-server).
+Neodim Chat allows you to chat with AI-powered bot via Neodim Server (https://github.com/alkatrazstudio/neodim-server) or llama.cpp (https://github.com/ggerganov/llama.cpp).
 
-NOTE: Before installing this app, make sure that you're able to run Neodim Server and you understand how it works. Neodim Chat does not work without Neodim Server!
+NOTE: Before installing this app, make sure that you're able to run Neodim Server or llama.cpp and you understand how these servers work.
 
 
 == KEY FEATURES ==

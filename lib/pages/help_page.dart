@@ -106,6 +106,7 @@ class HelpPageState extends State<HelpPage> {
   static const appBuildTimestamp = int.fromEnvironment('APP_BUILD_TIMESTAMP');
   static const appGitHash = String.fromEnvironment('APP_GIT_HASH');
   static const serverBaseUrl = 'https://github.com/alkatrazstudio/neodim-server';
+  static const llamaCppBaseUrl = 'https://github.com/ggerganov/llama.cpp';
 
   @override
   Widget build(BuildContext context) {
@@ -202,24 +203,25 @@ class HelpPageState extends State<HelpPage> {
 
         <p>
           This is a client application that can be used together with
-          <a href="$serverBaseUrl">Neodim Server</a>.
-          Before using Neodim Chat, make sure that Neodim Server is up and running,
-          and accessible via LAN IP (e.g. 192.168.1.123).
+          <a href="$serverBaseUrl">Neodim Server</a>
+          or with <a href="$llamaCppBaseUrl">llama.cpp</a>.
+          Before using Neodim Chat, make sure that either of these servers is up and running,
+          and accessible (e.g. via LAN IP, for example: 192.168.1.123).
         </p>
 
         <h2>Settings</h2>
 
         <p>
           The chat will be between two participants.
-          You can write for any of them, and Neodim Server can write for any of them too.
+          You can write for any of them, and the server can write for any of them too.
         </p>
 
         <p>
           Below are explanations for the settings for a conversation.
-          Some parameters represent parameters for Neodim Server,
-          so you can find an additional information about them on
-          <a href="$serverBaseUrl">Neodim Server's website</a>.
-          It is advisable to read all Neodim Server documentation before using Neodim Chat.
+          Some parameters represent parameters for
+          <a href="$serverBaseUrl">Neodim Server</a> or <a href="$llamaCppBaseUrl">llama.cpp</a>,
+          so you can find an additional information about them on the corresponding websites</a>.
+          It is advisable to read all the documentation about the server you use before using Neodim Chat.
         </p>
 
         <h3>Conversation</h3>
@@ -229,7 +231,7 @@ class HelpPageState extends State<HelpPage> {
             Can by any string. Will be shown in the side drawer.
           </li>
           <li>
-            <strong>Preamble</strong> - the text that will sent to Neodim Server
+            <strong>Preamble</strong> - the text that will sent to the server
             alongside with the chat text.
             <a href="$serverBaseUrl#prompt-and-preamble">more info</a>
           </li>
@@ -260,23 +262,22 @@ class HelpPageState extends State<HelpPage> {
         <ul>
           <li>
             <strong>API type</strong> - the type of server-side API to connect to.
-            Neodim Chat is mostly designed to work with Neodim Server.
-            All other APIs that are listed here are may not be documented properly,
-            and not guaranteed to work properly.
+            Neodim Chat is designed to work with Neodim Server or llama.cpp server.
             Different APIs may support different sets of config parameters, features
             and can behave differently.
             Currently supported APIs:
             <ul>
-              <li>Neodim - <a href="$serverBaseUrl">Neodim Server</a></li>
+              <li>neodim - <a href="$serverBaseUrl">Neodim Server</a></li>
+              <li>llama.cpp - <a href="$llamaCppBaseUrl">llama.cpp</a></li>
             </ul>
             The documentation below may link to the Neodim Server documentation
             even if the parameter can be used by other APIs.
           </li>
           <li>
             <strong>API endpoint</strong> - the full URL that points to the API server.
-            For Neodim Server should contain the protocol, the port and the "/generate" part,
+            For Neodim Server may contain the protocol, the port and the "/generate" part,
             e.g. "http://192.168.1.123:8787/generate".
-            For llama.cpp server it should contain the protocol and the port,
+            For llama.cpp server it may contain the protocol and the port,
             e.g. "http://192.168.1.123:8080".
             However, for both servers, you can just specify only IP or the hostname, e.g. "192.168.1.123".
           </li>
@@ -286,7 +287,7 @@ class HelpPageState extends State<HelpPage> {
           </li>
           <li>
             <strong>Max total tokens</strong> - total amount of tokens that should be processed
-            by Neodim Server when generating a reply.
+            by the server when generating a reply.
             <a href="$serverBaseUrl#max_total_tokens-int-required">more info</a>
           </li>
           <li>
@@ -531,7 +532,7 @@ class HelpPageState extends State<HelpPage> {
             Increase the "Max total tokens" parameter to pass more text to the AI.</li>
           <li>If a message has a slight red border around it,
             then it means that it was generated by AI and never modified by you.</li>
-          <li>Try not to move away from the main screen while Neodim Server generates a new message.
+          <li>Try not to move away from the main screen while server generates a new message.
             If the main window is out of focus, then the message may not arrive.</li>
           <li>If the input field is empty then pressing the send button will
             generate a new reply in the chat mode or a new portion of the story in the adventure mode.</li>
