@@ -25,6 +25,7 @@ class _SettingsPageState extends State<SettingsPage> {
   final List<String> warpersOrder = [];
 
   late var convType = '';
+  ApiType? apiType;
 
   @override
   Widget build(BuildContext context) {
@@ -34,6 +35,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
     if(convType.isEmpty)
       convType = curConv.type;
+    apiType ??= Provider.of<ConfigModel>(context, listen: false).apiType;
 
     return Scaffold(
       appBar: AppBar(
@@ -297,6 +299,11 @@ class _SettingsPageState extends State<SettingsPage> {
           initialItem: cfgModel.apiType.name,
           items: ApiType.values.map((v) => v.name).toList(),
           onSaved: (s) => cfgModel.setApiTypeByName(s),
+          onChanged: (newApiTypeName) {
+            setState(() {
+              apiType = ApiType.byNameOrDefault(newApiTypeName);
+            });
+          },
           cfgModel: cfgModel
         ),
         CardSettingsText(
@@ -312,12 +319,13 @@ class _SettingsPageState extends State<SettingsPage> {
           validator: validateNonNegativeInt,
           onSaved: onIntSave((x) => cfgModel.setGeneratedTokensCount(x))
         ),
-        CardSettingsInt(
-          label: 'Max total tokens',
-          initialValue: cfgModel.maxTotalTokens,
-          validator: validateNonNegativeInt,
-          onSaved: onIntSave((x) => cfgModel.setMaxTotalTokens(x))
-        ),
+        if(apiType == ApiType.neodim)
+          CardSettingsInt(
+            label: 'Max total tokens',
+            initialValue: cfgModel.maxTotalTokens,
+            validator: validateNonNegativeInt,
+            onSaved: onIntSave((x) => cfgModel.setMaxTotalTokens(x)),
+          ),
         CardSettingsDouble(
           label: 'Temperature',
           initialValue: cfgModel.temperature,
@@ -352,41 +360,46 @@ class _SettingsPageState extends State<SettingsPage> {
           validator: validateNormalizedDouble,
           onSaved: onDoubleSave((x) => cfgModel.setTypical(x))
         ),
-        CardSettingsDouble(
-          label: 'Top A',
-          initialValue: cfgModel.topA,
-          decimalDigits: 3,
-          validator: validateNormalizedDouble,
-          onSaved: onDoubleSave((x) => cfgModel.setTopA(x))
-        ),
-        CardSettingsDouble(
-          label: 'Penalty alpha',
-          initialValue: cfgModel.penaltyAlpha,
-          decimalDigits: 3,
-          validator: validateNormalizedDouble,
-          onSaved: onDoubleSave((x) => cfgModel.setPenaltyAlpha(x))
-        ),
-        picker(
-          label: 'Mirostat',
-          initialItem: cfgModel.mirostat.name,
-          items: Mirostat.values.map((v) => v.name).toList(),
-          onSaved: (s) => cfgModel.setMirostatByName(s),
-          cfgModel: cfgModel
-        ),
-        CardSettingsDouble(
-          label: 'Mirostat Tau',
-          initialValue: cfgModel.mirostatTau,
-          decimalDigits: 3,
-          validator: validatePositiveDouble,
-          onSaved: onDoubleSave((x) => cfgModel.setMirostatTau(x))
-        ),
-        CardSettingsDouble(
-          label: 'Mirostat Eta',
-          initialValue: cfgModel.mirostatEta,
-          decimalDigits: 3,
-          validator: validateNormalizedDouble,
-          onSaved: onDoubleSave((x) => cfgModel.setMirostatEta(x))
-        ),
+        if(apiType == ApiType.neodim)
+          CardSettingsDouble(
+            label: 'Top A',
+            initialValue: cfgModel.topA,
+            decimalDigits: 3,
+            validator: validateNormalizedDouble,
+            onSaved: onDoubleSave((x) => cfgModel.setTopA(x))
+          ),
+        if(apiType == ApiType.neodim)
+          CardSettingsDouble(
+            label: 'Penalty alpha',
+            initialValue: cfgModel.penaltyAlpha,
+            decimalDigits: 3,
+            validator: validateNormalizedDouble,
+            onSaved: onDoubleSave((x) => cfgModel.setPenaltyAlpha(x))
+          ),
+        if(apiType == ApiType.llamaCpp)
+          picker(
+            label: 'Mirostat',
+            initialItem: cfgModel.mirostat.name,
+            items: Mirostat.values.map((v) => v.name).toList(),
+            onSaved: (s) => cfgModel.setMirostatByName(s),
+            cfgModel: cfgModel
+          ),
+        if(apiType == ApiType.llamaCpp)
+          CardSettingsDouble(
+            label: 'Mirostat Tau',
+            initialValue: cfgModel.mirostatTau,
+            decimalDigits: 3,
+            validator: validatePositiveDouble,
+            onSaved: onDoubleSave((x) => cfgModel.setMirostatTau(x))
+          ),
+        if(apiType == ApiType.llamaCpp)
+          CardSettingsDouble(
+            label: 'Mirostat Eta',
+            initialValue: cfgModel.mirostatEta,
+            decimalDigits: 3,
+            validator: validateNormalizedDouble,
+            onSaved: onDoubleSave((x) => cfgModel.setMirostatEta(x))
+          ),
         CardSettingsDouble(
           label: 'Repetition penalty',
           initialValue: cfgModel.repetitionPenalty,
@@ -400,34 +413,37 @@ class _SettingsPageState extends State<SettingsPage> {
           validator: validateNonNegativeInt,
           onSaved: onIntSave((x) => cfgModel.setRepetitionPenaltyRange(x))
         ),
-        CardSettingsDouble(
-          label: 'Repetition penalty slope',
-          initialValue: cfgModel.repetitionPenaltySlope,
-          decimalDigits: 3,
-          validator: validateNonNegativeDouble,
-          onSaved: onDoubleSave((x) => cfgModel.setRepetitionPenaltySlope(x))
-        ),
+        if(apiType == ApiType.neodim)
+          CardSettingsDouble(
+            label: 'Repetition penalty slope',
+            initialValue: cfgModel.repetitionPenaltySlope,
+            decimalDigits: 3,
+            validator: validateNonNegativeDouble,
+            onSaved: onDoubleSave((x) => cfgModel.setRepetitionPenaltySlope(x))
+          ),
         CardSettingsSwitch(
           label: 'Include preamble in the repetition penalty range',
           initialValue: cfgModel.repetitionPenaltyIncludePreamble,
           onSaved: (val) => cfgModel.setRepetitionPenaltyIncludePreamble(val ?? false),
         ),
-        picker(
-          label: 'Include generated text in the repetition penalty range',
-          initialItem: cfgModel.repetitionPenaltyIncludeGenerated,
-          items: const [
-            RepPenGenerated.ignore,
-            RepPenGenerated.expand,
-            RepPenGenerated.slide
-          ],
-          onSaved: (s) => cfgModel.setRepetitionPenaltyIncludeGenerated(s),
-          cfgModel: cfgModel
-        ),
-        CardSettingsSwitch(
-          label: 'Truncate the repetition penalty range to the input',
-          initialValue: cfgModel.repetitionPenaltyTruncateToInput,
-          onSaved: (val) => cfgModel.setRepetitionPenaltyTruncateToInput(val ?? false),
-        ),
+        if(apiType == ApiType.neodim)
+          picker(
+            label: 'Include generated text in the repetition penalty range',
+            initialItem: cfgModel.repetitionPenaltyIncludeGenerated,
+            items: const [
+              RepPenGenerated.ignore,
+              RepPenGenerated.expand,
+              RepPenGenerated.slide
+            ],
+            onSaved: (s) => cfgModel.setRepetitionPenaltyIncludeGenerated(s),
+            cfgModel: cfgModel
+          ),
+        if(apiType == ApiType.neodim)
+          CardSettingsSwitch(
+            label: 'Truncate the repetition penalty range to the input',
+            initialValue: cfgModel.repetitionPenaltyTruncateToInput,
+            onSaved: (val) => cfgModel.setRepetitionPenaltyTruncateToInput(val ?? false),
+          ),
         CardSettingsInt(
           label: 'Repetition penalty lines without extra symbols',
           initialValue: cfgModel.repetitionPenaltyLinesWithNoExtraSymbols,
@@ -444,22 +460,25 @@ class _SettingsPageState extends State<SettingsPage> {
           initialValue: cfgModel.repetitionPenaltyRemoveParticipantNames,
           onSaved: (val) => cfgModel.setRepetitionPenaltyRemoveParticipantNames(val ?? true),
         ),
-        CardSettingsInt(
-          label: 'No repeat N-gram size',
-          initialValue: cfgModel.noRepeatNGramSize,
-          validator: validateNonNegativeInt,
-          onSaved: onIntSave((x) => cfgModel.setNoRepeatNGramSize(x))
-        ),
-        CardSettingsWarpersOrder(
-          initialValue: cfgModel.warpersOrder,
-          onSaved: (order) => cfgModel.setWarpersOrder(order)
-        ),
-        CardSettingsInt(
-          label: 'Generate extra sequences for quick retries',
-          initialValue: cfgModel.extraRetries,
-          validator: validateNonNegativeInt,
-          onSaved: onIntSave((x) => cfgModel.setExtraRetries(x))
-        ),
+        if(apiType == ApiType.neodim)
+          CardSettingsInt(
+            label: 'No repeat N-gram size',
+            initialValue: cfgModel.noRepeatNGramSize,
+            validator: validateNonNegativeInt,
+            onSaved: onIntSave((x) => cfgModel.setNoRepeatNGramSize(x))
+          ),
+        if(apiType == ApiType.neodim)
+          CardSettingsWarpersOrder(
+            initialValue: cfgModel.warpersOrder,
+            onSaved: (order) => cfgModel.setWarpersOrder(order)
+          ),
+        if(apiType == ApiType.neodim)
+          CardSettingsInt(
+            label: 'Generate extra sequences for quick retries',
+            initialValue: cfgModel.extraRetries,
+            validator: validateNonNegativeInt,
+            onSaved: onIntSave((x) => cfgModel.setExtraRetries(x))
+          ),
         CardSettingsInt(
           label: 'Add words to blacklist on retry',
           initialValue: cfgModel.addWordsToBlacklistOnRetry,
