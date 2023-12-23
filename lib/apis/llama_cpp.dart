@@ -13,44 +13,44 @@ import '../models/messages.dart';
 
 class LlamaCppRequest {
   const LlamaCppRequest({
-    this.temperature,
-    this.topK,
-    this.topP,
+    required this.temperature,
+    required this.topK,
+    required this.topP,
     required this.nPredict,
     required this.nKeep,
     required this.prompt,
-    this.stop,
-    this.tfsZ,
-    this.typicalP,
-    this.mirostat,
-    this.mirostatTau,
-    this.mirostatEta,
-    this.repeatPenalty,
-    this.repeatLastN,
-    this.penaltyPrompt,
-    this.grammar,
-    this.ignoreEos,
-    this.logitBias
+    required this.stop,
+    required this.tfsZ,
+    required this.typicalP,
+    required this.mirostat,
+    required this.mirostatTau,
+    required this.mirostatEta,
+    required this.repeatPenalty,
+    required this.repeatLastN,
+    required this.penaltyPrompt,
+    required this.grammar,
+    required this.ignoreEos,
+    required this.logitBias
   });
 
-  final double? temperature;
-  final int? topK;
-  final double? topP;
+  final double temperature;
+  final int topK;
+  final double topP;
   final int nPredict;
   final int nKeep;
   final String prompt;
-  final List<String>? stop;
-  final double? tfsZ;
-  final double? typicalP;
-  final int? mirostat;
-  final double? mirostatTau;
-  final double? mirostatEta;
-  final double? repeatPenalty;
+  final List<String> stop;
+  final double tfsZ;
+  final double typicalP;
+  final int mirostat;
+  final double mirostatTau;
+  final double mirostatEta;
+  final double repeatPenalty;
   final String? penaltyPrompt;
-  final int? repeatLastN;
+  final int repeatLastN;
   final String? grammar;
-  final bool? ignoreEos;
-  final List<(int, dynamic)>? logitBias;
+  final bool ignoreEos;
+  final List<(int, dynamic)> logitBias;
 
   Map<String, dynamic> toApiRequestMap() {
     return <String, dynamic> {
@@ -71,7 +71,7 @@ class LlamaCppRequest {
       'penalty_prompt': penaltyPrompt,
       'grammar': grammar,
       'ignore_eos': ignoreEos,
-      'logit_bias': logitBias?.map((b) => [b.$1, b.$2]).toList(),
+      'logit_bias': logitBias.map((b) => [b.$1, b.$2]).toList(),
       'cache_prompt': true
     };
   }
