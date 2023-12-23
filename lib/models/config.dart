@@ -34,8 +34,8 @@ class ConfigModel extends ChangeNotifier {
   @JsonKey(defaultValue: ApiType.neodim, unknownEnumValue: ApiType.neodim)
   ApiType apiType = ApiType.neodim;
 
-  @JsonKey(defaultValue: 'http://0.0.0.0:8787/generate')
-  String apiEndpoint = 'http://0.0.0.0:8787/generate';
+  @JsonKey(defaultValue: '0.0.0.0')
+  String apiEndpoint = '0.0.0.0';
 
   @JsonKey(defaultValue: 64)
   int generatedTokensCount = 64;
