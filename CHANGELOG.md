@@ -1,6 +1,18 @@
 # Neodim Chat - CHANGELOG
 
 
+## v0.9.0 (December 24, 2023)
+
+- Added: support for [llama.cpp](https://github.com/ggerganov/llama.cpp)
+- Added: debug view to see the API request and response
+- Added: Mirostat sampling (only for llama.cpp)
+- Fixed: detection of the dialog line end
+- Fixed: overflow in the edit dialog
+- Improved: only require the endpoint's host and add everything else automatically
+- Improved: maximum preamble length increased to 65535 symbols
+- Changed: now using Material 3 theme
+
+
 ## v0.8.1 (August 26, 2023)
 
 - Added: a button to choose a participant name for the group chat
