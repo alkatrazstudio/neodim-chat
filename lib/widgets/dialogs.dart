@@ -90,8 +90,6 @@ Future<MessageDialogResult?> showMessageDialog(
                 minLines: 1,
                 maxLines: 5,
                 autofocus: true,
-                autocorrect: false,
-                enableSuggestions: false,
                 controller: inputController,
                 textInputAction: TextInputAction.go,
                 onSubmitted: (text) {

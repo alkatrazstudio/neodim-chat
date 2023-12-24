@@ -868,7 +868,6 @@ class ChatInput extends StatelessWidget {
   final bool isGenerating;
   final Function(bool isGenerating) onGeneratingSwitch;
   final TextEditingController inputController;
-  final FocusNode focusNode = FocusNode();
 
   @override
   Widget build(BuildContext context) {
@@ -900,10 +899,6 @@ class ChatInput extends StatelessWidget {
 
     return TextField(
       controller: inputController,
-      focusNode: focusNode,
-      autofocus: true,
-      autocorrect: false,
-      enableSuggestions: false,
       onSubmitted: (text) {
         if(neodimModel.isApiRunning)
           return;
@@ -911,7 +906,6 @@ class ChatInput extends StatelessWidget {
         inputController.text = inputController.text.trim();
         var wasEmpty = inputController.text.isEmpty;
         submit(nextParticipantIndex);
-        focusNode.requestFocus();
 
         switch(convModel.current?.type) {
           case Conversation.typeChat:

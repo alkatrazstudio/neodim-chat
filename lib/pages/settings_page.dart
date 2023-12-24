@@ -565,8 +565,6 @@ class TextSetting extends StatelessWidget {
 
     return Focus(
       child: TextField(
-        autocorrect: false,
-        enableSuggestions: false,
         controller: inputController,
         onSubmitted: (text) {
           submit(context);
