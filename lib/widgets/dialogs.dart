@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // 🄯 2022, Alexey Parfenov <zxed@alkatrazstudio.net>
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'package:collection/collection.dart';
@@ -58,31 +60,45 @@ Future<MessageDialogResult?> showMessageDialog(
       final inputController = TextEditingController();
       inputController.text = initialText;
 
+      var rowKey = GlobalKey();
+      var widthFuture = Completer<double>();
+
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => widthFuture.complete(rowKey.currentContext?.size?.width ?? 100));
+
       return AlertDialog(
         content: StatefulBuilder(builder: (context, StateSetter setState) {
           return Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Row(
+                key: rowKey,
+                mainAxisSize: MainAxisSize.max,
                 children: [
-                  DropdownMenu<int>(
-                    dropdownMenuEntries: participants.mapIndexed(
-                      (i, p) => DropdownMenuEntry<int>(
-                        value: i,
-                        label: p.name,
-                      )
-                    ).toList(),
-                    enableFilter: false,
-                    enableSearch: false,
-                    initialSelection: newParticipantIndex,
-                    onSelected: (newIndex) {
-                      if(newIndex == null)
-                        return;
-                      setState((){
-                        newParticipantIndex = newIndex;
-                      });
-                    }
-                  )
+                  FutureBuilder(future: widthFuture.future, builder: (context, snapshot) {
+                    var dialogWidth = snapshot.data;
+                    if(dialogWidth == null)
+                      return const SizedBox.shrink();
+                    return DropdownMenu<int>(
+                      width: dialogWidth,
+                      dropdownMenuEntries: participants.mapIndexed(
+                        (i, p) => DropdownMenuEntry<int>(
+                          value: i,
+                          label: p.name
+                        )
+                      ).toList(),
+                      enableFilter: false,
+                      enableSearch: false,
+                      initialSelection: newParticipantIndex,
+                      onSelected: (newIndex) {
+                        if(newIndex == null)
+                          return;
+                        setState((){
+                          newParticipantIndex = newIndex;
+                        });
+                      }
+                    );
+                  })
                 ],
               ),
 
