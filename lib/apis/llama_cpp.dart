@@ -127,6 +127,10 @@ class ApiRequestLlamaCpp {
   static Future<ApiResponse?> run(ApiRequestParams params) async {
     var endpoint = ApiRequest.normalizeEndpoint(params.cfgModel.apiEndpoint, 8080, '');
 
+    var infoRequest = {'n_predict': 0};
+    var infoResponse = await runRaw('$endpoint/completion', infoRequest);
+    var contextSize = infoResponse['generation_settings']['n_ctx'] as int;
+
     int preambleTokensCount;
 
     // llama.cpp truncates the input prompt automatically depending on m_predict and n_keep params
@@ -149,11 +153,11 @@ class ApiRequestLlamaCpp {
       maxRepeatLastN = 0;
     } else {
       allInputTokens = await tokenize(endpoint, params.inputText);
-      var allowedPromptTokensCount = params.cfgModel.maxTotalTokens - preambleTokensCount - params.cfgModel.generatedTokensCount - 1;
+      var allowedPromptTokensCount = contextSize - preambleTokensCount - params.cfgModel.generatedTokensCount - 1;
       if(allowedPromptTokensCount <= 0)
         throw Exception('No tokens left for prompt.');
       allowedPromptTokensCount = min(allowedPromptTokensCount, allInputTokens.length);
-      maxRepeatLastN = allInputTokens.length - allowedPromptTokensCount;
+      maxRepeatLastN = allowedPromptTokensCount;
     }
 
     if(params.cfgModel.repetitionPenaltyIncludePreamble)
