@@ -80,6 +80,12 @@ class ConfigModel extends ChangeNotifier {
   double repetitionPenalty = 1.15;
 
   @JsonKey(defaultValue: 0)
+  double frequencyPenalty = 0;
+
+  @JsonKey(defaultValue: 0)
+  double presencePenalty = 0;
+
+  @JsonKey(defaultValue: 0)
   int repetitionPenaltyRange = 2048;
 
   @JsonKey(defaultValue: 0.75)
@@ -233,6 +239,16 @@ class ConfigModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setFrequencyPenalty(double newFrequencyPenalty) {
+    frequencyPenalty = newFrequencyPenalty;
+    notifyListeners();
+  }
+
+  void setPresencePenalty(double newPresencePenalty) {
+    presencePenalty = newPresencePenalty;
+    notifyListeners();
+  }
+
   void setRepetitionPenaltyRange(int newRepetitionPenaltyRange) {
     repetitionPenaltyRange = newRepetitionPenaltyRange;
     notifyListeners();
@@ -345,6 +361,8 @@ class ConfigModel extends ChangeNotifier {
     mirostatTau = other.mirostatTau;
     warpersOrder = other.warpersOrder.toList();
     repetitionPenalty = other.repetitionPenalty;
+    frequencyPenalty = other.frequencyPenalty;
+    presencePenalty = other.presencePenalty;
     repetitionPenaltyRange = other.repetitionPenaltyRange;
     repetitionPenaltySlope = other.repetitionPenaltySlope;
     repetitionPenaltyIncludeGenerated = other.repetitionPenaltyIncludeGenerated;

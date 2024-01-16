@@ -407,28 +407,44 @@ class _SettingsPageState extends State<SettingsPage> {
           validator: validateNonNegativeDouble,
           onSaved: onDoubleSave((x) => cfgModel.setRepetitionPenalty(x))
         ),
+        if(apiType == ApiType.llamaCpp)
+          CardSettingsDouble(
+            label: 'Frequency penalty',
+            initialValue: cfgModel.frequencyPenalty,
+            decimalDigits: 3,
+            validator: validateNonNegativeDouble,
+            onSaved: onDoubleSave((x) => cfgModel.setFrequencyPenalty(x))
+          ),
+        if(apiType == ApiType.llamaCpp)
+          CardSettingsDouble(
+            label: 'Presence penalty',
+            initialValue: cfgModel.presencePenalty,
+            decimalDigits: 3,
+            validator: validateNonNegativeDouble,
+            onSaved: onDoubleSave((x) => cfgModel.setPresencePenalty(x))
+          ),
         CardSettingsInt(
-          label: 'Repetition penalty range',
+          label: 'Penalty range',
           initialValue: cfgModel.repetitionPenaltyRange,
           validator: validateNonNegativeInt,
           onSaved: onIntSave((x) => cfgModel.setRepetitionPenaltyRange(x))
         ),
         if(apiType == ApiType.neodim)
           CardSettingsDouble(
-            label: 'Repetition penalty slope',
+            label: 'Penalty slope',
             initialValue: cfgModel.repetitionPenaltySlope,
             decimalDigits: 3,
             validator: validateNonNegativeDouble,
             onSaved: onDoubleSave((x) => cfgModel.setRepetitionPenaltySlope(x))
           ),
         CardSettingsSwitch(
-          label: 'Include preamble in the repetition penalty range',
+          label: 'Include preamble in the penalty range',
           initialValue: cfgModel.repetitionPenaltyIncludePreamble,
           onSaved: (val) => cfgModel.setRepetitionPenaltyIncludePreamble(val ?? false),
         ),
         if(apiType == ApiType.neodim)
           picker(
-            label: 'Include generated text in the repetition penalty range',
+            label: 'Include generated text in the penalty range',
             initialItem: cfgModel.repetitionPenaltyIncludeGenerated,
             items: const [
               RepPenGenerated.ignore,
@@ -440,23 +456,23 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
         if(apiType == ApiType.neodim)
           CardSettingsSwitch(
-            label: 'Truncate the repetition penalty range to the input',
+            label: 'Truncate the penalty range to the input',
             initialValue: cfgModel.repetitionPenaltyTruncateToInput,
             onSaved: (val) => cfgModel.setRepetitionPenaltyTruncateToInput(val ?? false),
           ),
         CardSettingsInt(
-          label: 'Repetition penalty lines without extra symbols',
+          label: 'Penalty lines without extra symbols',
           initialValue: cfgModel.repetitionPenaltyLinesWithNoExtraSymbols,
           validator: validateNonNegativeInt,
           onSaved: onIntSave((x) => cfgModel.setRepetitionPenaltyLinesWithNoExtraSymbols(x))
         ),
         CardSettingsSwitch(
-          label: 'Keep the original repetition penalty text',
+          label: 'Keep the original penalty text',
           initialValue: cfgModel.repetitionPenaltyKeepOriginalPrompt,
           onSaved: (val) => cfgModel.setRepetitionPenaltyKeepOriginalPrompt(val ?? false)
         ),
         CardSettingsSwitch(
-          label: 'Remove participant names from repetition penalty text',
+          label: 'Remove participant names from the penalty text',
           initialValue: cfgModel.repetitionPenaltyRemoveParticipantNames,
           onSaved: (val) => cfgModel.setRepetitionPenaltyRemoveParticipantNames(val ?? true),
         ),

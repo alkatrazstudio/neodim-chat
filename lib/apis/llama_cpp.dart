@@ -26,6 +26,8 @@ class LlamaCppRequest {
     required this.mirostatTau,
     required this.mirostatEta,
     required this.repeatPenalty,
+    required this.frequencyPenalty,
+    required this.presencePenalty,
     required this.repeatLastN,
     required this.penaltyPrompt,
     required this.grammar,
@@ -46,6 +48,8 @@ class LlamaCppRequest {
   final double mirostatTau;
   final double mirostatEta;
   final double repeatPenalty;
+  final double frequencyPenalty;
+  final double presencePenalty;
   final String? penaltyPrompt;
   final int repeatLastN;
   final String? grammar;
@@ -67,6 +71,8 @@ class LlamaCppRequest {
       'mirostat_tau': mirostatTau,
       'mirostat_eta': mirostatEta,
       'repeat_penalty': repeatPenalty,
+      'frequency_penalty': frequencyPenalty,
+      'presence_penalty': presencePenalty,
       'repeat_last_n': repeatLastN,
       'penalty_prompt': penaltyPrompt,
       'grammar': grammar,
@@ -204,6 +210,8 @@ class ApiRequestLlamaCpp {
       mirostatTau: params.cfgModel.mirostatTau,
       mirostatEta: params.cfgModel.mirostatEta,
       repeatPenalty: params.cfgModel.repetitionPenalty != 0 ? params.cfgModel.repetitionPenalty : 1,
+      frequencyPenalty: params.cfgModel.frequencyPenalty,
+      presencePenalty: params.cfgModel.presencePenalty,
       repeatLastN: min(params.cfgModel.repetitionPenaltyRange, maxRepeatLastN),
       penaltyPrompt: params.repPenText,
       grammar: grammar,

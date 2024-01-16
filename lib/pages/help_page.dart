@@ -340,44 +340,56 @@ class HelpPageState extends State<HelpPage> {
             <a href="$serverBaseUrl#repetition_penalty-float-optional">more info</a>
           </li>
           <li>
-            <strong>Repetition penalty range</strong> - how much of the latest text to use for the penalty calculation.
+            <strong>Frequency penalty</strong> -
+            make frequently repeated words less likely to appear again.
+            The bigger the value, the more this penalty will be applied to a word per instance.
+            The optimal value depends on the model.
+          </li>
+          <li>
+            <strong>Presence penalty</strong> -
+            the same as the repetition penalty, but additive instead of multiplicative.
+            May be preferable for longer texts.
+            The optimal value depends on the model.
+          </li>
+          <li>
+            <strong>Penalty range</strong> - how much of the latest text to use for the penalty calculation.
             Setting it to zero will include the entire chat.
             <a href="$serverBaseUrl#repetition_penalty_range-int-optional-default0">more info</a>
           </li>
           <li>
-            <strong>Repetition penalty slope</strong> -
+            <strong>Penalty slope</strong> -
             <a href="$serverBaseUrl#repetition_penalty_slope-float-optional">more info</a>
           </li>
           <li>
-            <strong>Include preamble in the repetition penalty range</strong> - self-explanatory.
+            <strong>Include preamble in the penalty range</strong> - self-explanatory.
             <a href="$serverBaseUrl#repetition_penalty_include_preamble-bool-optional-defaultfalse">more info</a>
           </li>
           <li>
-            <strong>Include generated text in the repetition penalty range</strong> -
-            how to include the generated text in the repetition penalty range.
+            <strong>Include generated text in the penalty range</strong> -
+            how to include the generated text in the penalty range.
             <a href="$serverBaseUrl#repetition_penalty_include_generated-enumignoreallowexpandslide-optionaldefaultslide">more info</a>
           </li>
           <li>
-            <strong>Truncate the repetition penalty range to the input</strong> -
+            <strong>Truncate the penalty range to the input</strong> -
             limit the range to the input tokens.
             <a href="$serverBaseUrl#repetition_penalty_truncate_to_input-bool-optional-defaultfalse">more info</a>
           </li>
           <li>
-            <strong>Repetition penalty lines without extra symbols</strong> -
+            <strong>Penalty lines without extra symbols</strong> -
             this many last lines of chat will have their punctuation and other symbols preserved
-            for the purpose of calculating the repetition penalty.
+            for the purpose of calculating the penalty.
             Only applies to the chat mode.
           </li>
           <li>
-            <strong>Keep the original repetition penalty text</strong> -
-            do not modify the repetition penalty text in any way
+            <strong>Keep the original penalty text</strong> -
+            do not modify the penalty text in any way
             (i.e. it will include punctuation, special symbols, newlines, etc).
-            In any case, the repetition penalty text won't include the names of the participants.
-            Enabling this setting will disable the "Repetition penalty lines without extra symbols" setting.
+            In any case, the penalty text won't include the names of the participants.
+            Enabling this setting will disable the "Penalty lines without extra symbols" setting.
           </li>
           <li>
-            <strong>Remove participant names from repetition penalty text</strong> -
-            if set then the repetition penalty won't be applied to the tokens that represent participant's names.
+            <strong>Remove participant names from the penalty text</strong> -
+            if set then the penalty won't be applied to the tokens that represent participant's names.
           </li>
           <li>
             <strong>No repeat N-gram size</strong> -
