@@ -908,6 +908,7 @@ class ChatInput extends StatelessWidget {
 
     return TextField(
       controller: inputController,
+      autofocus: true,
       onSubmitted: (text) {
         if(neodimModel.isApiRunning)
           return;
