@@ -145,7 +145,7 @@ class MessagesModel extends ChangeNotifier {
 
   String getPromptForChat(Participant p) => '${p.name}$chatPromptSeparator';
 
-  String getTextForChat(List<Message> msgs, String combineLines, bool groupChat, bool continueLastMsg) {
+  String getTextForChat(List<Message> msgs, CombineChatLinesType combineLines, bool groupChat, bool continueLastMsg) {
     var s = '';
     bool isPrevComment = false; // the previous line was a "comment" (a group chat line without a participant)
     var curParticipantIndex = Message.noneIndex;
@@ -315,7 +315,7 @@ class MessagesModel extends ChangeNotifier {
   String getAiInputForChat(
     List<Message> msgs,
     Participant promptedParticipant,
-    String combineLines,
+    CombineChatLinesType combineLines,
     bool groupChat,
     bool continueLastMsg
   ) {
@@ -412,8 +412,8 @@ class MessagesModel extends ChangeNotifier {
     String usedPrompt,
     Participant promptedParticipant,
     List<Message> inputMessages,
-    String chatType,
-    String combineLines,
+    ConversationType chatType,
+    CombineChatLinesType combineLines,
     String addedPromptSuffix,
     bool continueLastMsg
   ) {
@@ -425,19 +425,19 @@ class MessagesModel extends ChangeNotifier {
       var testMessages = inputMessages.sublist(startIndex);
       String testText;
       switch(chatType) {
-        case Conversation.typeChat:
+        case ConversationType.chat:
           testText = getAiInputForChat(testMessages, promptedParticipant, combineLines, false, continueLastMsg);
           break;
 
-        case Conversation.typeAdventure:
+        case ConversationType.adventure:
           testText = getTextForAdventure(testMessages);
           break;
 
-        case Conversation.typeStory:
+        case ConversationType.story:
           testText = getTextForStory(testMessages);
           break;
 
-        case Conversation.typeGroupChat:
+        case ConversationType.groupChat:
           testText = getAiInputForChat(testMessages, promptedParticipant, combineLines, true, continueLastMsg);
           break;
 

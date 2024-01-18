@@ -10,7 +10,6 @@ import '../apis/response.dart';
 import '../models/api_model.dart';
 import '../models/conversations.dart';
 import '../models/messages.dart';
-import '../pages/home_page.dart';
 
 class NeodimRequest {
   const NeodimRequest({
@@ -61,12 +60,12 @@ class NeodimRequest {
   final int? repetitionPenaltyRange;
   final double? repetitionPenaltySlope;
   final bool repetitionPenaltyIncludePreamble;
-  final String repetitionPenaltyIncludeGenerated;
+  final RepPenGenerated repetitionPenaltyIncludeGenerated;
   final bool repetitionPenaltyTruncateToInput;
   final String? repetitionPenaltyPrompt;
   final int sequencesCount;
   final List<String> stopStrings;
-  final String stopStringsType;
+  final StopStringsType stopStringsType;
   final int stopStringsRequiredMatchesCount;
   final List<String> truncatePromptUntil;
   final List<String>? wordsWhitelist;
@@ -285,6 +284,8 @@ class NeodimApi {
 }
 
 class ApiRequestNeodim {
+  static const String requiredServerVersion = '>=0.13';
+
   static NeodimRequest? getRequest(ApiRequestParams params) {
     List<String> truncatePromptUntil;
     List<String> stopStrings;
@@ -303,16 +304,16 @@ class ApiRequestNeodim {
     } else {
       switch(params.conversation.type)
       {
-        case Conversation.typeChat:
-        case Conversation.typeGroupChat:
+        case ConversationType.chat:
+        case ConversationType.groupChat:
           truncatePromptUntil = [MessagesModel.messageSeparator];
           break;
 
-        case Conversation.typeAdventure:
+        case ConversationType.adventure:
           truncatePromptUntil = [...MessagesModel.sentenceStops, MessagesModel.actionPrompt];
           break;
 
-        case Conversation.typeStory:
+        case ConversationType.story:
           truncatePromptUntil = MessagesModel.sentenceStops;
           break;
 
@@ -359,7 +360,7 @@ class ApiRequestNeodim {
       wordsBlacklist: wordsBlacklist,
       wordsBlacklistAtStart: ['\n', '<'], // typical tokens that may end the inference
       noRepeatNGramSize: noRepeatNGramSize,
-      requiredServerVersion: HomePage.requiredServerVersion
+      requiredServerVersion: requiredServerVersion
     );
     return request;
   }

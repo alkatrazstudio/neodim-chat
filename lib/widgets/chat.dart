@@ -78,7 +78,7 @@ class ChatState extends State<Chat> {
       return;
     var text = inputController.text.trim();
     var isYou = authorIndex == Message.youIndex;
-    if(!isYou && curConv.type == Conversation.typeGroupChat) {
+    if(!isYou && curConv.type == ConversationType.groupChat) {
       var startsWithColon = text.startsWith(MessagesModel.chatPromptSeparator);
       var hasColon = text.contains(MessagesModel.chatPromptSeparator);
       if(
@@ -109,7 +109,7 @@ class ChatState extends State<Chat> {
     }
     if(format) {
       var chatFormat = curConv.isChat || authorIndex == Message.youIndex;
-      if(!isYou && curConv.type == Conversation.typeGroupChat) {
+      if(!isYou && curConv.type == ConversationType.groupChat) {
         var match = RegExp(r'^\s*([^:]+):\s*(.*)$').firstMatch(text);
         if(match != null) {
           var participantName = (match.group(1) ?? '').trim();
@@ -139,19 +139,19 @@ class ChatState extends State<Chat> {
       int nextParticipantIndex,
       bool continueLastMsg
   ) {
-    var combineLines = c.type != Conversation.typeChat ? CombineChatLinesType.no : cfgModel.combineChatLines;
+    var combineLines = c.type != ConversationType.chat ? CombineChatLinesType.no : cfgModel.combineChatLines;
     switch(c.type) {
-      case Conversation.typeChat:
+      case ConversationType.chat:
         return msgModel.getAiInputForChat(msgModel.messages, nextParticipant, combineLines, false, continueLastMsg);
 
-      case Conversation.typeGroupChat:
+      case ConversationType.groupChat:
         var inputText = msgModel.getAiInputForChat(msgModel.messages, nextParticipant, combineLines, true, continueLastMsg);
         return inputText;
 
-      case Conversation.typeAdventure:
+      case ConversationType.adventure:
         return msgModel.getAiInputForAdventure(msgModel.messages, nextParticipantIndex);
 
-      case Conversation.typeStory:
+      case ConversationType.story:
         return msgModel.aiInputForStory;
 
       default:
@@ -161,7 +161,7 @@ class ChatState extends State<Chat> {
 
   String? getRepPenInput(Conversation c, MessagesModel msgModel, ConfigModel cfgModel) {
     switch(c.type) {
-      case Conversation.typeChat:
+      case ConversationType.chat:
         if(cfgModel.repetitionPenaltyKeepOriginalPrompt) {
           return msgModel.getOriginalRepetitionPenaltyTextForChat(
               msgModel.messages,
@@ -177,7 +177,7 @@ class ChatState extends State<Chat> {
           );
         }
 
-      case Conversation.typeGroupChat:
+      case ConversationType.groupChat:
         if(cfgModel.repetitionPenaltyKeepOriginalPrompt) {
           return msgModel.getOriginalRepetitionPenaltyTextForChat(
               msgModel.messages,
@@ -193,12 +193,12 @@ class ChatState extends State<Chat> {
           );
         }
 
-      case Conversation.typeAdventure:
+      case ConversationType.adventure:
         if(cfgModel.repetitionPenaltyKeepOriginalPrompt)
           return null;
         return msgModel.repetitionPenaltyTextForAdventure;
 
-      case Conversation.typeStory:
+      case ConversationType.story:
         if(cfgModel.repetitionPenaltyKeepOriginalPrompt)
           return null;
         return msgModel.repetitionPenaltyTextForStory;
@@ -294,7 +294,7 @@ class ChatState extends State<Chat> {
         return;
 
       var text = undoMessage.text;
-      if(curConv.type == Conversation.typeGroupChat) {
+      if(curConv.type == ConversationType.groupChat) {
         text = text.replaceFirst(RegExp(r'[^:]*:\s*'), '');
       }
       var rx =  RegExp(cfgModel.addSpecialSymbolsToBlacklist ? r'([^\w()*]|\b)+' : r'\W+');
@@ -405,8 +405,8 @@ class ChatState extends State<Chat> {
     var nextAuthorIndex = Message.storyIndex;
     switch(curConv.type)
     {
-      case Conversation.typeChat:
-      case Conversation.typeGroupChat:
+      case ConversationType.chat:
+      case ConversationType.groupChat:
         if(cfgModel.continuousChatForceAlternateParticipants) {
           nextAuthorIndex = msgModel.getNextParticipantIndex(null);
         } else {
@@ -416,13 +416,13 @@ class ChatState extends State<Chat> {
         }
         break;
 
-      case Conversation.typeAdventure:
+      case ConversationType.adventure:
         nextAuthorIndex = msgModel.getNextParticipantIndex(null);
         if(nextAuthorIndex == Message.youIndex && Random().nextDouble() < 0.6)
           nextAuthorIndex = Message.dmIndex;
         break;
 
-      case Conversation.typeStory:
+      case ConversationType.story:
         nextAuthorIndex = Message.storyIndex;
         break;
 
@@ -587,19 +587,19 @@ class _ChatButtonsState extends State<ChatButtons> {
 
     List<List<Widget>> buttonRows;
     switch(curConv.type) {
-      case Conversation.typeChat:
+      case ConversationType.chat:
         buttonRows = chatButtons(context, msgModel, curConv, neodimModel, cfgModel, false);
         break;
 
-      case Conversation.typeGroupChat:
+      case ConversationType.groupChat:
         buttonRows = chatButtons(context, msgModel, curConv, neodimModel, cfgModel, true);
         break;
 
-      case Conversation.typeAdventure:
+      case ConversationType.adventure:
         buttonRows = adventureButtons(context, msgModel, curConv, neodimModel, cfgModel);
         break;
 
-      case Conversation.typeStory:
+      case ConversationType.story:
         buttonRows = storyButtons(context, msgModel, curConv, neodimModel, cfgModel);
         break;
 
@@ -855,7 +855,7 @@ class _ChatButtonsState extends State<ChatButtons> {
 }
 
 class ChatInput extends StatelessWidget {
-  ChatInput({
+  const ChatInput({
     required this.addGenerated,
     required this.submit,
     required this.inputController,
@@ -878,16 +878,16 @@ class ChatInput extends StatelessWidget {
     var nextParticipantIndex = Message.noneIndex;
 
     switch(convModel.current?.type) {
-      case Conversation.typeChat:
-      case Conversation.typeGroupChat:
+      case ConversationType.chat:
+      case ConversationType.groupChat:
         nextParticipantIndex = msgModel.getNextParticipantIndex(null);
         break;
 
-      case Conversation.typeAdventure:
+      case ConversationType.adventure:
         nextParticipantIndex = Message.youIndex;
         break;
 
-      case Conversation.typeStory:
+      case ConversationType.story:
         nextParticipantIndex = Message.storyIndex;
         break;
 
@@ -908,19 +908,22 @@ class ChatInput extends StatelessWidget {
         submit(nextParticipantIndex);
 
         switch(convModel.current?.type) {
-          case Conversation.typeChat:
-          case Conversation.typeGroupChat:
+          case ConversationType.chat:
+          case ConversationType.groupChat:
             var genParticipantIndex = msgModel.getNextParticipantIndex(null);
             addGenerated(genParticipantIndex);
             break;
 
-          case Conversation.typeAdventure:
+          case ConversationType.adventure:
             addGenerated(Message.dmIndex);
             break;
 
-          case Conversation.typeStory:
+          case ConversationType.story:
             if(wasEmpty)
               addGenerated(Message.storyIndex);
+            break;
+
+          default:
             break;
         }
       },
@@ -947,20 +950,23 @@ class ChatInput extends StatelessWidget {
               submit(nextParticipantIndex);
 
               switch(convModel.current?.type) {
-                case Conversation.typeChat:
-                case Conversation.typeGroupChat:
+                case ConversationType.chat:
+                case ConversationType.groupChat:
                   var genParticipantIndex = msgModel.getNextParticipantIndex(null);
                   addGenerated(genParticipantIndex);
                   break;
 
-                case Conversation.typeAdventure:
+                case ConversationType.adventure:
                   addGenerated(Message.dmIndex);
                   break;
 
-                case Conversation.typeStory:
+                case ConversationType.story:
                   if(wasEmpty)
                     addGenerated(Message.storyIndex);
-                break;
+                  break;
+
+                default:
+                  break;
               }
             }
           )

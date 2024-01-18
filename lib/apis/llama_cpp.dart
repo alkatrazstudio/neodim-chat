@@ -191,8 +191,8 @@ class ApiRequestLlamaCpp {
     var logitBias = bannedTokens.toSet().map((token) => (token, false)).toList();
 
     var mirostat = switch(params.cfgModel.mirostat) {
-      Mirostat.v1 => 1,
-      Mirostat.v2 => 2,
+      MirostatVersion.v1 => 1,
+      MirostatVersion.v2 => 2,
       _ => 0
     };
 

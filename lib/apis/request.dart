@@ -13,15 +13,15 @@ import '../models/config.dart';
 import '../models/conversations.dart';
 import '../models/messages.dart';
 
-class RepPenGenerated {
-  static const String ignore = 'ignore';
-  static const String expand = 'expand';
-  static const String slide = 'slide';
+enum RepPenGenerated {
+  ignore,
+  expand,
+  slide
 }
 
-class StopStringsType {
-  static const String string = 'string';
-  static const String regex = 'regex';
+enum StopStringsType {
+  string,
+  regex
 }
 
 class Warper {
@@ -46,15 +46,7 @@ class Warper {
 
 enum ApiType {
   neodim,
-  llamaCpp;
-
-  static ApiType byNameOrDefault(String name) {
-    try {
-      return ApiType.values.byName(name);
-    } on Exception catch (_) {
-      return ApiType.values.first;
-    }
-  }
+  llamaCpp
 }
 
 class ApiRequestParams {
@@ -124,11 +116,11 @@ class ApiRequest {
   static List<String> getParticipantNameStopStrings(MessagesModel msgModel, Conversation conv) {
     List<String> participantNames;
     switch(conv.type) {
-      case Conversation.typeChat:
+      case ConversationType.chat:
         participantNames = msgModel.participants.map((p) => p.name).toList();
         break;
 
-      case Conversation.typeGroupChat:
+      case ConversationType.groupChat:
         participantNames = [msgModel.participants[Message.youIndex].name] + msgModel.getGroupParticipantNames(true);
         break;
 
@@ -139,13 +131,13 @@ class ApiRequest {
     return stopStrings;
   }
 
-  static List<String> getStopStringsForConversationType(String type) {
+  static List<String> getStopStringsForConversationType(ConversationType type) {
     switch(type) {
-        case Conversation.typeChat:
-        case Conversation.typeGroupChat:
+        case ConversationType.chat:
+        case ConversationType.groupChat:
           return [MessagesModel.messageSeparator];
 
-        case Conversation.typeAdventure:
+        case ConversationType.adventure:
           return [MessagesModel.actionPrompt];
 
         default:

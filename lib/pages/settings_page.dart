@@ -11,6 +11,7 @@ import '../models/config.dart';
 import '../models/conversations.dart';
 import '../models/messages.dart';
 import '../pages/help_page.dart';
+import '../util/enums.dart';
 import '../widgets/card_settings_warpers_order.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -24,7 +25,7 @@ class _SettingsPageState extends State<SettingsPage> {
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   final List<String> warpersOrder = [];
 
-  late var convType = '';
+  ConversationType? convType;
   ApiType? apiType;
 
   @override
@@ -33,8 +34,7 @@ class _SettingsPageState extends State<SettingsPage> {
     if(curConv == null)
       return const SizedBox.shrink();
 
-    if(convType.isEmpty)
-      convType = curConv.type;
+    convType ??= curConv.type;
     apiType ??= Provider.of<ConfigModel>(context, listen: false).apiType;
 
     return Scaffold(
@@ -183,14 +183,13 @@ class _SettingsPageState extends State<SettingsPage> {
         picker(
           label: typeEditable ? 'Type' : 'Type (cannot change if messages are present)',
           initialItem: curConv.type,
-          items: Conversation.availableTypes,
+          items: ConversationType.values,
           onSaved: (s) => convModel.setType(curConv, s),
           onChanged: (s) {
             setState(() {
               convType = s;
             });
           },
-          cfgModel: cfgModel,
           enabled: typeEditable
         )
       ]
@@ -200,7 +199,7 @@ class _SettingsPageState extends State<SettingsPage> {
   String getPersonNameLabel(int authorIndex) {
     if(authorIndex == Message.youIndex)
       return 'Person ${authorIndex + 1} (you) name';
-    if(convType == Conversation.typeGroupChat)
+    if(convType == ConversationType.groupChat)
       return 'Group participants names (separate by commas)';
     return 'Person ${authorIndex + 1} name';
   }
@@ -208,7 +207,7 @@ class _SettingsPageState extends State<SettingsPage> {
   String getPersonColorLabel(int authorIndex) {
     if(authorIndex == Message.youIndex)
       return 'Person ${authorIndex + 1} (you) color';
-    if(convType == Conversation.typeGroupChat)
+    if(convType == ConversationType.groupChat)
       return 'Group participants color';
     return 'Person ${authorIndex + 1} name';
   }
@@ -255,39 +254,40 @@ class _SettingsPageState extends State<SettingsPage> {
     return val;
   }
 
-  CardSettingsListPicker picker({
+  CardSettingsListPicker picker<T extends Enum>({
     required String label,
-    required String initialItem,
-    required List<String> items,
-    required Function(String) onSaved,
-    Function(String)? onChanged,
-    required ConfigModel cfgModel,
+    required T initialItem,
+    required List<T> items,
+    required Function(T) onSaved,
+    Function(T)? onChanged,
     bool enabled = true
   }) {
     return CardSettingsListPicker<String>(
       label: label,
-      initialItem: enumValToText(initialItem),
-      items: items.map(enumValToText).toList(),
+      initialItem: enumValToText(initialItem.name),
+      items: items.map((v) => enumValToText(v.name)).toList(),
       onSaved: (s) {
         if(s == null)
           return;
-        var val = textToEnumVal(s);
-        onSaved(val);
+        var strVal = textToEnumVal(s);
+        var enumVal = items.byNameOrFirst(strVal);
+        onSaved(enumVal);
       },
       onChanged: onChanged == null ? null : (s) {
         if(s == null)
           return;
-        var val = textToEnumVal(s);
-        onChanged(val);
+        var strVal = textToEnumVal(s);
+        var enumVal = items.byNameOrFirst(strVal);
+        onChanged(enumVal);
       },
       enabled: enabled
     );
   }
 
   CardSettingsSection configSection(BuildContext context, ConfigModel cfgModel) {
-    var combineLinesEditable = convType == Conversation.typeChat;
-    var autoAlternateEnabled = convType == Conversation.typeChat || convType == Conversation.typeGroupChat;
-    var colonStartIsPreviousNameEnabled = convType == Conversation.typeGroupChat;
+    var combineLinesEditable = convType == ConversationType.chat;
+    var autoAlternateEnabled = convType == ConversationType.chat || convType == ConversationType.groupChat;
+    var colonStartIsPreviousNameEnabled = convType == ConversationType.groupChat;
 
     return CardSettingsSection(
       header: CardSettingsHeader(
@@ -296,15 +296,14 @@ class _SettingsPageState extends State<SettingsPage> {
       children: [
         picker(
           label: 'API type',
-          initialItem: cfgModel.apiType.name,
-          items: ApiType.values.map((v) => v.name).toList(),
-          onSaved: (s) => cfgModel.setApiTypeByName(s),
-          onChanged: (newApiTypeName) {
+          initialItem: cfgModel.apiType,
+          items: ApiType.values,
+          onSaved: (s) => cfgModel.setApiType(s),
+          onChanged: (newApiType) {
             setState(() {
-              apiType = ApiType.byNameOrDefault(newApiTypeName);
+              apiType = newApiType;
             });
-          },
-          cfgModel: cfgModel
+          }
         ),
         CardSettingsText(
           label: 'API endpoint',
@@ -379,10 +378,9 @@ class _SettingsPageState extends State<SettingsPage> {
         if(apiType == ApiType.llamaCpp)
           picker(
             label: 'Mirostat',
-            initialItem: cfgModel.mirostat.name,
-            items: Mirostat.values.map((v) => v.name).toList(),
-            onSaved: (s) => cfgModel.setMirostatByName(s),
-            cfgModel: cfgModel
+            initialItem: cfgModel.mirostat,
+            items: MirostatVersion.values,
+            onSaved: (s) => cfgModel.setMirostat(s)
           ),
         if(apiType == ApiType.llamaCpp)
           CardSettingsDouble(
@@ -446,13 +444,8 @@ class _SettingsPageState extends State<SettingsPage> {
           picker(
             label: 'Include generated text in the penalty range',
             initialItem: cfgModel.repetitionPenaltyIncludeGenerated,
-            items: const [
-              RepPenGenerated.ignore,
-              RepPenGenerated.expand,
-              RepPenGenerated.slide
-            ],
-            onSaved: (s) => cfgModel.setRepetitionPenaltyIncludeGenerated(s),
-            cfgModel: cfgModel
+            items: RepPenGenerated.values,
+            onSaved: (s) => cfgModel.setRepetitionPenaltyIncludeGenerated(s)
           ),
         if(apiType == ApiType.neodim)
           CardSettingsSwitch(
@@ -525,13 +518,8 @@ class _SettingsPageState extends State<SettingsPage> {
         picker(
           label: 'Combine chat lines${combineLinesEditable ? '' : ' (only available in chat mode)'}',
           initialItem: cfgModel.combineChatLines,
-          items: const [
-            CombineChatLinesType.no,
-            CombineChatLinesType.onlyForServer,
-            CombineChatLinesType.previousLines
-          ],
+          items: CombineChatLinesType.values,
           onSaved: (s) => cfgModel.setGroupChatLines(s),
-          cfgModel: cfgModel,
           enabled: combineLinesEditable
         ),
         CardSettingsSwitch(
@@ -549,48 +537,6 @@ class _SettingsPageState extends State<SettingsPage> {
           falseLabel: 'No, colon inserts a non-dialog line'
         )
       ]
-    );
-  }
-}
-
-class TextSetting extends StatelessWidget {
-  TextSetting({
-    required this.title,
-    required this.initialValue,
-    required this.onChanged
-  });
-
-  final String title;
-  final String initialValue;
-  final Function(String s) onChanged;
-  final inputController = TextEditingController();
-
-  void submit(BuildContext context) {
-    var text = inputController.text.trim();
-    if(text.isEmpty) {
-      inputController.text = initialValue;
-      return;
-    }
-
-    onChanged(text);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    inputController.text = initialValue;
-
-    return Focus(
-      child: TextField(
-        controller: inputController,
-        onSubmitted: (text) {
-          submit(context);
-        },
-        textInputAction: TextInputAction.done
-      ),
-      onFocusChange: (inFocus) async {
-        if(!inFocus)
-          submit(context);
-      }
     );
   }
 }

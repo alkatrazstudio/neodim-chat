@@ -17,7 +17,6 @@ import '../widgets/chat.dart';
 import '../widgets/main_menu.dart';
 
 class HomePage extends StatelessWidget {
-  static const String requiredServerVersion = '>=0.13';
 
   String outputTextFromSequence(ApiResponseSequence s) {
     var text = s.generatedText;
@@ -75,7 +74,7 @@ class HomePage extends StatelessWidget {
     try {
       var addedPromptSuffix = '';
       var promptedParticipantIndex = msgModel.participants.indexOf(promptedParticipant);
-      if(conv.type == Conversation.typeGroupChat && promptedParticipantIndex != Message.youIndex && !continueLastMsg) {
+      if(conv.type == ConversationType.groupChat && promptedParticipantIndex != Message.youIndex && !continueLastMsg) {
         var participantNames = msgModel.getGroupParticipantNames(false);
         var participantName = await getNextGroupParticipantName(context, inputText, repPenText, participantNames);
         if(participantName == null)
@@ -86,17 +85,17 @@ class HomePage extends StatelessWidget {
       }
 
       var response = await ApiRequest.run(
-          context,
-          inputText,
-          repPenText,
-          null,
-          blacklistWordsForRetry
+        context,
+        inputText,
+        repPenText,
+        null,
+        blacklistWordsForRetry
       );
       if(response == null)
         return [];
       apiModel.setResponse(response);
       apiModel.setApiRunning(false);
-      var combineLines = conv.type == Conversation.typeChat ? CombineChatLinesType.no : cfgModel.combineChatLines;
+      var combineLines = conv.type == ConversationType.chat ? CombineChatLinesType.no : cfgModel.combineChatLines;
       convModel.updateUsedMessagesCount(
         response.usedPrompt, promptedParticipant, msgModel, inputMessages, combineLines, addedPromptSuffix, continueLastMsg);
       var lines = response.sequences.map(outputTextFromSequence).toList();
@@ -110,8 +109,8 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async => false,
+    return PopScope(
+      canPop: false,
       child: Scaffold(
         appBar: AppBar(
           title: Consumer<ConversationsModel>(builder: (context, value, child) {

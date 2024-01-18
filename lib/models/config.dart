@@ -9,24 +9,16 @@ import '../apis/request.dart';
 
 part 'config.g.dart';
 
-class CombineChatLinesType {
-  static const String no = 'no';
-  static const String onlyForServer = 'onlyForServer';
-  static const String previousLines = 'previousLines';
+enum CombineChatLinesType {
+  no,
+  onlyForServer,
+  previousLines
 }
 
-enum Mirostat {
+enum MirostatVersion {
   none,
   v1,
-  v2;
-
-  static Mirostat byNameOrDefault(String name) {
-    try {
-      return Mirostat.values.byName(name);
-    } on Exception catch (_) {
-      return Mirostat.values.first;
-    }
-  }
+  v2
 }
 
 @JsonSerializable(explicitToJson: true)
@@ -64,8 +56,8 @@ class ConfigModel extends ChangeNotifier {
   @JsonKey(defaultValue: 0)
   double penaltyAlpha = 0;
 
-  @JsonKey(defaultValue: Mirostat.none, unknownEnumValue: Mirostat.none)
-  Mirostat mirostat = Mirostat.none;
+  @JsonKey(defaultValue: MirostatVersion.none, unknownEnumValue: MirostatVersion.none)
+  MirostatVersion mirostat = MirostatVersion.none;
 
   @JsonKey(defaultValue: 5.0)
   double mirostatTau = 5.0;
@@ -94,8 +86,8 @@ class ConfigModel extends ChangeNotifier {
   @JsonKey(defaultValue: false)
   bool repetitionPenaltyIncludePreamble = false;
 
-  @JsonKey(defaultValue: RepPenGenerated.slide)
-  String repetitionPenaltyIncludeGenerated = RepPenGenerated.slide;
+  @JsonKey(defaultValue: RepPenGenerated.slide, unknownEnumValue: RepPenGenerated.slide)
+  RepPenGenerated repetitionPenaltyIncludeGenerated = RepPenGenerated.slide;
 
   @JsonKey(defaultValue: false)
   bool repetitionPenaltyTruncateToInput = false;
@@ -121,8 +113,8 @@ class ConfigModel extends ChangeNotifier {
   @JsonKey(defaultValue: true)
   bool undoBySentence = true;
 
-  @JsonKey(defaultValue: CombineChatLinesType.no)
-  String combineChatLines = CombineChatLinesType.no;
+  @JsonKey(defaultValue: CombineChatLinesType.no, unknownEnumValue: CombineChatLinesType.no)
+  CombineChatLinesType combineChatLines = CombineChatLinesType.no;
 
   @JsonKey(defaultValue: true)
   bool continuousChatForceAlternateParticipants = true;
@@ -147,11 +139,6 @@ class ConfigModel extends ChangeNotifier {
     if(s.isEmpty)
       return '';
     return '$preamble\n\n';
-  }
-
-  void setApiTypeByName(String newApiTypeName) {
-    var newApiType = ApiType.byNameOrDefault(newApiTypeName);
-    setApiType(newApiType);
   }
 
   void setApiType(ApiType newApiType) {
@@ -209,12 +196,7 @@ class ConfigModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setMirostatByName(String newMirostatName) {
-    var newMirostat = Mirostat.byNameOrDefault(newMirostatName);
-    setMirostat(newMirostat);
-  }
-
-  void setMirostat(Mirostat newMirostat) {
+  void setMirostat(MirostatVersion newMirostat) {
     mirostat = newMirostat;
     notifyListeners();
   }
@@ -264,7 +246,7 @@ class ConfigModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setRepetitionPenaltyIncludeGenerated(String newRepetitionPenaltyIncludeGenerated) {
+  void setRepetitionPenaltyIncludeGenerated(RepPenGenerated newRepetitionPenaltyIncludeGenerated) {
     repetitionPenaltyIncludeGenerated = newRepetitionPenaltyIncludeGenerated;
     notifyListeners();
   }
@@ -309,7 +291,7 @@ class ConfigModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setGroupChatLines(String newGroupChatLines) {
+  void setGroupChatLines(CombineChatLinesType newGroupChatLines) {
     combineChatLines = newGroupChatLines;
     notifyListeners();
   }

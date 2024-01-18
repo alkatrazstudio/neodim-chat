@@ -16,42 +16,37 @@ import '../models/messages.dart';
 
 part 'conversations.g.dart';
 
+enum ConversationType {
+  chat,
+  adventure,
+  story,
+  groupChat
+}
+
 @JsonSerializable(explicitToJson: true)
 class Conversation {
   static const Uuid uuid = Uuid();
-
-  static const String typeChat = 'chat';
-  static const String typeAdventure = 'adventure';
-  static const String typeStory = 'story';
-  static const String typeGroupChat = 'groupChat';
-
-  static const List<String> availableTypes = [
-    Conversation.typeChat,
-    Conversation.typeGroupChat,
-    Conversation.typeAdventure,
-    Conversation.typeStory
-  ];
 
   Conversation({
     required this.name,
     String? id,
     DateTime? createdAt,
-    this.type = typeChat
+    required this.type
   }): id = id ?? uuid.v4(),
       createdAt = createdAt ?? DateTime.now();
 
-  bool get isChat => type == typeChat || type == typeGroupChat;
+  bool get isChat => type == ConversationType.chat || type == ConversationType.groupChat;
 
   @JsonKey(defaultValue: 'Conversation')
   String name;
   final String id;
   final DateTime createdAt;
 
-  @JsonKey(defaultValue: Conversation.typeChat)
-  String type = Conversation.typeChat;
+  @JsonKey(defaultValue: ConversationType.chat, unknownEnumValue: ConversationType.chat)
+  ConversationType type = ConversationType.chat;
 
   static Conversation create(String name) {
-    return Conversation(name: name);
+    return Conversation(name: name, type: ConversationType.chat);
   }
 
   static Future<Directory> dataDir() async {
@@ -129,16 +124,16 @@ class Conversation {
 
     switch(curConv.type)
     {
-      case Conversation.typeChat:
+      case ConversationType.chat:
         return msgModel.chatText;
 
-      case Conversation.typeGroupChat:
+      case ConversationType.groupChat:
         return msgModel.groupChatText;
 
-      case Conversation.typeAdventure:
+      case ConversationType.adventure:
         return msgModel.adventureText;
 
-      case Conversation.typeStory:
+      case ConversationType.story:
         return msgModel.storyText;
 
       default:
@@ -147,7 +142,7 @@ class Conversation {
   }
 
   static Conversation fromJson(Map<String, dynamic> json) {
-    json['type'] ??= typeChat;
+    json['type'] ??= ConversationType.chat;
     json['createdAt'] ??= DateTime.fromMicrosecondsSinceEpoch(0).toIso8601String();
     return _$ConversationFromJson(json);
   }
@@ -231,7 +226,7 @@ class ConversationsModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future setType(Conversation c, String newType) async {
+  Future setType(Conversation c, ConversationType newType) async {
     c.type = newType;
     notifyListeners();
   }
@@ -269,7 +264,7 @@ class ConversationsModel extends ChangeNotifier {
     Participant promptedParticipant,
     MessagesModel msgModel,
     List<Message> inputMessages,
-    String combineLines,
+    CombineChatLinesType combineLines,
     String addedPromptSuffix,
     bool continueLastMsg
   ) {
