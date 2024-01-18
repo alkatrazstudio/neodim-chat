@@ -39,14 +39,16 @@ class GeneratedResult {
 
   bool get isEmpty => text.isEmpty && preText.isEmpty;
 
-  static GeneratedResult fromRawOutput(String output, bool chatFormat) {
-    var rx = RegExp(r'[.!?,:;\-)*"]+\s+');
+  static GeneratedResult fromRawOutput(String output, bool chatFormat, bool extractPreText) {
+    if(!extractPreText)
+      return GeneratedResult(text: Message.format(output, chatFormat));
+
+    // If the output does not start with a space,
+    // then it's probably the continuation of the last word from the prompt.
+    // However, it's not applicable for chat modes.
+    var rx = RegExp(r'\S+\s*');
     var match = rx.matchAsPrefix(output);
-    if(match == null) {
-      rx = RegExp(r'[.!?,:;\-)]*');
-      match = rx.matchAsPrefix(output);
-    }
-    var preText = match?.group(0) ?? '';
+    var preText = match?.group(0) ?? ''; // the possible last part of the last word from the prompt
     var text = output.substring(preText.length);
     return GeneratedResult(
       text: Message.format(text, chatFormat),
@@ -57,6 +59,8 @@ class GeneratedResult {
   final String text;
   final String preText;
   final bool isError;
+
+  String get fullText => [preText, text].where((s) => s.isNotEmpty).join(' ');
 }
 
 class ChatState extends State<Chat> {
@@ -245,6 +249,7 @@ class ChatState extends State<Chat> {
 
     var isChat = curConv.isChat;
     var chatFormat = (isChat || participantIndex == Message.youIndex) && (!continueLastMsg || participantIndex != msgModel.lastParticipantIndex);
+    var extractPreText = !isChat && participantIndex != Message.youIndex;
 
     var nTries = isChat ? 3 : 1;
     List<GeneratedResult> results = [];
@@ -254,7 +259,7 @@ class ChatState extends State<Chat> {
         var isSingle = texts.length == 1;
         results = texts
           .map((text) => isSingle
-            ? GeneratedResult.fromRawOutput(text, chatFormat)
+            ? GeneratedResult.fromRawOutput(text, chatFormat, extractPreText)
             : GeneratedResult(text: Message.format(text, chatFormat))
           )
           .where((result) => !result.isEmpty)
@@ -346,6 +351,7 @@ class ChatState extends State<Chat> {
       return;
 
     var lastMsg = msgModel.messages.lastOrNull;
+    String msgText;
     if(
       !result.isError
       && lastMsg != null
@@ -354,13 +360,16 @@ class ChatState extends State<Chat> {
       && !curConv.isChat
     ) {
       msgModel.setText(lastMsg, lastMsg.text + result.preText, false);
+      msgText = result.text;
+    } else {
+      msgText = result.fullText;
     }
 
-    if(result.text.isNotEmpty) {
+    if(msgText.isNotEmpty) {
       if(!result.isError && lastMsg != null && continueLastMsg && authorIndex == msgModel.lastParticipantIndex)
-        msgModel.setText(lastMsg, '${lastMsg.text} ${result.text}', false);
+        msgModel.setText(lastMsg, '${lastMsg.text} $msgText', false);
       else
-        msgModel.addText(result.text, true, authorIndex);
+        msgModel.addText(msgText, true, authorIndex);
     }
     await ConversationsModel.saveCurrentData(context);
 

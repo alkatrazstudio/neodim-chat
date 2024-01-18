@@ -22,7 +22,7 @@ class HomePage extends StatelessWidget {
     var text = s.generatedText;
     if(s.stopStringMatchIsSentenceEnd)
       text = text + s.stopStringMatch;
-    return text.trim();
+    return text.trimRight();
   }
 
   Future<String?> getNextGroupParticipantName(
