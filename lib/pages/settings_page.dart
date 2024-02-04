@@ -535,7 +535,14 @@ class _SettingsPageState extends State<SettingsPage> {
           enabled: colonStartIsPreviousNameEnabled,
           trueLabel: 'Yes, and no colon means a non-dialog line',
           falseLabel: 'No, colon inserts a non-dialog line'
-        )
+        ),
+        if(convType == ConversationType.groupChat)
+          picker(
+            label: 'Participant on retry',
+            initialItem: cfgModel.participantOnRetry,
+            items: ParticipantOnRetry.values,
+            onSaved: (s) => cfgModel.setSameParticipantOnRetry(s)
+          )
       ]
     );
   }

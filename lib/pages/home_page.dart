@@ -50,14 +50,15 @@ class HomePage extends StatelessWidget {
     return null;
   }
 
-  Future<List<String>> generate(
-    BuildContext context,
-    String inputText,
-    String? repPenText,
-    Participant promptedParticipant,
-    Set<String> blacklistWordsForRetry,
-    bool continueLastMsg
-  ) async {
+  Future<List<String>> generate({
+    required BuildContext context,
+    required String inputText,
+    required String? repPenText,
+    required Participant promptedParticipant,
+    required Set<String> blacklistWordsForRetry,
+    required bool continueLastMsg,
+    required Message? undoMessage
+  }) async {
     var apiModel = Provider.of<ApiModel>(context, listen: false);
     if(apiModel.isApiRunning)
       return [];
@@ -76,7 +77,28 @@ class HomePage extends StatelessWidget {
       var promptedParticipantIndex = msgModel.participants.indexOf(promptedParticipant);
       if(conv.type == ConversationType.groupChat && promptedParticipantIndex != Message.youIndex && !continueLastMsg) {
         var participantNames = msgModel.getGroupParticipantNames(false);
-        var participantName = await getNextGroupParticipantName(context, inputText, repPenText, participantNames);
+        String? participantName;
+        if(undoMessage != null && undoMessage.authorIndex != Message.youIndex) {
+          switch(cfgModel.participantOnRetry) {
+            case ParticipantOnRetry.different:
+              if(participantNames.length > 1) {
+                var prevParticipantName = MessagesModel.extractParticipantName(undoMessage.text);
+                if(prevParticipantName.isNotEmpty)
+                  participantNames = participantNames.where((name) => name != prevParticipantName).toList();
+              }
+              break;
+
+            case ParticipantOnRetry.same:
+              var prevParticipantName = MessagesModel.extractParticipantName(undoMessage.text);
+              if(prevParticipantName.isNotEmpty && participantNames.contains(prevParticipantName))
+                participantName = prevParticipantName;
+              break;
+
+            default:
+              break;
+          }
+        }
+        participantName ??= await getNextGroupParticipantName(context, inputText, repPenText, participantNames);
         if(participantName == null)
           throw Exception('Cannot get the correct participant name');
         addedPromptSuffix = '$participantName${MessagesModel.chatPromptSeparator}';
@@ -195,8 +217,22 @@ class HomePage extends StatelessWidget {
             children: [
               Expanded(
                 child: Chat(
-                  generate: (text, repPenText, promptedParticipant, blacklistWordsForRetry, continueLastMsg) async =>
-                    await generate(context, text, repPenText, promptedParticipant, blacklistWordsForRetry, continueLastMsg)
+                  generate: (
+                    text,
+                    repPenText,
+                    promptedParticipant,
+                    blacklistWordsForRetry,
+                    continueLastMsg,
+                    undoMessage
+                  ) async => await generate(
+                    context: context,
+                    inputText: text,
+                    repPenText: repPenText,
+                    promptedParticipant: promptedParticipant,
+                    blacklistWordsForRetry: blacklistWordsForRetry,
+                    continueLastMsg: continueLastMsg,
+                    undoMessage: undoMessage
+                  )
                 )
               )
             ]

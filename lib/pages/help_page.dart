@@ -468,6 +468,15 @@ class HelpPageState extends State<HelpPage> {
             (does not work if the original line has more than one comma),
             and no colon means the previous participant.
           </li>
+          <li>
+            <strong>Participant on retry</strong> -
+            how to choose the participant when retrying a "left" message in a group chat.
+            <ul>
+              <li>any - choose any valid participant</li>
+              <li>same - choose the same participant as it was in the original message</li>
+              <li>different - choose a different participant than the one in the original message</li>
+            </ul>
+          </li>
         </ul>
 
         <h2>Controls</h2>

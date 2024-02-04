@@ -22,7 +22,7 @@ class Chat extends StatefulWidget {
     required this.generate
   });
 
-  final Future<List<String>> Function(String, String?, Participant, Set<String>, bool continueLastMsg) generate;
+  final Future<List<String>> Function(String, String?, Participant, Set<String>, bool continueLastMsg, Message? undoMessage) generate;
 
   @override
   State<Chat> createState() => ChatState();
@@ -255,7 +255,7 @@ class ChatState extends State<Chat> {
     List<GeneratedResult> results = [];
     while(true) {
       try {
-        var texts = await widget.generate(aiInput, repPenInput, promptedParticipant, blacklistWordsForRetry, continueLastMsg);
+        var texts = await widget.generate(aiInput, repPenInput, promptedParticipant, blacklistWordsForRetry, continueLastMsg, undoMessage);
         var isSingle = texts.length == 1;
         results = texts
           .map((text) => isSingle

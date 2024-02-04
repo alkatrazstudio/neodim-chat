@@ -21,6 +21,12 @@ enum MirostatVersion {
   v2
 }
 
+enum ParticipantOnRetry {
+  any,
+  same,
+  different
+}
+
 @JsonSerializable(explicitToJson: true)
 class ConfigModel extends ChangeNotifier {
   @JsonKey(defaultValue: ApiType.neodim, unknownEnumValue: ApiType.neodim)
@@ -133,6 +139,9 @@ class ConfigModel extends ChangeNotifier {
 
   @JsonKey(defaultValue: true)
   bool colonStartIsPreviousName = true;
+
+  @JsonKey(defaultValue: ParticipantOnRetry.any, unknownEnumValue: ParticipantOnRetry.any)
+  ParticipantOnRetry participantOnRetry = ParticipantOnRetry.any;
 
   String get inputPreamble {
     var s = preamble.trim();
@@ -326,6 +335,11 @@ class ConfigModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setSameParticipantOnRetry(ParticipantOnRetry newParticipantOnRetry) {
+    participantOnRetry = newParticipantOnRetry;
+    notifyListeners();
+  }
+
   void load(ConfigModel other) {
     apiType = other.apiType;
     apiEndpoint = other.apiEndpoint;
@@ -363,6 +377,7 @@ class ConfigModel extends ChangeNotifier {
     addSpecialSymbolsToBlacklist = other.addSpecialSymbolsToBlacklist;
     removeWordsFromBlacklistOnRetry = other.removeWordsFromBlacklistOnRetry;
     colonStartIsPreviousName = other.colonStartIsPreviousName;
+    participantOnRetry = other.participantOnRetry;
 
     notifyListeners();
   }
