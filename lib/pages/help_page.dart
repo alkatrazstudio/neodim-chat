@@ -303,6 +303,12 @@ class HelpPageState extends State<HelpPage> {
             <a href="$serverBaseUrl#top_p-float-optional">more info</a>
           </li>
           <li>
+            <strong>Min P</strong> - limiting the amount of chosen tokens.
+            The bigger the value the less random the output text will be.
+            Possible values: 0 to 1. Recommended value: 0.05.
+            Not recommended to use with Top P or Top K.
+          </li>
+          <li>
             <strong>Tail-free sampling</strong> - limiting the amount of chosen tokens.
             <a href="$serverBaseUrl#tfs-float-optional">more info</a>
           </li>

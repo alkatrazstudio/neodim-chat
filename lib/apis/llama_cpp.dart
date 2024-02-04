@@ -16,6 +16,7 @@ class LlamaCppRequest {
     required this.temperature,
     required this.topK,
     required this.topP,
+    required this.minP,
     required this.nPredict,
     required this.nKeep,
     required this.prompt,
@@ -38,6 +39,7 @@ class LlamaCppRequest {
   final double temperature;
   final int topK;
   final double topP;
+  final double minP;
   final int nPredict;
   final int nKeep;
   final String prompt;
@@ -61,6 +63,7 @@ class LlamaCppRequest {
       'temperature': temperature,
       'top_k': topK,
       'top_p': topP,
+      'min_p': minP,
       'n_predict': nPredict,
       'n_keep': nKeep,
       'prompt': prompt,
@@ -200,6 +203,7 @@ class ApiRequestLlamaCpp {
       temperature: params.cfgModel.temperature != 0 ? params.cfgModel.temperature : 1,
       topK: params.cfgModel.topK,
       topP: params.cfgModel.topP != 0 ? params.cfgModel.topP : 1,
+      minP: params.cfgModel.minP,
       nPredict: params.cfgModel.generatedTokensCount,
       nKeep: preambleTokensCount,
       prompt: allInput,

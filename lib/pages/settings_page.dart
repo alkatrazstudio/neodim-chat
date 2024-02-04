@@ -345,6 +345,14 @@ class _SettingsPageState extends State<SettingsPage> {
           validator: validateNormalizedDouble,
           onSaved: onDoubleSave((x) => cfgModel.setTopP(x))
         ),
+        if(apiType == ApiType.llamaCpp)
+          CardSettingsDouble(
+            label: 'Min P',
+            initialValue: cfgModel.minP,
+            decimalDigits: 3,
+            validator: validateNormalizedDouble,
+            onSaved: onDoubleSave((x) => cfgModel.setMinP(x))
+          ),
         CardSettingsDouble(
           label: 'Tail-free sampling',
           initialValue: cfgModel.tfs,

@@ -51,6 +51,9 @@ class ConfigModel extends ChangeNotifier {
   int topK = 0;
 
   @JsonKey(defaultValue: 0)
+  double minP = 0;
+
+  @JsonKey(defaultValue: 0)
   double tfs = 0;
 
   @JsonKey(defaultValue: 0.2)
@@ -182,6 +185,11 @@ class ConfigModel extends ChangeNotifier {
 
   void setTopK(int newTopK) {
     topK = newTopK;
+    notifyListeners();
+  }
+
+  void setMinP(double newMinP) {
+    minP = newMinP;
     notifyListeners();
   }
 
@@ -348,6 +356,7 @@ class ConfigModel extends ChangeNotifier {
     temperature = other.temperature;
     topP = other.topP;
     topK = other.topK;
+    minP = other.minP;
     tfs = other.tfs;
     typical = other.typical;
     topA = other.topA;
