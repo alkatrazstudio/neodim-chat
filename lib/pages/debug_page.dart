@@ -33,7 +33,6 @@ class DebugPage extends StatelessWidget {
               if(request != null)
                 JsonView(
                   json: request,
-                  styleScheme: const JsonStyleScheme(openAtStart: true),
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics()
                 )
@@ -44,7 +43,6 @@ class DebugPage extends StatelessWidget {
                 JsonView(
                   json: response,
                   shrinkWrap: true,
-                  styleScheme: const JsonStyleScheme(openAtStart: true),
                   physics: const NeverScrollableScrollPhysics()
                 )
               else
