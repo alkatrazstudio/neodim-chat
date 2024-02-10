@@ -1,7 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // 🄯 2023, Alexey Parfenov <zxed@alkatrazstudio.net>
 
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'package:json_view/json_view.dart';
 import 'package:provider/provider.dart';
@@ -29,7 +32,21 @@ class DebugPage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Request', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              Row(
+                children: [
+                  const Text('Request', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                  if(request != null)
+                    IconButton(
+                      onPressed: () async {
+                        await Clipboard.setData(ClipboardData(text: jsonEncode(request)));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Request JSON has been copied to the clipboard'))
+                        );
+                      },
+                      icon: const Icon(Icons.copy)
+                    )
+                ],
+              ),
               if(request != null)
                 JsonView(
                   json: request,
@@ -41,9 +58,21 @@ class DebugPage extends StatelessWidget {
               Row(
                 children: [
                   Text(
-                    'Response (${(apiModel.requestMsecs / 1000).toStringAsFixed(1)}s)',
+                    apiModel.requestMsecs == 0
+                      ? 'Response'
+                      : 'Response (${(apiModel.requestMsecs / 1000).toStringAsFixed(1)}s)',
                     style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)
                   ),
+                  if(response != null)
+                    IconButton(
+                      onPressed: () async {
+                        await Clipboard.setData(ClipboardData(text: jsonEncode(response)));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Response JSON has been copied to the clipboard'))
+                        );
+                      },
+                      icon: const Icon(Icons.copy)
+                    )
                 ],
               ),
               if(response != null)
