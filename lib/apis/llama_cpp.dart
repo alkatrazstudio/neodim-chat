@@ -96,18 +96,21 @@ class LlamaCppResponse {
   const LlamaCppResponse({
     required this.content,
     required this.stoppingWord,
-    required this.tokensEvaluated
+    required this.tokensEvaluated,
+    required this.tokensPredicted
   });
 
   final String content;
   final String stoppingWord;
   final int tokensEvaluated;
+  final int tokensPredicted;
 
   static LlamaCppResponse fromApiResponseMap(Map<String, dynamic> data) {
     return LlamaCppResponse(
       content: data['content'] as String,
       stoppingWord: data['stopping_word'] as String,
-      tokensEvaluated: data['tokens_evaluated'] as int
+      tokensEvaluated: data['tokens_evaluated'] as int,
+      tokensPredicted: data['tokens_predicted'] as int
     );
   }
 }
@@ -274,8 +277,8 @@ class ApiRequestLlamaCpp {
     var requestMap = request.toApiRequestMap();
     params.apiModel.startRawRequest(requestMap);
     var responseMap = await httpPostRaw('$endpoint/completion', requestMap);
-    params.apiModel.endRawRequest(responseMap);
     var response = LlamaCppResponse.fromApiResponseMap(responseMap);
+    params.apiModel.endRawRequest(responseMap, response.tokensPredicted);
 
     var usedPromptTokensCount = response.tokensEvaluated - preambleTokensCount;
     var usedTokens = allInputTokens.sublist(max(0, allInputTokens.length - usedPromptTokensCount));

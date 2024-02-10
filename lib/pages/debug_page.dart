@@ -22,6 +22,13 @@ class DebugPage extends StatelessWidget {
     var request = apiModel.rawRequest;
     var response = apiModel.rawResponse;
 
+    var responseAdditionalInfoParts = [
+      if(apiModel.requestSecs > 0)
+        '${apiModel.requestSecs.toStringAsFixed(1)}s',
+      if(apiModel.tokensPerSecond > 0)
+        '${apiModel.tokensPerSecond.toStringAsFixed(1)} tokens/s'
+    ];
+
     return Scaffold(
       appBar: AppBar(
         title: Text(curConv?.name ?? '')
@@ -34,7 +41,10 @@ class DebugPage extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  const Text('Request', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                  const Text(
+                    'Request',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)
+                  ),
                   if(request != null)
                     IconButton(
                       onPressed: () async {
@@ -57,12 +67,12 @@ class DebugPage extends StatelessWidget {
                 const Text('N/A'),
               Row(
                 children: [
-                  Text(
-                    apiModel.requestMsecs == 0
-                      ? 'Response'
-                      : 'Response (${(apiModel.requestMsecs / 1000).toStringAsFixed(1)}s)',
-                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)
+                  const Text(
+                    'Response',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)
                   ),
+                  if(responseAdditionalInfoParts.isNotEmpty)
+                    Text(' (${responseAdditionalInfoParts.join('; ')})'),
                   if(response != null)
                     IconButton(
                       onPressed: () async {

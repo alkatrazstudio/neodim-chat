@@ -12,7 +12,8 @@ class ApiModel extends ChangeNotifier {
   Map<String, dynamic>? rawRequest;
   Map<String, dynamic>? rawResponse;
   int requestStartMsecs = 0;
-  int requestMsecs = 0;
+  double requestSecs = 0;
+  double tokensPerSecond = 0;
 
   void setResponse(ApiResponse response) {
     lastResponse = response;
@@ -28,13 +29,16 @@ class ApiModel extends ChangeNotifier {
     rawRequest = req;
     rawResponse = null;
     requestStartMsecs = DateTime.now().millisecondsSinceEpoch;
-    requestMsecs = 0;
+    requestSecs = 0;
+    tokensPerSecond = 0;
     notifyListeners();
   }
 
-  void endRawRequest(Map<String, dynamic>? resp) {
+  void endRawRequest(Map<String, dynamic>? resp, int generatedTokensCount) {
     rawResponse = resp;
-    requestMsecs = DateTime.now().millisecondsSinceEpoch - requestStartMsecs;
+    requestSecs = (DateTime.now().millisecondsSinceEpoch - requestStartMsecs) / 1000;
+    if(requestSecs > 0 && generatedTokensCount > 0)
+      tokensPerSecond = generatedTokensCount / requestSecs;
     notifyListeners();
   }
 }

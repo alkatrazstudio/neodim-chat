@@ -269,13 +269,14 @@ class NeodimApi {
     );
     var respJson = response.body;
     var respData = jsonDecode(respJson) as Map<String, dynamic>;
-    apiModel.endRawRequest(respData);
     if(respData.containsKey('error')) {
       String error = respData['error'] as String;
+      apiModel.endRawRequest(respData, 0);
       throw Exception(error);
     }
 
     var resp = NeodimResponse.fromApiResponseMap(respData);
+    apiModel.endRawRequest(respData, resp.generatedTokensCount);
     return resp;
   }
 }
