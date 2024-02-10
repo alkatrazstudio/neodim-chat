@@ -168,22 +168,40 @@ class ApiRequestLlamaCpp {
       preambleTokensCount = 0;
     }
 
-    List<int> allInputTokens;
+    var allInputTokens = params.inputText.isEmpty ? <int>[] : await tokenize(endpoint, params.inputText);
     int maxRepeatLastN;
-    if(params.inputText.isEmpty) {
-      allInputTokens = [];
-      maxRepeatLastN = 0;
+    var repPenText = params.repPenText;
+    int repeatLastN;
+    if(repPenText == null) {
+      if(params.inputText.isEmpty) {
+        maxRepeatLastN = 0;
+      } else {
+        var allowedPromptTokensCount = contextSize - preambleTokensCount - params.cfgModel.generatedTokensCount - 1;
+        if(allowedPromptTokensCount <= 0)
+          throw Exception('No tokens left for prompt.');
+        allowedPromptTokensCount = min(allowedPromptTokensCount, allInputTokens.length);
+        maxRepeatLastN = allowedPromptTokensCount;
+      }
+      if(params.cfgModel.repetitionPenaltyIncludePreamble)
+        maxRepeatLastN += preambleTokensCount;
+      repeatLastN = min(params.cfgModel.repetitionPenaltyRange, maxRepeatLastN);
+      if(repeatLastN == 0)
+        repPenText = '';
     } else {
-      allInputTokens = await tokenize(endpoint, params.inputText);
-      var allowedPromptTokensCount = contextSize - preambleTokensCount - params.cfgModel.generatedTokensCount - 1;
-      if(allowedPromptTokensCount <= 0)
-        throw Exception('No tokens left for prompt.');
-      allowedPromptTokensCount = min(allowedPromptTokensCount, allInputTokens.length);
-      maxRepeatLastN = allowedPromptTokensCount;
+      if(params.cfgModel.repetitionPenaltyIncludePreamble)
+        repPenText = params.cfgModel.inputPreamble + repPenText;
+      var repPenTokens = await tokenize(endpoint, repPenText);
+      maxRepeatLastN = repPenTokens.length;
+      repeatLastN = min(params.cfgModel.repetitionPenaltyRange, maxRepeatLastN);
+      if(repeatLastN == 0) {
+        repPenText = '';
+      } else {
+        if(repeatLastN < repPenTokens.length) {
+          repPenTokens = repPenTokens.sublist(repPenTokens.length - repeatLastN);
+          repPenText = await detokenize(endpoint, repPenTokens);
+        }
+      }
     }
-
-    if(params.cfgModel.repetitionPenaltyIncludePreamble)
-      maxRepeatLastN += preambleTokensCount;
 
     String? grammar;
     List<String> stopStrings;
@@ -246,8 +264,8 @@ class ApiRequestLlamaCpp {
       repeatPenalty: params.cfgModel.repetitionPenalty != 0 ? params.cfgModel.repetitionPenalty : 1,
       frequencyPenalty: params.cfgModel.frequencyPenalty,
       presencePenalty: params.cfgModel.presencePenalty,
-      repeatLastN: min(params.cfgModel.repetitionPenaltyRange, maxRepeatLastN),
-      penaltyPrompt: params.repPenText,
+      repeatLastN: repeatLastN,
+      penaltyPrompt: repPenText,
       grammar: grammar,
       ignoreEos: grammar == null,
       logitBias: logitBias
