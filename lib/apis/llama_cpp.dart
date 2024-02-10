@@ -14,6 +14,8 @@ import '../models/messages.dart';
 class LlamaCppRequest {
   const LlamaCppRequest({
     required this.temperature,
+    required this.dynaTempRange,
+    required this.dynaTempExponent,
     required this.topK,
     required this.topP,
     required this.minP,
@@ -37,6 +39,8 @@ class LlamaCppRequest {
   });
 
   final double temperature;
+  final double dynaTempRange;
+  final double dynaTempExponent;
   final int topK;
   final double topP;
   final double minP;
@@ -61,6 +65,8 @@ class LlamaCppRequest {
   Map<String, dynamic> toApiRequestMap() {
     return <String, dynamic> {
       'temperature': temperature,
+      'dynatemp_range': dynaTempRange,
+      'dynatemp_exponent': dynaTempExponent,
       'top_k': topK,
       'top_p': topP,
       'min_p': minP,
@@ -206,8 +212,25 @@ class ApiRequestLlamaCpp {
       _ => 0
     };
 
+    double temperature;
+    double dynaTempRange;
+    switch(params.cfgModel.temperatureMode) {
+      case TemperatureMode.dynamic:
+        // llama.cpp DynaTemp range is actually only half the range
+        // https://github.com/ggerganov/llama.cpp/blob/cd9aea63b577a83def84dbd6dcd90a6fa02af745/common/sampling.cpp#L151-L152
+        dynaTempRange = max(0, params.cfgModel.dynaTempHigh - params.cfgModel.temperature) / 2;
+        temperature = params.cfgModel.temperature + dynaTempRange; // the middle temperature
+        break;
+
+      default:
+        temperature = params.cfgModel.temperature;
+        dynaTempRange = 0;
+    }
+
     var request = LlamaCppRequest(
-      temperature: params.cfgModel.temperature != 0 ? params.cfgModel.temperature : 1,
+      temperature: temperature != 0 ? temperature : 1,
+      dynaTempRange: dynaTempRange,
+      dynaTempExponent: params.cfgModel.dynaTempExponent,
       topK: params.cfgModel.topK,
       topP: params.cfgModel.topP != 0 ? params.cfgModel.topP : 1,
       minP: params.cfgModel.minP,

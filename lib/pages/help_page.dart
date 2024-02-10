@@ -291,8 +291,32 @@ class HelpPageState extends State<HelpPage> {
             <a href="$serverBaseUrl#max_total_tokens-int-required">more info</a>
           </li>
           <li>
+            <strong>Temperature mode</strong> -
+            how to calculate the final temperature.
+            <ul>
+              <li>static - use the specified value</li>
+              <li>
+                dynamic - automatically adjust the temperature in the specified range.
+                The more AI is uncertain about the next token, the more the temperature will rise.
+                It can make the text more varying yet coherent at the same time.
+              </li>
+            </ul>
+          </li>
+          <li>
             <strong>Temperature</strong> - the randomness of the output.
             <a href="$serverBaseUrl#temperature-float-optional">more info</a>
+          </li>
+          <li>
+            <strong>Min. temperature</strong> - the lower bound of the temperature value.
+          </li>
+          <li>
+            <strong>Max. temperature</strong> - the upper bound of the temperature value.
+          </li>
+          <li>
+            <strong>Dynamic temperature exponent</strong> -
+            the bigger this value, the slower the temperature will rise.
+            Higher values make the text less random.
+            Must be a positive value.
           </li>
           <li>
             <strong>Top K</strong> - limiting the amount of chosen tokens.

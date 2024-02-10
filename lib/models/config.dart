@@ -27,6 +27,11 @@ enum ParticipantOnRetry {
   different
 }
 
+enum TemperatureMode {
+  static,
+  dynamic
+}
+
 @JsonSerializable(explicitToJson: true)
 class ConfigModel extends ChangeNotifier {
   @JsonKey(defaultValue: ApiType.neodim, unknownEnumValue: ApiType.neodim)
@@ -41,8 +46,17 @@ class ConfigModel extends ChangeNotifier {
   @JsonKey(defaultValue: 2048)
   int maxTotalTokens = 2048;
 
+  @JsonKey(defaultValue: TemperatureMode.static, unknownEnumValue: TemperatureMode.static)
+  TemperatureMode temperatureMode = TemperatureMode.static;
+
   @JsonKey(defaultValue: 0.7)
-  double temperature = 0.7;
+  double temperature = 0.7; // also acts as dynaTempLow
+
+  @JsonKey(defaultValue: 0.7)
+  double dynaTempHigh = 0.7;
+
+  @JsonKey(defaultValue: 1.0)
+  double dynaTempExponent = 1.0;
 
   @JsonKey(defaultValue: 0)
   double topP = 0;
@@ -173,8 +187,23 @@ class ConfigModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setTemperatureMode(TemperatureMode newTemperatureMode) {
+    temperatureMode = newTemperatureMode;
+    notifyListeners();
+  }
+
   void setTemperature(double newTemperature) {
     temperature = newTemperature;
+    notifyListeners();
+  }
+
+  void setDynaTempHigh(double newDynaTempHigh) {
+    dynaTempHigh = newDynaTempHigh;
+    notifyListeners();
+  }
+
+  void setDynaTempExponent(double newDynaTempExponent) {
+    dynaTempExponent = newDynaTempExponent;
     notifyListeners();
   }
 
@@ -353,7 +382,10 @@ class ConfigModel extends ChangeNotifier {
     apiEndpoint = other.apiEndpoint;
     generatedTokensCount = other.generatedTokensCount;
     maxTotalTokens = other.maxTotalTokens;
+    temperatureMode = other.temperatureMode;
     temperature = other.temperature;
+    dynaTempHigh = other.dynaTempHigh;
+    dynaTempExponent = other.dynaTempExponent;
     topP = other.topP;
     topK = other.topK;
     minP = other.minP;

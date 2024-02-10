@@ -27,6 +27,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
   ConversationType? convType;
   ApiType? apiType;
+  TemperatureMode? temperatureMode;
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +36,9 @@ class _SettingsPageState extends State<SettingsPage> {
       return const SizedBox.shrink();
 
     convType ??= curConv.type;
-    apiType ??= Provider.of<ConfigModel>(context, listen: false).apiType;
+    var cfgModel = Provider.of<ConfigModel>(context, listen: false);
+    apiType ??= cfgModel.apiType;
+    temperatureMode ??= cfgModel.temperatureMode;
 
     return Scaffold(
       appBar: AppBar(
@@ -325,13 +328,50 @@ class _SettingsPageState extends State<SettingsPage> {
             validator: validateNonNegativeInt,
             onSaved: onIntSave((x) => cfgModel.setMaxTotalTokens(x)),
           ),
-        CardSettingsDouble(
-          label: 'Temperature',
-          initialValue: cfgModel.temperature,
-          decimalDigits: 3,
-          validator: validatePositiveDouble,
-          onSaved: onDoubleSave((x) => cfgModel.setTemperature(x))
-        ),
+        if(apiType == ApiType.llamaCpp)
+          picker(
+            label: 'Temperature mode',
+            initialItem: cfgModel.temperatureMode,
+            items: TemperatureMode.values,
+            onSaved: (newTemperatureMode) => cfgModel.setTemperatureMode(newTemperatureMode),
+            onChanged: (newTemperatureMode) {
+              setState(() {
+                temperatureMode = newTemperatureMode;
+              });
+            }
+          ),
+        if(temperatureMode == TemperatureMode.static || apiType != ApiType.llamaCpp)
+          CardSettingsDouble(
+            label: 'Temperature',
+            initialValue: cfgModel.temperature,
+            decimalDigits: 3,
+            validator: validatePositiveDouble,
+            onSaved: onDoubleSave((x) => cfgModel.setTemperature(x))
+          ),
+        if(temperatureMode == TemperatureMode.dynamic && apiType == ApiType.llamaCpp)
+          CardSettingsDouble(
+            label: 'Min. temperature',
+            initialValue: cfgModel.temperature,
+            decimalDigits: 3,
+            validator: validatePositiveDouble,
+            onSaved: onDoubleSave((x) => cfgModel.setTemperature(x))
+          ),
+        if(temperatureMode == TemperatureMode.dynamic && apiType == ApiType.llamaCpp)
+          CardSettingsDouble(
+            label: 'Max. temperature',
+            initialValue: cfgModel.dynaTempHigh,
+            decimalDigits: 3,
+            validator: validatePositiveDouble,
+            onSaved: onDoubleSave((x) => cfgModel.setDynaTempHigh(x))
+          ),
+        if(temperatureMode == TemperatureMode.dynamic && apiType == ApiType.llamaCpp)
+          CardSettingsDouble(
+            label: 'Dynamic temperature exponent',
+            initialValue: cfgModel.dynaTempExponent,
+            decimalDigits: 3,
+            validator: validatePositiveDouble,
+            onSaved: onDoubleSave((x) => cfgModel.setDynaTempExponent(x))
+          ),
         CardSettingsInt(
           label: 'Top K',
           initialValue: cfgModel.topK,
