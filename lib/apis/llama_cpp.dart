@@ -107,7 +107,7 @@ class LlamaCppResponse {
 }
 
 class ApiRequestLlamaCpp {
-  static Future<Map<String, dynamic>> runRaw(String endpoint, Map<String, dynamic> data) async {
+  static Future<Map<String, dynamic>> httpPostRaw(String endpoint, Map<String, dynamic> data) async {
     var reqJson = jsonEncode(data);
     var endpointUri = Uri.parse(endpoint);
     var response = await http.post(endpointUri,
@@ -121,14 +121,22 @@ class ApiRequestLlamaCpp {
     return resp;
   }
 
+  static Future<Map<String, dynamic>> httpGetRaw(String endpoint) async {
+    var endpointUri = Uri.parse(endpoint);
+    var response = await http.get(endpointUri);
+    var respJson = response.body;
+    var resp = jsonDecode(respJson) as Map<String, dynamic>;
+    return resp;
+  }
+
   static Future<List<int>> tokenize(String endpoint, String content) async {
-    var response = await runRaw('$endpoint/tokenize', {'content': content});
+    var response = await httpPostRaw('$endpoint/tokenize', {'content': content});
     var tokens = (response['tokens'] as List<dynamic>).map((token) => token as int).toList();
     return tokens;
   }
 
   static Future<String> detokenize(String endpoint, List<int> tokens) async {
-    var response = await runRaw('$endpoint/detokenize', {'tokens': tokens});
+    var response = await httpPostRaw('$endpoint/detokenize', {'tokens': tokens});
     var content = response['content'] as String;
     return content;
   }
@@ -136,9 +144,8 @@ class ApiRequestLlamaCpp {
   static Future<ApiResponse?> run(ApiRequestParams params) async {
     var endpoint = ApiRequest.normalizeEndpoint(params.cfgModel.apiEndpoint, 8080, '');
 
-    var infoRequest = {'n_predict': 0};
-    var infoResponse = await runRaw('$endpoint/completion', infoRequest);
-    var contextSize = infoResponse['generation_settings']['n_ctx'] as int;
+    var infoResponse = await httpGetRaw('$endpoint/props');
+    var contextSize = infoResponse['default_generation_settings']['n_ctx'] as int;
 
     int preambleTokensCount;
 
@@ -226,7 +233,7 @@ class ApiRequestLlamaCpp {
     var requestMap = request.toApiRequestMap();
     params.apiModel.setRawRequest(requestMap);
     params.apiModel.setRawResponse(null);
-    var responseMap = await runRaw('$endpoint/completion', requestMap);
+    var responseMap = await httpPostRaw('$endpoint/completion', requestMap);
     params.apiModel.setRawResponse(responseMap);
     var response = LlamaCppResponse.fromApiResponseMap(responseMap);
 
