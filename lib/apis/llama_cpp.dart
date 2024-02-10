@@ -155,7 +155,7 @@ class ApiRequestLlamaCpp {
 
     int preambleTokensCount;
 
-    // llama.cpp truncates the input prompt automatically depending on m_predict and n_keep params
+    // llama.cpp truncates the input prompt automatically depending on n_predict and n_keep params
     // and then caches all inference results needed to predict the next token.
     // Manually truncating the prompt will result in a cache miss.
     // That's why we need to pass all the preamble and prompt unmodified.

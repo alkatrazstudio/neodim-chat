@@ -212,7 +212,7 @@ class _SettingsPageState extends State<SettingsPage> {
       return 'Person ${authorIndex + 1} (you) color';
     if(convType == ConversationType.groupChat)
       return 'Group participants color';
-    return 'Person ${authorIndex + 1} name';
+    return 'Person ${authorIndex + 1} color';
   }
 
   CardSettingsSection participantsSection(BuildContext context, MessagesModel msgModel, Conversation curConv) {
