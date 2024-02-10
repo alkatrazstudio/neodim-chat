@@ -272,10 +272,9 @@ class ApiRequestLlamaCpp {
     );
 
     var requestMap = request.toApiRequestMap();
-    params.apiModel.setRawRequest(requestMap);
-    params.apiModel.setRawResponse(null);
+    params.apiModel.startRawRequest(requestMap);
     var responseMap = await httpPostRaw('$endpoint/completion', requestMap);
-    params.apiModel.setRawResponse(responseMap);
+    params.apiModel.endRawRequest(responseMap);
     var response = LlamaCppResponse.fromApiResponseMap(responseMap);
 
     var usedPromptTokensCount = response.tokensEvaluated - preambleTokensCount;

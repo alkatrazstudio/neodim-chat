@@ -259,20 +259,17 @@ class NeodimApi {
 
   Future<NeodimResponse> run(NeodimRequest req, ApiModel apiModel) async {
     var reqData = req.toApiRequestMap();
-    apiModel.setRawRequest(reqData);
-    apiModel.setRawResponse(null);
+    apiModel.startRawRequest(reqData);
     var reqJson = jsonEncode(reqData);
-
     var response = await http.post(endpoint,
       headers: {
         'Content-Type': 'application/json'
       },
       body: reqJson
     );
-
     var respJson = response.body;
     var respData = jsonDecode(respJson) as Map<String, dynamic>;
-    apiModel.setRawResponse(respData);
+    apiModel.endRawRequest(respData);
     if(respData.containsKey('error')) {
       String error = respData['error'] as String;
       throw Exception(error);

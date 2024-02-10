@@ -38,7 +38,14 @@ class DebugPage extends StatelessWidget {
                 )
               else
                 const Text('N/A'),
-              const Text('Response', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              Row(
+                children: [
+                  Text(
+                    'Response (${(apiModel.requestMsecs / 1000).toStringAsFixed(1)}s)',
+                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)
+                  ),
+                ],
+              ),
               if(response != null)
                 JsonView(
                   json: response,
