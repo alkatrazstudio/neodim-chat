@@ -11,9 +11,8 @@ import '../models/api_model.dart';
 import '../models/config.dart';
 import '../models/conversations.dart';
 import '../models/messages.dart';
-import '../pages/help_page.dart';
-import '../pages/settings_page.dart';
 import '../widgets/chat.dart';
+import '../widgets/drawer_column.dart';
 import '../widgets/main_menu.dart';
 
 class HomePage extends StatelessWidget {
@@ -142,73 +141,7 @@ class HomePage extends StatelessWidget {
         ),
 
         drawer: Drawer(
-          child: Column(
-            mainAxisSize: MainAxisSize.max,
-            children: [
-              DrawerHeader(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const Text(
-                      'Neodim Chat',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 21),
-                      textAlign: TextAlign.center
-                    ),
-                    ElevatedButton(
-                      onPressed: () async {
-                        var c = Conversation.create('Conversation');
-                        var data = ConversationData.empty();
-                        await c.saveData(data);
-                        Provider.of<ConversationsModel>(context, listen: false)
-                          ..add(c)
-                          ..save();
-                        c.setAsCurrent(context, data);
-                        Navigator.pop(context);
-                        Navigator.push<void>(
-                          context,
-                          MaterialPageRoute(builder: (context) => const SettingsPage())
-                        );
-                      },
-                      child: const Text('New conversation')
-                    ),
-                    ElevatedButton(
-                      child: const Text('Help'),
-                      onPressed: () {
-                        Navigator.push<void>(
-                          context,
-                          MaterialPageRoute(builder: (context) => const HelpPage())
-                        );
-                      }
-                    )
-                  ]
-                )
-              ),
-              Expanded(
-                child: Consumer<ConversationsModel>(
-                  builder: (context, conversations, child) {
-                    return ListView.builder(
-                      itemCount: conversations.conversations.length,
-                      itemBuilder: (context, index) {
-                        var c = conversations.conversations[conversations.conversations.length - 1 - index];
-                        return ListTile(
-                          title: Text(
-                            c.name,
-                            style: TextStyle(
-                              fontWeight: conversations.current == c ? FontWeight.bold : FontWeight.normal
-                            )
-                          ),
-                          onTap: () async {
-                            await c.loadAsCurrent(context);
-                            Navigator.pop(context);
-                          }
-                        );
-                      }
-                    );
-                  }
-                )
-              )
-            ]
-          )
+          child: DrawerColumn()
         ),
 
         body: SafeArea(
