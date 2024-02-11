@@ -3,6 +3,7 @@
 
 import 'package:flutter/material.dart';
 
+import 'package:collection/collection.dart';
 import 'package:provider/provider.dart';
 
 import '../models/conversations.dart';
@@ -39,7 +40,7 @@ class DrawerColumnState extends State<DrawerColumn> {
                   Provider.of<ConversationsModel>(context, listen: false)
                     ..add(c)
                     ..save();
-                  c.setAsCurrent(context, data);
+                  await c.setAsCurrent(context, data);
                   Navigator.pop(context);
                   Navigator.push<void>(
                     context,
@@ -78,10 +79,15 @@ class DrawerColumnState extends State<DrawerColumn> {
               var convList = searchFilter.isEmpty
                 ? convModel.conversations
                 : convModel.conversations.where((c) => c.name.toUpperCase().contains(searchFilter)).toList();
+              convList = convList.sorted((a, b) {
+                var aDate = a.lastSetAsCurrentAt ?? a.createdAt;
+                var bDate = b.lastSetAsCurrentAt ?? b.createdAt;
+                return bDate.compareTo(aDate);
+              });
               return ListView.builder(
                 itemCount: convList.length,
                 itemBuilder: (context, index) {
-                  var c = convList[convList.length - 1 - index];
+                  var c = convList[index];
                   return ListTile(
                     title: Text(
                       c.name,

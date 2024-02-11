@@ -31,6 +31,7 @@ class Conversation {
     required this.name,
     String? id,
     DateTime? createdAt,
+    this.lastSetAsCurrentAt,
     required this.type
   }): id = id ?? uuid.v4(),
       createdAt = createdAt ?? DateTime.now();
@@ -41,6 +42,7 @@ class Conversation {
   String name;
   final String id;
   final DateTime createdAt;
+  DateTime? lastSetAsCurrentAt;
 
   @JsonKey(defaultValue: ConversationType.chat, unknownEnumValue: ConversationType.chat)
   ConversationType type = ConversationType.chat;
@@ -82,13 +84,13 @@ class Conversation {
       data = ConversationData.empty();
     }
 
-    setAsCurrent(ctx, data);
+    await setAsCurrent(ctx, data);
     return data;
   }
 
-  void setAsCurrent(BuildContext ctx, ConversationData data) {
+  Future setAsCurrent(BuildContext ctx, ConversationData data) async {
     Provider.of<MessagesModel>(ctx, listen: false).load(data.msgModel);
-    Provider.of<ConversationsModel>(ctx, listen: false).setCurrent(this);
+    await Provider.of<ConversationsModel>(ctx, listen: false).setCurrent(this);
     Provider.of<ConfigModel>(ctx, listen: false).load(data.config);
   }
 
@@ -253,10 +255,12 @@ class ConversationsModel extends ChangeNotifier {
     msgModel.load(MessagesModel());
   }
 
-  void setCurrent(Conversation conversation) {
+  Future setCurrent(Conversation conversation) async {
     current = conversation;
     notUsedMessagesCount = 0;
+    conversation.lastSetAsCurrentAt = DateTime.now();
     notifyListeners();
+    await save();
   }
 
   void updateUsedMessagesCount(
