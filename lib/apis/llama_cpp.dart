@@ -60,7 +60,7 @@ class LlamaCppRequest {
   final int repeatLastN;
   final String? grammar;
   final bool ignoreEos;
-  final List<(int, dynamic)> logitBias;
+  final List<(String, dynamic)> logitBias;
 
   Map<String, dynamic> toApiRequestMap() {
     return <String, dynamic> {
@@ -218,14 +218,12 @@ class ApiRequestLlamaCpp {
       stopStrings = ApiRequest.getPlainTextStopStrings(params.msgModel, params.conversation);
     }
 
-    List<int> bannedTokens = [];
+    var logitBias = <(String, dynamic)>[];
     if(params.blacklistWordsForRetry != null) {
       for(var word in params.blacklistWordsForRetry!) {
-        var tokens = await tokenize(endpoint, word);
-        bannedTokens += tokens;
+        logitBias.add((word, false));
       }
     }
-    var logitBias = bannedTokens.toSet().map((token) => (token, false)).toList();
 
     var mirostat = switch(params.cfgModel.mirostat) {
       MirostatVersion.v1 => 1,
