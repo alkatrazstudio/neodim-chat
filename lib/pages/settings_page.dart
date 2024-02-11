@@ -97,20 +97,20 @@ class _SettingsPageState extends State<SettingsPage> {
     return null;
   }
 
-  String? validateNormalizedDouble(double? x) {
-    if(x == null || x < 0 || x > 1)
+  String? validateNormalizedDouble(double x) {
+    if(x < 0 || x > 1)
       return 'Must be between 0 and 1';
     return null;
   }
 
-  String? validatePositiveDouble(double? x) {
-    if(x == null || x <= 0)
+  String? validatePositiveDouble(double x) {
+    if(x <= 0)
       return 'Must be greater than 0';
     return null;
   }
 
-  String? validateNonNegativeDouble(double? x) {
-    if(x == null || x < 0)
+  String? validateNonNegativeDouble(double x) {
+    if(x < 0)
       return 'Must be 0 or above';
     return null;
   }
@@ -127,13 +127,6 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Function(int?) onIntSave(Function(int) f) {
     return (int? x) {
-      if(x != null)
-        f(x);
-    };
-  }
-
-  Function(double?) onDoubleSave(Function(double) f) {
-    return (double? x) {
       if(x != null)
         f(x);
     };
@@ -287,6 +280,43 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
+  CardSettingsText cardSettingsDouble({
+    required String label,
+    required double initialValue,
+    required String? Function(double) validator,
+    required void Function(double) onSaved
+  }) {
+    var intVal = initialValue.ceil();
+    // Use raw text field with some modifications
+    // because the original CardSettingsDouble uses auto-formatting
+    // that prevents entering values like 0.01
+    return CardSettingsText(
+      label: label,
+      initialValue: intVal == initialValue ? intVal.toString() : initialValue.toString(),
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      validator: (s) {
+        if(s == null)
+          return 'Required';
+        s = s.trim();
+        if(s.isEmpty)
+          return 'Required';
+        var val = double.tryParse(s);
+        if(val == null)
+          return 'Invalid value';
+        return validator(val);
+      },
+      onSaved: (s) {
+        if(s == null)
+          return;
+        s = s.trim();
+        var val = double.tryParse(s);
+        if(val == null)
+          return;
+        onSaved(val);
+      }
+    );
+  }
+
   CardSettingsSection configSection(BuildContext context, ConfigModel cfgModel) {
     var combineLinesEditable = convType == ConversationType.chat;
     var autoAlternateEnabled = convType == ConversationType.chat || convType == ConversationType.groupChat;
@@ -341,36 +371,32 @@ class _SettingsPageState extends State<SettingsPage> {
             }
           ),
         if(temperatureMode == TemperatureMode.static || apiType != ApiType.llamaCpp)
-          CardSettingsDouble(
+          cardSettingsDouble(
             label: 'Temperature',
             initialValue: cfgModel.temperature,
-            decimalDigits: 3,
             validator: validatePositiveDouble,
-            onSaved: onDoubleSave((x) => cfgModel.setTemperature(x))
+            onSaved: (x) => cfgModel.setTemperature(x)
           ),
         if(temperatureMode == TemperatureMode.dynamic && apiType == ApiType.llamaCpp)
-          CardSettingsDouble(
+          cardSettingsDouble(
             label: 'Min. temperature',
             initialValue: cfgModel.temperature,
-            decimalDigits: 3,
             validator: validatePositiveDouble,
-            onSaved: onDoubleSave((x) => cfgModel.setTemperature(x))
+            onSaved: (x) => cfgModel.setTemperature(x)
           ),
         if(temperatureMode == TemperatureMode.dynamic && apiType == ApiType.llamaCpp)
-          CardSettingsDouble(
+          cardSettingsDouble(
             label: 'Max. temperature',
             initialValue: cfgModel.dynaTempHigh,
-            decimalDigits: 3,
             validator: validatePositiveDouble,
-            onSaved: onDoubleSave((x) => cfgModel.setDynaTempHigh(x))
+            onSaved: (x) => cfgModel.setDynaTempHigh(x)
           ),
         if(temperatureMode == TemperatureMode.dynamic && apiType == ApiType.llamaCpp)
-          CardSettingsDouble(
+          cardSettingsDouble(
             label: 'Dynamic temperature exponent',
             initialValue: cfgModel.dynaTempExponent,
-            decimalDigits: 3,
             validator: validatePositiveDouble,
-            onSaved: onDoubleSave((x) => cfgModel.setDynaTempExponent(x))
+            onSaved: (x) => cfgModel.setDynaTempExponent(x)
           ),
         CardSettingsInt(
           label: 'Top K',
@@ -378,50 +404,44 @@ class _SettingsPageState extends State<SettingsPage> {
           validator: validateNonNegativeInt,
           onSaved: onIntSave((x) => cfgModel.setTopK(x))
         ),
-        CardSettingsDouble(
+        cardSettingsDouble(
           label: 'Top P (nucleus sampling)',
           initialValue: cfgModel.topP,
-          decimalDigits: 3,
           validator: validateNormalizedDouble,
-          onSaved: onDoubleSave((x) => cfgModel.setTopP(x))
+          onSaved: (x) => cfgModel.setTopP(x)
         ),
         if(apiType == ApiType.llamaCpp)
-          CardSettingsDouble(
+          cardSettingsDouble(
             label: 'Min P',
             initialValue: cfgModel.minP,
-            decimalDigits: 3,
             validator: validateNormalizedDouble,
-            onSaved: onDoubleSave((x) => cfgModel.setMinP(x))
+            onSaved: (x) => cfgModel.setMinP(x)
           ),
-        CardSettingsDouble(
+        cardSettingsDouble(
           label: 'Tail-free sampling',
           initialValue: cfgModel.tfs,
-          decimalDigits: 3,
           validator: validateNormalizedDouble,
-          onSaved: onDoubleSave((x) => cfgModel.setTfs(x))
+          onSaved: (x) => cfgModel.setTfs(x)
         ),
-        CardSettingsDouble(
+        cardSettingsDouble(
           label: 'Typical sampling',
           initialValue: cfgModel.typical,
-          decimalDigits: 3,
           validator: validateNormalizedDouble,
-          onSaved: onDoubleSave((x) => cfgModel.setTypical(x))
+          onSaved: (x) => cfgModel.setTypical(x)
         ),
         if(apiType == ApiType.neodim)
-          CardSettingsDouble(
+          cardSettingsDouble(
             label: 'Top A',
             initialValue: cfgModel.topA,
-            decimalDigits: 3,
             validator: validateNormalizedDouble,
-            onSaved: onDoubleSave((x) => cfgModel.setTopA(x))
+            onSaved: (x) => cfgModel.setTopA(x)
           ),
         if(apiType == ApiType.neodim)
-          CardSettingsDouble(
+          cardSettingsDouble(
             label: 'Penalty alpha',
             initialValue: cfgModel.penaltyAlpha,
-            decimalDigits: 3,
             validator: validateNormalizedDouble,
-            onSaved: onDoubleSave((x) => cfgModel.setPenaltyAlpha(x))
+            onSaved: (x) => cfgModel.setPenaltyAlpha(x)
           ),
         if(apiType == ApiType.llamaCpp)
           picker(
@@ -431,43 +451,38 @@ class _SettingsPageState extends State<SettingsPage> {
             onSaved: (s) => cfgModel.setMirostat(s)
           ),
         if(apiType == ApiType.llamaCpp)
-          CardSettingsDouble(
+          cardSettingsDouble(
             label: 'Mirostat Tau',
             initialValue: cfgModel.mirostatTau,
-            decimalDigits: 3,
             validator: validatePositiveDouble,
-            onSaved: onDoubleSave((x) => cfgModel.setMirostatTau(x))
+            onSaved: (x) => cfgModel.setMirostatTau(x)
           ),
         if(apiType == ApiType.llamaCpp)
-          CardSettingsDouble(
+          cardSettingsDouble(
             label: 'Mirostat Eta',
             initialValue: cfgModel.mirostatEta,
-            decimalDigits: 3,
             validator: validateNormalizedDouble,
-            onSaved: onDoubleSave((x) => cfgModel.setMirostatEta(x))
+            onSaved: (x) => cfgModel.setMirostatEta(x)
           ),
-        CardSettingsDouble(
+        cardSettingsDouble(
           label: 'Repetition penalty',
           initialValue: cfgModel.repetitionPenalty,
-          decimalDigits: 3,
           validator: validateNonNegativeDouble,
-          onSaved: onDoubleSave((x) => cfgModel.setRepetitionPenalty(x))
+          onSaved: (x) => cfgModel.setRepetitionPenalty(x)
         ),
         if(apiType == ApiType.llamaCpp)
-          CardSettingsDouble(
+          cardSettingsDouble(
             label: 'Frequency penalty',
             initialValue: cfgModel.frequencyPenalty,
-            decimalDigits: 3,
             validator: validateNonNegativeDouble,
-            onSaved: onDoubleSave((x) => cfgModel.setFrequencyPenalty(x))
+            onSaved: (x) => cfgModel.setFrequencyPenalty(x)
           ),
         if(apiType == ApiType.llamaCpp)
-          CardSettingsDouble(
+          cardSettingsDouble(
             label: 'Presence penalty',
             initialValue: cfgModel.presencePenalty,
-            decimalDigits: 3,
             validator: validateNonNegativeDouble,
-            onSaved: onDoubleSave((x) => cfgModel.setPresencePenalty(x))
+            onSaved: (x) => cfgModel.setPresencePenalty(x)
           ),
         CardSettingsInt(
           label: 'Penalty range',
@@ -476,12 +491,11 @@ class _SettingsPageState extends State<SettingsPage> {
           onSaved: onIntSave((x) => cfgModel.setRepetitionPenaltyRange(x))
         ),
         if(apiType == ApiType.neodim)
-          CardSettingsDouble(
+          cardSettingsDouble(
             label: 'Penalty slope',
             initialValue: cfgModel.repetitionPenaltySlope,
-            decimalDigits: 3,
             validator: validateNonNegativeDouble,
-            onSaved: onDoubleSave((x) => cfgModel.setRepetitionPenaltySlope(x))
+            onSaved: (x) => cfgModel.setRepetitionPenaltySlope(x)
           ),
         CardSettingsSwitch(
           label: 'Include preamble in the penalty range',
