@@ -193,16 +193,26 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   String getPersonNameLabel(int authorIndex) {
-    if(authorIndex == Message.youIndex)
+    if(authorIndex == Message.youIndex) {
+      if(convType == ConversationType.adventure)
+        return 'Player name';
       return 'Person ${authorIndex + 1} (you) name';
+    }
+    if(convType == ConversationType.adventure || convType == ConversationType.story)
+        return 'Storyteller name';
     if(convType == ConversationType.groupChat)
       return 'Group participants names (separate by commas)';
     return 'Person ${authorIndex + 1} name';
   }
 
   String getPersonColorLabel(int authorIndex) {
-    if(authorIndex == Message.youIndex)
+    if(authorIndex == Message.youIndex) {
+      if(convType == ConversationType.adventure)
+        return 'Player color';
       return 'Person ${authorIndex + 1} (you) color';
+    }
+    if(convType == ConversationType.adventure || convType == ConversationType.story)
+        return 'Storyteller color';
     if(convType == ConversationType.groupChat)
       return 'Group participants color';
     return 'Person ${authorIndex + 1} color';
@@ -216,21 +226,25 @@ class _SettingsPageState extends State<SettingsPage> {
       children: [
         for(var authorIndex = 0; authorIndex < msgModel.participants.length; authorIndex++)
           ...[
-            CardSettingsText(
-              label: getPersonNameLabel(authorIndex),
-              initialValue: msgModel.participants[authorIndex].name,
-              validator: validateRequired,
-              onSaved: onStringSave((s) => msgModel.setAuthorName(authorIndex, s)),
-              maxLength: 64
-            ),
-            CardSettingsColorPicker(
-              label: getPersonColorLabel(authorIndex),
-              initialValue: msgModel.participants[authorIndex].color,
-              onSaved: (c) {
-                if(c != null)
-                  msgModel.setAuthorColor(authorIndex, c);
-              },
-            )
+            if(convType != ConversationType.story || authorIndex != Message.youIndex)
+              CardSettingsText(
+                key: ValueKey('authorName-$authorIndex'),
+                label: getPersonNameLabel(authorIndex),
+                initialValue: msgModel.participants[authorIndex].name,
+                validator: validateRequired,
+                onSaved: onStringSave((s) => msgModel.setAuthorName(authorIndex, s)),
+                maxLength: 64
+              ),
+            if(convType != ConversationType.story || authorIndex != Message.youIndex)
+              CardSettingsColorPicker(
+                key: ValueKey('authorColor-$authorIndex'),
+                label: getPersonColorLabel(authorIndex),
+                initialValue: msgModel.participants[authorIndex].color,
+                onSaved: (c) {
+                  if(c != null)
+                    msgModel.setAuthorColor(authorIndex, c);
+                },
+              )
           ]
       ],
     );
