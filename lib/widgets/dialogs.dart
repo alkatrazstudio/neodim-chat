@@ -9,16 +9,22 @@ import 'package:collection/collection.dart';
 
 import '../models/messages.dart';
 
+enum MessageDialogAction {
+  edit,
+  deleteCurrent,
+  deleteCurrentAndAfter
+}
+
 class MessageDialogResult {
   const MessageDialogResult({
     required this.participantIndex,
     required this.text,
-    required this.doDelete
+    required this.action
   });
 
   final int participantIndex;
   final String text;
-  final bool doDelete;
+  final MessageDialogAction action;
 }
 
 Future<MessageDialogResult?> showMessageDialog(
@@ -42,15 +48,15 @@ Future<MessageDialogResult?> showMessageDialog(
       Navigator.of(context).pop(MessageDialogResult(
         text: text,
         participantIndex: newParticipantIndex,
-        doDelete: false
+        action: MessageDialogAction.edit
       ));
   }
 
-  void deleteMsg(BuildContext ctx) {
-    Navigator.of(context).pop(const MessageDialogResult(
+  void nonEditAction(BuildContext ctx, MessageDialogAction action) {
+    Navigator.of(context).pop(MessageDialogResult(
       text: '',
       participantIndex: Message.noneIndex,
-      doDelete: true
+      action: action
     ));
   }
 
@@ -129,11 +135,35 @@ Future<MessageDialogResult?> showMessageDialog(
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    TextButton(
-                      child: const Text('DELETE'),
-                      onPressed: () {
-                        deleteMsg(context);
-                      }
+                    MenuAnchor(
+                      menuChildren: [
+                        MenuItemButton(
+                          child: const Text('Delete'),
+                          onPressed: () {
+                            nonEditAction(context, MessageDialogAction.deleteCurrent);
+                          },
+                        ),
+                        MenuItemButton(
+                          child: const Text('Delete this and below'),
+                          onPressed: () async {
+                            var delConfirmed = await showConfirmDialog(
+                              context, 'Delete this and below?', 'Delete this message and everything after it?');
+                            if(delConfirmed)
+                              nonEditAction(context, MessageDialogAction.deleteCurrentAndAfter);
+                          },
+                        ),
+                      ],
+                      style: const MenuStyle(
+                        alignment: Alignment.topLeft
+                      ),
+                      builder: (context, controller, child) {
+                        return IconButton(
+                          onPressed: () {
+                            controller.open();
+                          },
+                          icon: const Icon(Icons.delete_forever)
+                        );
+                      },
                     ),
                     TextButton(
                       child: const Text('OK'),

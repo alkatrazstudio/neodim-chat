@@ -498,6 +498,16 @@ class MessagesModel extends ChangeNotifier {
     return isRemoved ? msg : null;
   }
 
+  List<Message> removeToLast(Message msg) {
+    var msgIndex = messages.indexOf(msg);
+    if(msgIndex < 0)
+      return [];
+    var removedMessages = messages.sublist(msgIndex);
+    messages.removeRange(msgIndex, messages.length);
+    notifyListeners();
+    return removedMessages;
+  }
+
   Message? removeLast() {
     if(messages.isEmpty)
       return null;

@@ -54,10 +54,19 @@ class ChatMsg extends StatelessWidget {
           if(result == null)
             return;
           var messages = Provider.of<MessagesModel>(context, listen: false);
-          if(result.doDelete)
-            messages.remove(msg);
-          else
-            messages.setTextAndAuthorIndex(msg, result.text, result.participantIndex, true);
+          switch(result.action) {
+            case MessageDialogAction.edit:
+              messages.setTextAndAuthorIndex(msg, result.text, result.participantIndex, true);
+              break;
+
+            case MessageDialogAction.deleteCurrent:
+              messages.remove(msg);
+              break;
+
+            case MessageDialogAction.deleteCurrentAndAfter:
+              messages.removeToLast(msg);
+              break;
+          }
           await ConversationsModel.saveCurrentData(context);
         }
       )
