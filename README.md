@@ -88,6 +88,10 @@ The `>` symbol is used internally as the player's prompt,
 so you may want to inform the AI about it in the preable.
 With this preamble you may try to write your actions without "you",
 e.g. just "Pat the goblin".
+
+It may also help if you first write a couple responses yourself
+to set the model on the right track.
+
 But in the end, the method of achieving the best text adventure experience really depends on the model.
 
 **An example of the adventure mode**
