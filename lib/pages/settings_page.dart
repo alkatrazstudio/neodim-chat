@@ -321,10 +321,6 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   CardSettingsSection configSection(BuildContext context, ConfigModel cfgModel) {
-    var combineLinesEditable = convType == ConversationType.chat;
-    var autoAlternateEnabled = convType == ConversationType.chat || convType == ConversationType.groupChat;
-    var colonStartIsPreviousNameEnabled = convType == ConversationType.groupChat;
-
     var supportedWarpers = switch(apiType) {
       ApiType.neodim => NeodimRequest.supportedWarpers,
       ApiType.llamaCpp => LlamaCppRequest.supportedWarpers,
@@ -587,27 +583,27 @@ class _SettingsPageState extends State<SettingsPage> {
           initialValue: cfgModel.undoBySentence,
           onSaved: (val) => cfgModel.setUndoBySentence(val ?? false)
         ),
-        picker(
-          label: 'Combine chat lines${combineLinesEditable ? '' : ' (only available in chat mode)'}',
-          initialItem: cfgModel.combineChatLines,
-          items: CombineChatLinesType.values,
-          onSaved: (s) => cfgModel.setGroupChatLines(s),
-          enabled: combineLinesEditable
-        ),
-        CardSettingsSwitch(
-          label: 'Always alternate chat participants in continuous mode ${autoAlternateEnabled ? '' : ' (only available in chat or group chat mode)'}',
-          initialValue: cfgModel.continuousChatForceAlternateParticipants,
-          onSaved: (val) => cfgModel.setContinuousChatForceAlternateParticipants(val ?? true),
-          enabled: autoAlternateEnabled
-        ),
-        CardSettingsSwitch(
-          label: 'Colon at the start inserts the previous participant\'s name',
-          initialValue: cfgModel.colonStartIsPreviousName,
-          onSaved: (val) => cfgModel.setColonStartIsPreviousName(val ?? true),
-          enabled: colonStartIsPreviousNameEnabled,
-          trueLabel: 'Yes, and no colon means a non-dialog line',
-          falseLabel: 'No, colon inserts a non-dialog line'
-        ),
+        if(convType == ConversationType.chat)
+          picker(
+            label: 'Combine chat lines',
+            initialItem: cfgModel.combineChatLines,
+            items: CombineChatLinesType.values,
+            onSaved: (s) => cfgModel.setGroupChatLines(s)
+          ),
+        if(convType == ConversationType.chat || convType == ConversationType.groupChat)
+          CardSettingsSwitch(
+            label: 'Always alternate chat participants in continuous mode',
+            initialValue: cfgModel.continuousChatForceAlternateParticipants,
+            onSaved: (val) => cfgModel.setContinuousChatForceAlternateParticipants(val ?? true)
+          ),
+        if(convType == ConversationType.groupChat)
+          CardSettingsSwitch(
+            label: 'Colon at the start inserts the previous participant\'s name',
+            initialValue: cfgModel.colonStartIsPreviousName,
+            onSaved: (val) => cfgModel.setColonStartIsPreviousName(val ?? true),
+            trueLabel: 'Yes, and no colon means a non-dialog line',
+            falseLabel: 'No, colon inserts a non-dialog line'
+          ),
         if(convType == ConversationType.groupChat)
           picker(
             label: 'Participant on retry',
