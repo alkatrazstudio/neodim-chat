@@ -36,13 +36,13 @@ enum TemperatureMode {
 
 enum Warper {
   repetitionPenalty,
-  temperature,
   topK,
-  topP,
   tfs,
   typical,
+  topP,
+  minP,
   topA,
-  minP
+  temperature
 }
 
 List<Warper> warpersListFromJson(dynamic json) {
@@ -95,11 +95,11 @@ class ConfigModel extends ChangeNotifier {
   @JsonKey(defaultValue: 0)
   double minP = 0;
 
-  @JsonKey(defaultValue: 0)
-  double tfs = 0;
+  @JsonKey(defaultValue: 0.9)
+  double tfs = 0.9;
 
-  @JsonKey(defaultValue: 0.2)
-  double typical = 0.2;
+  @JsonKey(defaultValue: 0)
+  double typical = 0;
 
   @JsonKey(defaultValue: 0)
   double topA = 0;
