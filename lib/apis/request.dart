@@ -24,26 +24,6 @@ enum StopStringsType {
   regex
 }
 
-class Warper {
-  static const String repetitionPenalty = 'repetition_penalty';
-  static const String temperature = 'temperature';
-  static const String topK = 'top_k';
-  static const String topP = 'top_p';
-  static const String typical = 'typical';
-  static const String tfs = 'tfs';
-  static const String topA = 'top_a';
-
-  static const List<String> defaultOrder = [
-    repetitionPenalty,
-    temperature,
-    topK,
-    topP,
-    tfs,
-    typical,
-    topA
-  ];
-}
-
 enum ApiType {
   neodim,
   llamaCpp

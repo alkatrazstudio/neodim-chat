@@ -2,11 +2,15 @@
 // 🄯 2024, Alexey Parfenov <zxed@alkatrazstudio.net>
 
 extension EnumValues<T extends Enum> on List<T> {
-  T byNameOrFirst(String name) {
+  T? byNameOrNull(String name) {
     try {
       return byName(name);
-    } on Exception catch (_) {
-      return first;
+    } catch (_) {
+      return null;
     }
+  }
+
+  T byNameOrFirst(String name) {
+    return byNameOrNull(name) ?? first;
   }
 }

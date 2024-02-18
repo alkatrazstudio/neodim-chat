@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 import '../apis/request.dart';
 import '../apis/response.dart';
 import '../models/api_model.dart';
+import '../models/config.dart';
 import '../models/conversations.dart';
 import '../models/messages.dart';
 
@@ -55,7 +56,7 @@ class NeodimRequest {
   final double? typical;
   final double? topA;
   final double? penaltyAlpha;
-  final List<String>? warpersOrder;
+  final List<Warper>? warpersOrder;
   final double? repetitionPenalty;
   final int? repetitionPenaltyRange;
   final double? repetitionPenaltySlope;
@@ -74,6 +75,30 @@ class NeodimRequest {
   final String? requiredServerVersion;
   final int? noRepeatNGramSize;
 
+  static const warpersMap = <Warper, String> {
+    Warper.repetitionPenalty: 'repetition_penalty',
+    Warper.temperature: 'temperature',
+    Warper.topK: 'top_k',
+    Warper.topP: 'top_p',
+    Warper.tfs: 'tfs',
+    Warper.typical: 'typical',
+    Warper.topA: 'top_a'
+  };
+
+  static List<Warper> supportedWarpers() => warpersMap.keys.toList();
+
+  static List<String>? warpersToJson(List<Warper>? warpers) {
+    if(warpers == null)
+      return null;
+    var names = <String>[];
+    for(var warper in warpers) {
+      var name = warpersMap[warper];
+      if(name != null)
+        names.add(name);
+    }
+    return names;
+  }
+
   Map<String, dynamic> toApiRequestMap() {
     return <String, dynamic> {
       'prompt': prompt,
@@ -87,7 +112,7 @@ class NeodimRequest {
       'typical': typical,
       'top_a': topA,
       'penalty_alpha': penaltyAlpha,
-      'warpers_order': warpersOrder,
+      'warpers_order': warpersToJson(warpersOrder),
       'repetition_penalty': repetitionPenalty,
       'repetition_penalty_range': repetitionPenaltyRange,
       'repetition_penalty_slope': repetitionPenaltySlope,

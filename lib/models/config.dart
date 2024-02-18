@@ -3,9 +3,11 @@
 
 import 'package:flutter/material.dart';
 
+import 'package:change_case/change_case.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import '../apis/request.dart';
+import '../util/enums.dart';
 
 part 'config.g.dart';
 
@@ -30,6 +32,31 @@ enum ParticipantOnRetry {
 enum TemperatureMode {
   static,
   dynamic
+}
+
+enum Warper {
+  repetitionPenalty,
+  temperature,
+  topK,
+  topP,
+  tfs,
+  typical,
+  topA
+}
+
+List<Warper> warpersListFromJson(dynamic json) {
+  var warpers = <Warper>[];
+  if(json is List) {
+    for(var item in json) {
+      if(item is String) {
+        item = item.toCamelCase();
+        var warper = Warper.values.byNameOrNull(item);
+        if(warper != null)
+          warpers.add(warper);
+      }
+    }
+  }
+  return warpers;
 }
 
 @JsonSerializable(explicitToJson: true)
@@ -88,8 +115,8 @@ class ConfigModel extends ChangeNotifier {
   @JsonKey(defaultValue: 0.1)
   double mirostatEta = 0.1;
 
-  @JsonKey(defaultValue: Warper.defaultOrder)
-  List<String> warpersOrder = Warper.defaultOrder;
+  @JsonKey(defaultValue: [], fromJson: warpersListFromJson)
+  List<Warper> warpersOrder = [];
 
   @JsonKey(defaultValue: 1.15)
   double repetitionPenalty = 1.15;
@@ -257,8 +284,8 @@ class ConfigModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setWarpersOrder(List<String> newWarpersOrder) {
-    warpersOrder = newWarpersOrder.toList();
+  void setWarpersOrder(List<Warper> newWarpersOrder) {
+    warpersOrder = newWarpersOrder;
     notifyListeners();
   }
 

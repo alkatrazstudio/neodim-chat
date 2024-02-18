@@ -4,16 +4,17 @@
 import 'package:flutter/material.dart';
 
 import 'package:card_settings/card_settings.dart';
+import 'package:change_case/change_case.dart';
 import 'package:collection/collection.dart';
 
-import '../apis/request.dart';
+import '../models/config.dart';
 
-class CardSettingsWarpersOrder extends FormField<List<String>> implements CardSettingsWidget {
+class CardSettingsWarpersOrder extends FormField<List<Warper>> implements CardSettingsWidget {
   CardSettingsWarpersOrder({
-    required List<String> initialValue,
-    required void Function(List<String> newValue) onSaved
+    required List<Warper> initialValue,
+    required void Function(List<Warper> newValue) onSaved
   }) : super(
-    initialValue: initialValue.toList(),
+    initialValue: initialValue,
     onSaved: (val) => onSaved(val ?? []),
     builder: (field) => (field as CardSettingsWarpersOrderState).subBuild(field.context)
   );
@@ -28,19 +29,17 @@ class CardSettingsWarpersOrder extends FormField<List<String>> implements CardSe
   bool? get visible => true;
 }
 
-class CardSettingsWarpersOrderState extends FormFieldState<List<String>> {
-  final List<String> order = [];
+class CardSettingsWarpersOrderState extends FormFieldState<List<Warper>> {
+  final List<Warper> order = [];
 
   @override
   void initState() {
     super.initState();
 
-    order
-      ..clear()
-      ..addAll(widget.initialValue ?? [])
-      ..where((warper) => Warper.defaultOrder.contains(warper));
+    order.clear();
+    order.addAll(widget.initialValue ?? []);
 
-    for(var warper in Warper.defaultOrder) {
+    for(var warper in Warper.values) {
       if(!order.contains(warper))
         order.add(warper);
     }
@@ -62,9 +61,9 @@ class CardSettingsWarpersOrderState extends FormFieldState<List<String>> {
           order.insert(newIndex, item);
           didChange(order);
         },
-        children: order.mapIndexed((index, name) => ListTile(
-          key: Key(name),
-          title: Text(name),
+        children: order.mapIndexed((index, warper) => ListTile(
+          key: ValueKey(warper),
+          title: Text(warper.name.toNoCase()),
           trailing: ReorderableDragStartListener(
             index: index,
             child: const Icon(Icons.drag_handle)

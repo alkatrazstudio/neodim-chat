@@ -4,6 +4,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:card_settings/card_settings.dart';
+import 'package:change_case/change_case.dart';
 import 'package:provider/provider.dart';
 
 import '../apis/request.dart';
@@ -250,20 +251,6 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  String enumValToText(String val) {
-    var parts = val.split(RegExp(r'(?=[A-Z])'));
-    var text = parts.join(' ').toLowerCase();
-    return text;
-  }
-
-  String textToEnumVal(String text) {
-    var parts = text.split(' ');
-    if(parts.length == 1)
-      return parts[0];
-    var val = '${parts[0]}${parts.sublist(1).map((s) => '${s[0].toUpperCase()}${s.substring(1)}').join('')}';
-    return val;
-  }
-
   CardSettingsListPicker picker<T extends Enum>({
     required String label,
     required T initialItem,
@@ -274,19 +261,19 @@ class _SettingsPageState extends State<SettingsPage> {
   }) {
     return CardSettingsListPicker<String>(
       label: label,
-      initialItem: enumValToText(initialItem.name),
-      items: items.map((v) => enumValToText(v.name)).toList(),
+      initialItem: initialItem.name.toNoCase(),
+      items: items.map((v) => v.name.toNoCase()).toList(),
       onSaved: (s) {
         if(s == null)
           return;
-        var strVal = textToEnumVal(s);
+        var strVal = s.toCamelCase();
         var enumVal = items.byNameOrFirst(strVal);
         onSaved(enumVal);
       },
       onChanged: onChanged == null ? null : (s) {
         if(s == null)
           return;
-        var strVal = textToEnumVal(s);
+        var strVal = s.toCamelCase();
         var enumVal = items.byNameOrFirst(strVal);
         onChanged(enumVal);
       },
