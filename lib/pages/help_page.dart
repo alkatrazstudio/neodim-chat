@@ -133,6 +133,9 @@ class HelpPageState extends State<HelpPage> {
                         TableHtmlExtension()
                       ],
                       style: {
+                        'a': Style(
+                          textDecoration: TextDecoration.none
+                        ),
                         'th, td': Style(
                           fontSize: FontSize.large,
                           padding: HtmlPaddings.only(top: 10, bottom: 10, right: 20),
