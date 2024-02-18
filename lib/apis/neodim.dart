@@ -75,7 +75,7 @@ class NeodimRequest {
   final String? requiredServerVersion;
   final int? noRepeatNGramSize;
 
-  static const warpersMap = <Warper, String> {
+  static Map<Warper, String> get warpersMap => {
     Warper.repetitionPenalty: 'repetition_penalty',
     Warper.temperature: 'temperature',
     Warper.topK: 'top_k',
@@ -84,20 +84,8 @@ class NeodimRequest {
     Warper.typical: 'typical',
     Warper.topA: 'top_a'
   };
-
-  static List<Warper> supportedWarpers() => warpersMap.keys.toList();
-
-  static List<String>? warpersToJson(List<Warper>? warpers) {
-    if(warpers == null)
-      return null;
-    var names = <String>[];
-    for(var warper in warpers) {
-      var name = warpersMap[warper];
-      if(name != null)
-        names.add(name);
-    }
-    return names;
-  }
+  static List<Warper> get supportedWarpers => ApiRequest.supportedWarpers(warpersMap);
+  static List<String>? warpersToJson(List<Warper>? warpers) => ApiRequest.warpersToJson(warpersMap, warpers);
 
   Map<String, dynamic> toApiRequestMap() {
     return <String, dynamic> {

@@ -165,4 +165,20 @@ class ApiRequest {
     endpoint = url.toString();
     return endpoint;
   }
+
+  static List<Warper> supportedWarpers(Map<Warper, String> warpersMap) {
+    return warpersMap.keys.toList();
+  }
+
+  static List<String>? warpersToJson(Map<Warper, String> warpersMap, List<Warper>? warpers) {
+    if(warpers == null)
+      return null;
+    var names = <String>[];
+    for(var warper in warpers) {
+      var name = warpersMap[warper];
+      if(name != null)
+        names.add(name);
+    }
+    return names;
+  }
 }

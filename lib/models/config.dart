@@ -41,7 +41,8 @@ enum Warper {
   topP,
   tfs,
   typical,
-  topA
+  topA,
+  minP
 }
 
 List<Warper> warpersListFromJson(dynamic json) {

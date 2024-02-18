@@ -11,6 +11,7 @@ import '../models/config.dart';
 
 class CardSettingsWarpersOrder extends FormField<List<Warper>> implements CardSettingsWidget {
   CardSettingsWarpersOrder({
+    required this.supportedWarpers,
     required List<Warper> initialValue,
     required void Function(List<Warper> newValue) onSaved
   }) : super(
@@ -19,8 +20,10 @@ class CardSettingsWarpersOrder extends FormField<List<Warper>> implements CardSe
     builder: (field) => (field as CardSettingsWarpersOrderState).subBuild(field.context)
   );
 
+  final List<Warper> supportedWarpers;
+
   @override
-  CardSettingsWarpersOrderState createState() => CardSettingsWarpersOrderState();
+  CardSettingsWarpersOrderState createState() => CardSettingsWarpersOrderState(supportedWarpers: supportedWarpers);
 
   @override
   bool? get showMaterialonIOS => false;
@@ -30,7 +33,12 @@ class CardSettingsWarpersOrder extends FormField<List<Warper>> implements CardSe
 }
 
 class CardSettingsWarpersOrderState extends FormFieldState<List<Warper>> {
+  CardSettingsWarpersOrderState({
+    required this.supportedWarpers
+  });
+
   final List<Warper> order = [];
+  final List<Warper> supportedWarpers;
 
   @override
   void initState() {
@@ -43,6 +51,8 @@ class CardSettingsWarpersOrderState extends FormFieldState<List<Warper>> {
       if(!order.contains(warper))
         order.add(warper);
     }
+
+    order.removeWhere((warper) => !supportedWarpers.contains(warper));
   }
 
   Widget subBuild(BuildContext context) {

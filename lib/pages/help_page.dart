@@ -426,9 +426,7 @@ class HelpPageState extends State<HelpPage> {
             <a href="$serverBaseUrl#no_repeat_ngram_size-int-optional">more info</a>
           </li>
           <li>
-            <strong>Warpers order</strong> - the order in which the filters are applied
-            (repetition penalty, temperature, top K, top P, tail-free, typical, top A).
-            <a href="$serverBaseUrl#warpers_order-string-optional">more info</a>
+            <strong>Warpers order</strong> - the order in which the filters/samplers/warpers are applied.
           </li>
           <li>
             <strong>Generate extra sequences for quick retries</strong> -

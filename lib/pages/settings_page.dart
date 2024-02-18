@@ -7,6 +7,8 @@ import 'package:card_settings/card_settings.dart';
 import 'package:change_case/change_case.dart';
 import 'package:provider/provider.dart';
 
+import '../apis/llama_cpp.dart';
+import '../apis/neodim.dart';
 import '../apis/request.dart';
 import '../models/config.dart';
 import '../models/conversations.dart';
@@ -323,6 +325,12 @@ class _SettingsPageState extends State<SettingsPage> {
     var autoAlternateEnabled = convType == ConversationType.chat || convType == ConversationType.groupChat;
     var colonStartIsPreviousNameEnabled = convType == ConversationType.groupChat;
 
+    var supportedWarpers = switch(apiType) {
+      ApiType.neodim => NeodimRequest.supportedWarpers,
+      ApiType.llamaCpp => LlamaCppRequest.supportedWarpers,
+      _ => <Warper>[]
+    };
+
     return CardSettingsSection(
       header: CardSettingsHeader(
         label: 'Configuration'
@@ -539,8 +547,9 @@ class _SettingsPageState extends State<SettingsPage> {
             validator: validateNonNegativeInt,
             onSaved: onIntSave((x) => cfgModel.setNoRepeatNGramSize(x))
           ),
-        if(apiType == ApiType.neodim)
+        if(supportedWarpers.isNotEmpty)
           CardSettingsWarpersOrder(
+            supportedWarpers: supportedWarpers,
             initialValue: cfgModel.warpersOrder,
             onSaved: (order) => cfgModel.setWarpersOrder(order)
           ),

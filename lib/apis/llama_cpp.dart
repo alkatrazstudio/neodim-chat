@@ -35,6 +35,7 @@ class LlamaCppRequest {
     required this.penaltyPrompt,
     required this.grammar,
     required this.ignoreEos,
+    required this.samplers,
     required this.logitBias
   });
 
@@ -61,6 +62,18 @@ class LlamaCppRequest {
   final String? grammar;
   final bool ignoreEos;
   final List<(String, dynamic)> logitBias;
+  final List<Warper> samplers;
+
+  static Map<Warper, String> get warpersMap => {
+    Warper.topK: 'top_k',
+    Warper.tfs: 'tfs_z',
+    Warper.typical: 'typical_p',
+    Warper.topP: 'top_p',
+    Warper.minP: 'min_p',
+    Warper.temperature: 'temperature'
+  };
+  static List<Warper> get supportedWarpers => ApiRequest.supportedWarpers(warpersMap);
+  static List<String> warpersToJson(List<Warper> warpers) => ApiRequest.warpersToJson(warpersMap, warpers)!;
 
   Map<String, dynamic> toApiRequestMap() {
     return <String, dynamic> {
@@ -87,6 +100,7 @@ class LlamaCppRequest {
       'grammar': grammar,
       'ignore_eos': ignoreEos,
       'logit_bias': logitBias.map((b) => [b.$1, b.$2]).toList(),
+      'samplers': warpersToJson(samplers),
       'cache_prompt': true
     };
   }
@@ -269,7 +283,8 @@ class ApiRequestLlamaCpp {
       penaltyPrompt: repPenText,
       grammar: grammar,
       ignoreEos: grammar == null,
-      logitBias: logitBias
+      logitBias: logitBias,
+      samplers: params.cfgModel.warpersOrder
     );
 
     var requestMap = request.toApiRequestMap();
