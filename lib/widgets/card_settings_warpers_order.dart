@@ -46,12 +46,7 @@ class CardSettingsWarpersOrderState extends FormFieldState<List<Warper>> {
 
     order.clear();
     order.addAll(widget.initialValue ?? []);
-
-    for(var warper in Warper.values) {
-      if(!order.contains(warper))
-        order.add(warper);
-    }
-
+    ConfigModel.normalizeWarpers(order);
     order.removeWhere((warper) => !supportedWarpers.contains(warper));
   }
 

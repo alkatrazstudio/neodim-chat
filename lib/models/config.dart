@@ -57,6 +57,7 @@ List<Warper> warpersListFromJson(dynamic json) {
       }
     }
   }
+  ConfigModel.normalizeWarpers(warpers);
   return warpers;
 }
 
@@ -116,8 +117,8 @@ class ConfigModel extends ChangeNotifier {
   @JsonKey(defaultValue: 0.1)
   double mirostatEta = 0.1;
 
-  @JsonKey(defaultValue: [], fromJson: warpersListFromJson)
-  List<Warper> warpersOrder = [];
+  @JsonKey(fromJson: warpersListFromJson)
+  List<Warper> warpersOrder = Warper.values;
 
   @JsonKey(defaultValue: 1.15)
   double repetitionPenalty = 1.15;
@@ -449,6 +450,13 @@ class ConfigModel extends ChangeNotifier {
     participantOnRetry = other.participantOnRetry;
 
     notifyListeners();
+  }
+
+  static void normalizeWarpers(List<Warper> warpers) {
+    for(var warper in Warper.values) {
+      if(!warpers.contains(warper))
+        warpers.add(warper);
+    }
   }
 
   static ConfigModel fromJson(Map<String, dynamic> json) => _$ConfigModelFromJson(json);
