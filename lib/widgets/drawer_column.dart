@@ -37,9 +37,8 @@ class DrawerColumnState extends State<DrawerColumn> {
                   var c = Conversation.create('Conversation');
                   var data = ConversationData.empty();
                   await c.saveData(data);
-                  Provider.of<ConversationsModel>(context, listen: false)
-                    ..add(c)
-                    ..save();
+                  Provider.of<ConversationsModel>(context, listen: false).add(c);
+                  ConversationsModel.saveList(context);
                   await c.setAsCurrent(context, data);
                   Navigator.pop(context);
                   Navigator.push<void>(

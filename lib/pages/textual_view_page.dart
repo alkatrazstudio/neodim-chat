@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 
 import '../models/config.dart';
 import '../models/conversations.dart';
+import '../util/popups.dart';
 
 class TextualViewPage extends StatelessWidget {
   const TextualViewPage();
@@ -28,9 +29,7 @@ class TextualViewPage extends StatelessWidget {
             icon: const Icon(Icons.copy),
             onPressed: () async {
               await Clipboard.setData(ClipboardData(text: text));
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Copied to the clipboard'))
-              );
+              showPopupMsg(context, 'Copied to the clipboard');
             }
           )
         ]

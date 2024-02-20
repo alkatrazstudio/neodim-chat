@@ -69,7 +69,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
           state.save();
           var convModel = Provider.of<ConversationsModel>(context, listen: false);
-          await convModel.save();
+          await ConversationsModel.saveList(context);
           await ConversationsModel.saveCurrentData(context);
           Navigator.of(context).pop();
         }

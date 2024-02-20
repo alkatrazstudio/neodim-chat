@@ -13,6 +13,7 @@ import 'package:uuid/uuid.dart';
 
 import '../models/config.dart';
 import '../models/messages.dart';
+import '../util/popups.dart';
 
 part 'conversations.g.dart';
 
@@ -90,7 +91,7 @@ class Conversation {
 
   Future setAsCurrent(BuildContext ctx, ConversationData data) async {
     Provider.of<MessagesModel>(ctx, listen: false).load(data.msgModel);
-    await Provider.of<ConversationsModel>(ctx, listen: false).setCurrent(this);
+    await Provider.of<ConversationsModel>(ctx, listen: false).setCurrent(ctx, this);
     Provider.of<ConfigModel>(ctx, listen: false).load(data.config);
   }
 
@@ -244,7 +245,7 @@ class ConversationsModel extends ChangeNotifier {
     await c.delete();
 
     self.conversations.removeAt(i);
-    await self.save();
+    await saveList(ctx);
     if(wasCurrent)
       self.current = null;
     self.notUsedMessagesCount = 0;
@@ -255,12 +256,12 @@ class ConversationsModel extends ChangeNotifier {
     msgModel.load(MessagesModel());
   }
 
-  Future setCurrent(Conversation conversation) async {
+  Future setCurrent(BuildContext ctx, Conversation conversation) async {
     current = conversation;
     notUsedMessagesCount = 0;
     conversation.lastSetAsCurrentAt = DateTime.now();
     notifyListeners();
-    await save();
+    await saveList(ctx);
   }
 
   void updateUsedMessagesCount(
@@ -287,7 +288,21 @@ class ConversationsModel extends ChangeNotifier {
   }
 
   static Future saveCurrentData(BuildContext ctx) async {
-    Provider.of<ConversationsModel>(ctx, listen: false).current?.saveCurrentData(ctx);
+    try {
+      await Provider.of<ConversationsModel>(ctx, listen: false).current?.saveCurrentData(ctx);
+    } catch(e) {
+      showPopupMsg(ctx, 'Can\'t save the conversation: $e');
+      rethrow;
+    }
+  }
+
+  static Future saveList(BuildContext ctx) async {
+    try {
+      await Provider.of<ConversationsModel>(ctx, listen: false).save();
+    } catch(e) {
+      showPopupMsg(ctx, 'Can\'t save the list of conversations: $e');
+      rethrow;
+    }
   }
 
   static ConversationsModel fromJson(Map<String, dynamic> json) => _$ConversationsModelFromJson(json);

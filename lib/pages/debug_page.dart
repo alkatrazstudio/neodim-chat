@@ -11,6 +11,7 @@ import 'package:provider/provider.dart';
 
 import '../models/api_model.dart';
 import '../models/conversations.dart';
+import '../util/popups.dart';
 
 class DebugPage extends StatelessWidget {
   const DebugPage();
@@ -49,9 +50,7 @@ class DebugPage extends StatelessWidget {
                     IconButton(
                       onPressed: () async {
                         await Clipboard.setData(ClipboardData(text: jsonEncode(request)));
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Request JSON has been copied to the clipboard'))
-                        );
+                        showPopupMsg(context, 'Request JSON has been copied to the clipboard');
                       },
                       icon: const Icon(Icons.copy)
                     )
@@ -77,9 +76,7 @@ class DebugPage extends StatelessWidget {
                     IconButton(
                       onPressed: () async {
                         await Clipboard.setData(ClipboardData(text: jsonEncode(response)));
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Response JSON has been copied to the clipboard'))
-                        );
+                        showPopupMsg(context, 'Response JSON has been copied to the clipboard');
                       },
                       icon: const Icon(Icons.copy)
                     )

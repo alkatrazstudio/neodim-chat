@@ -59,7 +59,7 @@ class MainMenu extends StatelessWidget {
       var data = curConv.getCurrentData(context);
       await c.saveData(data);
       convModel.add(c);
-      await convModel.save();
+      await ConversationsModel.saveList(context);
       await c.loadAsCurrent(context);
       if(result == CheckboxDialogResult.yesWithoutCheckbox)
         Provider.of<MessagesModel>(context, listen: false).clear();
@@ -81,7 +81,7 @@ class MainMenu extends StatelessWidget {
         'Remove all messages from this conversation?')
       ) {
         msgModel.clear();
-        await curConv.saveCurrentData(context);
+        await ConversationsModel.saveCurrentData(context);
       }
     }),
 
