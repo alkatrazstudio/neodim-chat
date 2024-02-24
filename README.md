@@ -25,7 +25,7 @@ You can read the detailed help in the app itself.
 * Continuous generation (AI chats with itself or generates a story until manually stopped)
 * Advanced repetition penalty settings
 * Force the use of new words when retrying message generation, i.e. no same message on retry
-* Generate several messages upfront for quick retries (no loss of speed, but requires more VRAM)
+* Generate several messages upfront for quick retries (no loss of speed, but requires more VRAM, also only available when using Neodim Server)
 * Auto-correcting some English grammar and punctuation, e.g. `i dont know, mr anderson` => `I don't know, Mr. Anderson.`
 * View/copy the chat/story content as plain text
 * Undo the text by sentence
