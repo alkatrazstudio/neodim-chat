@@ -1,6 +1,30 @@
 # Neodim Chat - CHANGELOG
 
 
+## v0.10.0 (February 24, 2024)
+
+- Added: searching conversations by name
+- Added: ability to remove a range of messages from the selected to the last
+- Added: an option for what participant to choose on retry in a group chat
+- Added: ability to copy the request and the response from the debug page
+- Added: the debug page now shows tokens per second and total time passed
+- Added: frequency penalty, presence penalty, Min P and DynaTemp support for llama.cpp
+- Added: support for samplers/filters order for llama.cpp
+- Changed: default settings
+- Changed: conversations are now sorted by access date
+- Changed: unsupported settings are hidden instead of grayed-out
+- Changed: the debug tree is now collapsed by default to speed up opening the debug page
+- Improved: participant settings GUI
+- Improved: API calls for llama.cpp
+- Improved: file saving errors are now shown to the user
+- Fixed: wrong word concatenation when continuing the word in the next request
+- Fixed: entering 0.09 and less in a floating point settings field
+- Fixed: keyboard focus glitches
+- Fixed: crashes on Neodim Server requests
+- Fixed: context size detection for llama.cpp
+- Fixed: wrong penalty prompt processing for llama.cpp
+
+
 ## v0.9.0 (December 24, 2023)
 
 - Added: support for [llama.cpp](https://github.com/ggerganov/llama.cpp)

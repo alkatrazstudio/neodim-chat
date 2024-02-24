@@ -1,0 +1,6 @@
+- Improved conversations list and debug page
+- Added ability to remove a range of messages
+- Added more settings for llama.cpp
+- Fixed lots of small bugs and glitches
+
+Full changelog: https://github.com/alkatrazstudio/neodim-chat/blob/master/CHANGELOG.md
