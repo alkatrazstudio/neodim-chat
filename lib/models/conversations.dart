@@ -68,7 +68,7 @@ class Conversation {
     return data;
   }
 
-  Future saveData(ConversationData data) async {
+  Future<void> saveData(ConversationData data) async {
     var jsonMap = data.toJson();
     var json = jsonEncode(jsonMap);
     var dir = await dataDir();
@@ -89,7 +89,7 @@ class Conversation {
     return data;
   }
 
-  Future setAsCurrent(BuildContext ctx, ConversationData data) async {
+  Future<void> setAsCurrent(BuildContext ctx, ConversationData data) async {
     Provider.of<MessagesModel>(ctx, listen: false).load(data.msgModel);
     await Provider.of<ConversationsModel>(ctx, listen: false).setCurrent(ctx, this);
     Provider.of<ConfigModel>(ctx, listen: false).load(data.config);
@@ -109,7 +109,7 @@ class Conversation {
     return data;
   }
 
-  Future delete() async {
+  Future<void> delete() async {
     var dir = await dataDir();
     var f = File('${dir.path}/$id.json');
     if(!await f.exists())
@@ -197,7 +197,7 @@ class ConversationsModel extends ChangeNotifier {
   @JsonKey(includeFromJson: false, includeToJson: false)
   int notUsedMessagesCount = 0;
 
-  Future load() async {
+  Future<void> load() async {
     var rootDir = await getApplicationDocumentsDirectory();
     var f = File('${rootDir.path}/conversations.json');
     if(!await f.exists())
@@ -210,7 +210,7 @@ class ConversationsModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future save() async {
+  Future<void> save() async {
     var jsonMap = toJson();
     var json = jsonEncode(jsonMap);
     var rootDir = await getApplicationDocumentsDirectory();
@@ -224,17 +224,17 @@ class ConversationsModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future setName(Conversation c, String newName) async {
+  Future<void> setName(Conversation c, String newName) async {
     c.name = newName;
     notifyListeners();
   }
 
-  Future setType(Conversation c, ConversationType newType) async {
+  Future<void> setType(Conversation c, ConversationType newType) async {
     c.type = newType;
     notifyListeners();
   }
 
-  static Future delete(BuildContext ctx, Conversation c) async {
+  static Future<void> delete(BuildContext ctx, Conversation c) async {
     var self = Provider.of<ConversationsModel>(ctx, listen: false);
     var i = self.conversations.indexOf(c);
     if(i < 0)
@@ -256,7 +256,7 @@ class ConversationsModel extends ChangeNotifier {
     msgModel.load(MessagesModel());
   }
 
-  Future setCurrent(BuildContext ctx, Conversation conversation) async {
+  Future<void> setCurrent(BuildContext ctx, Conversation conversation) async {
     current = conversation;
     notUsedMessagesCount = 0;
     conversation.lastSetAsCurrentAt = DateTime.now();
@@ -287,7 +287,7 @@ class ConversationsModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  static Future saveCurrentData(BuildContext ctx) async {
+  static Future<void> saveCurrentData(BuildContext ctx) async {
     try {
       await Provider.of<ConversationsModel>(ctx, listen: false).current?.saveCurrentData(ctx);
     } catch(e) {
@@ -296,7 +296,7 @@ class ConversationsModel extends ChangeNotifier {
     }
   }
 
-  static Future saveList(BuildContext ctx) async {
+  static Future<void> saveList(BuildContext ctx) async {
     try {
       await Provider.of<ConversationsModel>(ctx, listen: false).save();
     } catch(e) {

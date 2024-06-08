@@ -71,7 +71,7 @@ class ChatState extends State<Chat> {
   Conversation? generatingForConv;
   Set<String> blacklistWordsForRetry = {};
 
-  Future submit(BuildContext context, int authorIndex, bool format) async {
+  Future<void> submit(BuildContext context, int authorIndex, bool format) async {
     var msgModel = Provider.of<MessagesModel>(context, listen: false);
     if(inputController.text.isEmpty)
       return;
@@ -328,7 +328,7 @@ class ChatState extends State<Chat> {
     }
   }
 
-  Future addGenerated(
+  Future<void> addGenerated(
     BuildContext context,
     int authorIndex, {
     Message? undoMessage,
@@ -393,7 +393,7 @@ class ChatState extends State<Chat> {
     Wakelock.set(false);
   }
 
-  Future nextAutoGen() async {
+  Future<void> nextAutoGen() async {
     if(Provider.of<ApiModel>(context, listen: false).isApiRunning)
       return;
     var convModel = Provider.of<ConversationsModel>(context, listen: false);
