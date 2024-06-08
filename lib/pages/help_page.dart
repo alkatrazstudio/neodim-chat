@@ -234,11 +234,6 @@ class HelpPageState extends State<HelpPage> {
             Can by any string. Will be shown in the side drawer.
           </li>
           <li>
-            <strong>Preamble</strong> - the text that will sent to the server
-            alongside with the chat text.
-            <a href="$serverBaseUrl#prompt-and-preamble">more info</a>
-          </li>
-          <li>
             <strong>Type</strong> - what this conversation represents.
             "Chat" mean a regular chat between two participants.
             "Adventure" means playing a text adventure game.
@@ -248,6 +243,11 @@ class HelpPageState extends State<HelpPage> {
             "Group chat" is a chat where the second participant is a group of different participants.
             In this case you need to write all the names of these participants
             in the "Group participants names", separating them with commas.
+          </li>
+          <li>
+            <strong>Preamble</strong> - the text that will sent to the server
+            alongside with the chat text.
+            <a href="$serverBaseUrl#prompt-and-preamble">more info</a>
           </li>
         </ul>
 
@@ -261,7 +261,7 @@ class HelpPageState extends State<HelpPage> {
           </li>
         </ul>
 
-        <h3>Configuration</h3>
+        <h3>Server</h3>
         <ul>
           <li>
             <strong>API type</strong> - the type of server-side API to connect to.
@@ -284,6 +284,10 @@ class HelpPageState extends State<HelpPage> {
             e.g. "http://192.168.1.123:8080".
             However, for both servers, you can just specify only IP or the hostname, e.g. "192.168.1.123".
           </li>
+        </ul>
+
+        <h3>Sampling</h3>
+        <ul>
           <li>
             <strong>Generated tokens</strong> - how many tokens to generate for a reply.
             <a href="$serverBaseUrl#generated_tokens_count-int-required">more info</a>
@@ -369,6 +373,13 @@ class HelpPageState extends State<HelpPage> {
             while a higher learning rate will make the algorithm more responsive.
           </li>
           <li>
+            <strong>Warpers order</strong> - the order in which the filters/samplers/warpers are applied.
+          </li>
+        </ul>
+
+        <h3>Penalties</h3>
+        <ul>
+          <li>
             <strong>Repetition penalty</strong> - make generated text more different than the already existing text.
             <a href="$serverBaseUrl#repetition_penalty-float-optional">more info</a>
           </li>
@@ -429,32 +440,33 @@ class HelpPageState extends State<HelpPage> {
             <a href="$serverBaseUrl#no_repeat_ngram_size-int-optional">more info</a>
           </li>
           <li>
-            <strong>Warpers order</strong> - the order in which the filters/samplers/warpers are applied.
-          </li>
+          <strong>Add words to the blacklist on retry</strong> -
+          when pressing "retry" button, add this number of random words
+          from the last speech bubble to a blacklist.
+          It means that these words will (probably) not appear on the next try.
+          The blacklist is only valid until all previous text remains the same.
+          When anything, except the last line, changes, the blacklist will be reset.
+          NOTE: this setting highly depends on the model.
+          It may not work or give weird results.
+        </li>
+        <li>
+          <strong>Also add special symbols to the blacklist</strong> -
+          add symbols (, ), * to the blacklist.
+        </li>
+        <li>
+          <strong>Remove old words from the blacklist on retry</strong> -
+          removes the specified amount of words from blacklist befoire adding new words.
+          Removed words may be re-added, but only on subsequent retries
+          (i.e. the removed words won't be re-added immediately).
+        </li>
+       </ul>
+
+       <h3>Control</h3>
+       <ul>
           <li>
             <strong>Generate extra sequences for quick retries</strong> -
             generate multiple replies at once and then use those replies
             when pressing the "retry" button without making additional requests to the server.
-          </li>
-          <li>
-            <strong>Add words to blacklist on retry</strong> -
-            when pressing "retry" button, add this number of random words
-            from the last speech bubble to a blacklist.
-            It means that these words will (probably) not appear on the next try.
-            The blacklist is only valid until all previous text remains the same.
-            When anything, except the last line, changes, the blacklist will be reset.
-            NOTE: this setting highly depends on the model.
-            It may not work or give weird results.
-          </li>
-          <li>
-            <strong>Also add special symbols to blacklist</strong> -
-            add symbols (, ), * to the blacklist.
-          </li>
-          <li>
-            <strong>Remove old words from blacklist on retry</strong> -
-            removes the specified amount of words from blacklist befoire adding new words.
-            Removed words may be re-added, but only on subsequent retries
-            (i.e. the removed words won't be re-added immediately).
           </li>
           <li>
             <strong>Stop the generation on ".", "!", "?"</strong> -
@@ -664,7 +676,9 @@ class HelpPageState extends State<HelpPage> {
             _KeyValRow(key: 'collection', keyLink: 'https://pub.dev/packages/collection', val: bsd3, valLink: bsd3Url),
             _KeyValRow(key: 'json_annotation', keyLink: 'https://pub.dev/packages/json_annotation', val: bsd3, valLink: bsd3Url),
             _KeyValRow(key: 'path_provider', keyLink: 'https://pub.dev/packages/path_provider', val: bsd3, valLink: bsd3Url),
-            _KeyValRow(key: 'card_settings', keyLink: 'https://pub.dev/packages/card_settings', val: mit, valLink: mitUrl),
+            _KeyValRow(key: 'flutter_form_builder', keyLink: 'https://pub.dev/packages/flutter_form_builder', val: mit, valLink: mitUrl),
+            _KeyValRow(key: 'form_builder_validators', keyLink: 'https://pub.dev/packages/form_builder_validators', val: bsd3, valLink: bsd3Url),
+            _KeyValRow(key: 'form_builder_extra_fields', keyLink: 'https://pub.dev/packages/form_builder_extra_fields', val: bsd3, valLink: bsd3Url),
             _KeyValRow(key: 'flutter_html', keyLink: 'https://pub.dev/packages/flutter_html', val: mit, valLink: mitUrl),
             _KeyValRow(key: 'flutter_html_table', keyLink: 'https://pub.dev/packages/flutter_html_table', val: mit, valLink: mitUrl),
             _KeyValRow(key: 'url_launcher', keyLink: 'https://pub.dev/packages/url_launcher', val: bsd3, valLink: bsd3Url),

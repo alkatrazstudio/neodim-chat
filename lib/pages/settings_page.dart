@@ -1,10 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// 🄯 2022, Alexey Parfenov <zxed@alkatrazstudio.net>
+// 🄯 2024, Alexey Parfenov <zxed@alkatrazstudio.net>
 
 import 'package:flutter/material.dart';
 
-import 'package:card_settings/card_settings.dart';
 import 'package:change_case/change_case.dart';
+import 'package:collection/collection.dart';
+import 'package:flutter_form_builder/flutter_form_builder.dart';
+import 'package:form_builder_extra_fields/form_builder_extra_fields.dart';
+import 'package:form_builder_validators/form_builder_validators.dart';
 import 'package:provider/provider.dart';
 
 import '../apis/llama_cpp.dart';
@@ -14,23 +17,24 @@ import '../models/config.dart';
 import '../models/conversations.dart';
 import '../models/messages.dart';
 import '../pages/help_page.dart';
-import '../util/enums.dart';
-import '../widgets/card_settings_warpers_order.dart';
+import '../widgets/pad.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage();
 
   @override
   State<SettingsPage> createState() => _SettingsPageState();
+
+  static required<T>() => FormBuilderValidators.required<T>(errorText: 'Required');
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
-  final List<String> warpersOrder = [];
+  var formKey = GlobalKey<FormBuilderState>();
 
   ConversationType? convType;
   ApiType? apiType;
   TemperatureMode? temperatureMode;
+  MirostatVersion? mirostat;
 
   @override
   Widget build(BuildContext context) {
@@ -42,6 +46,9 @@ class _SettingsPageState extends State<SettingsPage> {
     var cfgModel = Provider.of<ConfigModel>(context, listen: false);
     apiType ??= cfgModel.apiType;
     temperatureMode ??= cfgModel.temperatureMode;
+    mirostat ??= cfgModel.mirostat;
+    var msgModel = Provider.of<MessagesModel>(context, listen: false);
+    var convModel = Provider.of<ConversationsModel>(context, listen: false);
 
     return Scaffold(
       appBar: AppBar(
@@ -61,99 +68,72 @@ class _SettingsPageState extends State<SettingsPage> {
       floatingActionButton: FloatingActionButton(
         child: const Icon(Icons.save),
         onPressed: () async {
-          var state = formKey.currentState;
-          if(state == null)
+          if(!await save(curConv, convModel, cfgModel, msgModel))
             return;
-          if(!state.validate())
-            return;
-
-          state.save();
-          var convModel = Provider.of<ConversationsModel>(context, listen: false);
-          await ConversationsModel.saveList(context);
-          await ConversationsModel.saveCurrentData(context);
           Navigator.of(context).pop();
         }
       ),
       body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Form(
-              key: formKey,
-              child: settings(context)
-            ),
-            const SizedBox(height: 65)
-          ]
+        child: FormBuilder(
+          key: formKey,
+          autovalidateMode: AutovalidateMode.always,
+          child: Column(
+            children: [
+              ...conversationSection(msgModel, convModel, curConv, cfgModel),
+              ...participantsSection(msgModel, curConv),
+              ...serverSection(cfgModel),
+              ...samplingSection(cfgModel),
+              ...penaltiesSection(cfgModel),
+              ...controlSection(cfgModel),
+              const SizedBox(height: 65)
+            ]
+          )
         )
       )
     );
   }
 
-  String? validateRequired(String? s) {
-    if(s == null || s.trim().isEmpty)
-      return 'Required';
-    return null;
+  Future<bool> save(
+    Conversation curConv,
+    ConversationsModel convModel,
+    ConfigModel cfgModel,
+    MessagesModel msgModel
+  ) async {
+    var state = formKey.currentState;
+    if(state == null)
+      return false;
+    if(!state.validate())
+      return false;
+
+    var cfgJsonToSave = state.fields.map((key, field) {
+      return MapEntry(key, field.transformedValue);
+    });
+    var newCfgJson = cfgModel.toJson();
+    newCfgJson.addAll(cfgJsonToSave);
+    var config = ConfigModel.fromJson(cfgJsonToSave);
+
+    convModel.setName(curConv, cfgJsonToSave['name']);
+    convModel.setType(curConv, ConversationType.values.byName(cfgJsonToSave['type']));
+    await ConversationsModel.saveList(context);
+
+    for(var authorIndex = 0; authorIndex < msgModel.participants.length; authorIndex++) {
+      if(!newCfgJson.containsKey('authorName-$authorIndex'))
+        continue;
+      msgModel.setAuthorName(authorIndex, newCfgJson['authorName-$authorIndex']);
+      msgModel.setAuthorColor(authorIndex, newCfgJson['authorColor-$authorIndex']);
+    }
+
+    cfgModel.load(config);
+    var curData = curConv.getCurrentData(context);
+    await curConv.saveData(ConversationData(
+      msgModel: curData.msgModel,
+      config: config
+    ));
+
+    return true;
   }
 
-  String? validateNonNegativeInt(int? x) {
-    if(x == null || x < 0)
-      return 'Must be zero or above';
-    return null;
-  }
-
-  String? validateNormalizedDouble(double x) {
-    if(x < 0 || x > 1)
-      return 'Must be between 0 and 1';
-    return null;
-  }
-
-  String? validatePositiveDouble(double x) {
-    if(x <= 0)
-      return 'Must be greater than 0';
-    return null;
-  }
-
-  String? validateNonNegativeDouble(double x) {
-    if(x < 0)
-      return 'Must be 0 or above';
-    return null;
-  }
-
-  Function(String?) onStringSave(Function(String) f, {bool allowEmpty = false}) {
-    return (String? s) {
-      if(s == null)
-        return;
-      s = s.trim();
-      if(s.isNotEmpty || allowEmpty)
-        f(s);
-    };
-  }
-
-  Function(int?) onIntSave(Function(int) f) {
-    return (int? x) {
-      if(x != null)
-        f(x);
-    };
-  }
-
-  Widget settings(BuildContext context) {
-    var msgModel = Provider.of<MessagesModel>(context, listen: false);
-    var convModel = Provider.of<ConversationsModel>(context, listen: false);
-    var cfgModel = Provider.of<ConfigModel>(context, listen: false);
-    var curConv = convModel.current;
-    if(curConv == null)
-      return const SizedBox.shrink();
-
-    return CardSettings.sectioned(
-      children: [
-        conversationSection(context, msgModel, convModel, curConv, cfgModel),
-        participantsSection(context, msgModel, curConv),
-        configSection(context, cfgModel)
-      ]
-    );
-  }
-
-  CardSettingsSection conversationSection(
-    BuildContext context,
+  List<Widget> conversationSection(
     MessagesModel msgModel,
     ConversationsModel convModel,
     Conversation curConv,
@@ -161,38 +141,420 @@ class _SettingsPageState extends State<SettingsPage> {
   ) {
     var typeEditable = msgModel.messages.isEmpty;
 
-    return CardSettingsSection(
-      header: CardSettingsHeader(
-        label: 'Conversation'
-      ),
-      children: [
-        CardSettingsText(
-          label: 'Name',
+    return [
+      const SettingsHeader('Conversation'),
+      SettingContainer(
+        label: 'Name',
+        child: FormBuilderTextField(
+          name: 'name',
           initialValue: curConv.name,
-          validator: validateRequired,
-          onSaved: onStringSave((s) => convModel.setName(curConv, s)),
-          maxLength: 32
-        ),
-        CardSettingsParagraph(
-          label: 'Preamble',
-          initialValue: cfgModel.preamble,
-          onSaved: onStringSave((s) => cfgModel.setPreamble(s), allowEmpty: true),
-          maxLength: 65535,
-        ),
-        picker(
-          label: typeEditable ? 'Type' : 'Type (cannot change if messages are present)',
-          initialItem: curConv.type,
-          items: ConversationType.values,
-          onSaved: (s) => convModel.setType(curConv, s),
-          onChanged: (s) {
-            setState(() {
-              convType = s;
-            });
-          },
-          enabled: typeEditable
+          valueTransformer: (s) => s?.trim(),
+          validator: FormBuilderValidators.compose([
+            SettingsPage.required(),
+            FormBuilderValidators.maxLength(32, errorText: '32 symbols max')
+          ]),
         )
-      ]
-    );
+      ),
+      SettingContainer(
+        label: typeEditable ? 'Type' : 'Type (cannot change if messages are present)',
+        child: FormBuilderDropdown(
+          name: 'type',
+          initialValue: curConv.type,
+          items: enumToDropdown(ConversationType.values),
+          valueTransformer: (v) => v?.name,
+          enabled: typeEditable,
+          onChanged: (type) => setState(() => convType = type)
+        ),
+      ),
+      SettingContainer(
+        label: 'Preamble',
+        child: FormBuilderTextField(
+          name: 'preamble',
+          minLines: 5,
+          maxLines: 10,
+          initialValue: cfgModel.preamble,
+          valueTransformer: (s) => s?.trim(),
+        )
+      ),
+    ];
+  }
+
+  List<Widget> participantsSection(MessagesModel msgModel, Conversation curConv) {
+    return [
+      const SettingsHeader('Participants'),
+      for(var authorIndex = 0; authorIndex < msgModel.participants.length; authorIndex++)
+        ...[
+          if(convType != ConversationType.story || authorIndex != Message.youIndex)
+            SettingContainer(
+              label: getPersonNameLabel(authorIndex),
+              child: FormBuilderTextField(
+                key: ValueKey('authorName-$authorIndex'),
+                name: 'authorName-$authorIndex',
+                initialValue: msgModel.participants[authorIndex].name,
+                valueTransformer: (s) => s?.trim(),
+                validator: FormBuilderValidators.compose([
+                  SettingsPage.required()
+                ]),
+              )
+            ),
+          if(convType != ConversationType.story || authorIndex != Message.youIndex)
+            SettingContainer(
+              label: getPersonColorLabel(authorIndex),
+              child: FormBuilderColorPickerField(
+                key: ValueKey('authorColor-$authorIndex'),
+                name: 'authorColor-$authorIndex',
+                initialValue: msgModel.participants[authorIndex].color
+              )
+            ),
+        ]
+    ];
+  }
+  
+  List<Widget> serverSection(ConfigModel cfgModel) {
+    return [
+      const SettingsHeader('Server'),
+      SettingContainer(
+        label: 'API type',
+        child: FormBuilderDropdown(
+          name: 'apiType',
+          initialValue: cfgModel.apiType,
+          items: enumToDropdown(ApiType.values),
+          valueTransformer: (v) => v?.name,
+          onChanged: (type) => setState(() => apiType = type)
+        ),
+      ),
+      SettingContainer(
+        label: 'Endpoint',
+        child: FormBuilderTextField(
+          name: 'apiEndpoint',
+          initialValue: cfgModel.apiEndpoint,
+          valueTransformer: (s) => s?.trim(),
+          validator: FormBuilderValidators.compose([
+            SettingsPage.required(),
+            FormBuilderValidators.maxLength(1024, errorText: '1024 symbols max')
+          ]),
+        )
+      ),
+    ];
+  }
+
+  List<Widget> samplingSection(ConfigModel cfgModel) {
+    var supportedWarpers = switch(apiType) {
+      ApiType.neodim => NeodimRequest.supportedWarpers,
+      ApiType.llamaCpp => LlamaCppRequest.supportedWarpers,
+      _ => <Warper>[]
+    };
+
+    return [
+      const SettingsHeader('Sampling'),
+
+      FieldInt(
+        label: 'Generated tokens',
+        name: 'generatedTokensCount',
+        initialValue: cfgModel.generatedTokensCount,
+        allowZero: false
+      ),
+      if(apiType == ApiType.neodim)
+        FieldInt(
+          label: 'Max total tokens',
+          name: 'maxTotalTokens',
+          initialValue: cfgModel.maxTotalTokens,
+          allowZero: false
+        ),
+      if(apiType == ApiType.llamaCpp)
+        SettingContainer(
+          label: 'Temperature mode',
+          child: FormBuilderDropdown(
+            name: 'temperatureMode',
+            initialValue: cfgModel.temperatureMode,
+            items: enumToDropdown(TemperatureMode.values),
+            valueTransformer: (v) => v?.name,
+            onChanged: (mode) => setState(() => temperatureMode = mode)
+          ),
+        ),
+      if(temperatureMode == TemperatureMode.static || apiType != ApiType.llamaCpp)
+        FieldFloat(
+          label: 'Temperature',
+          name: 'temperature',
+          initialValue: cfgModel.temperature,
+          allowZero: false
+        ),
+      if(temperatureMode == TemperatureMode.dynamic && apiType == ApiType.llamaCpp)
+        FieldFloat(
+          label: 'Min. temperature',
+          name: 'temperature',
+          initialValue: cfgModel.temperature,
+          allowZero: false
+        ),
+      if(temperatureMode == TemperatureMode.dynamic && apiType == ApiType.llamaCpp)
+        FieldFloat(
+          label: 'Max. temperature',
+          name: 'dynaTempHigh',
+          initialValue: cfgModel.dynaTempHigh,
+          allowZero: false
+        ),
+      if(temperatureMode == TemperatureMode.dynamic && apiType == ApiType.llamaCpp)
+        FieldFloat(
+          label: 'Dynamic temperature exponent',
+          name: 'dynaTempExponent',
+          initialValue: cfgModel.dynaTempExponent,
+          allowZero: false
+        ),
+      FieldInt(
+        label: 'Top K',
+        name: 'topK',
+        initialValue: cfgModel.topK
+      ),
+      FieldFloat(
+        label: 'Top P (nucleus sampling)',
+        name: 'topP',
+        initialValue: cfgModel.topP,
+        normalized: true
+      ),
+      if(apiType == ApiType.llamaCpp)
+        FieldFloat(
+          label: 'Min P',
+          name: 'minP',
+          initialValue: cfgModel.minP,
+          normalized: true
+        ),
+      FieldFloat(
+        label: 'Tail-free sampling',
+        name: 'tfs',
+        initialValue: cfgModel.tfs,
+        normalized: true
+      ),
+      FieldFloat(
+        label: 'Typical sampling',
+        name: 'typical',
+        initialValue: cfgModel.typical,
+        normalized: true
+      ),
+      if(apiType == ApiType.neodim)
+        FieldFloat(
+          label: 'Top A',
+          name: 'topA',
+          initialValue: cfgModel.topA,
+          normalized: true
+        ),
+      if(apiType == ApiType.neodim)
+        FieldFloat(
+          label: 'Penalty Alpha',
+          name: 'penaltyAlpha',
+          initialValue: cfgModel.penaltyAlpha,
+          normalized: true
+        ),
+      if(apiType == ApiType.llamaCpp)
+        SettingContainer(
+          label: 'Mirostat',
+          child: FormBuilderDropdown(
+            name: 'mirostat',
+            initialValue: cfgModel.mirostat,
+            items: enumToDropdown(MirostatVersion.values),
+            valueTransformer: (v) => v?.name,
+            onChanged: (version) => setState(() => mirostat = version)
+          ),
+        ),
+      if(apiType == ApiType.llamaCpp && mirostat != MirostatVersion.none)
+        FieldFloat(
+          label: 'Mirostat Tau',
+          name: 'mirostatTau',
+          initialValue: cfgModel.mirostatTau,
+          allowZero: false,
+        ),
+      if(apiType == ApiType.llamaCpp && mirostat != MirostatVersion.none)
+        FieldFloat(
+          label: 'Mirostat Eta',
+          name: 'mirostatEta',
+          initialValue: cfgModel.mirostatEta,
+          normalized: true,
+        ),
+      FieldWarpers(
+        supportedWarpers: supportedWarpers,
+        initialValue: cfgModel.warpersOrder,
+      )
+    ];
+  }
+
+  List<Widget> penaltiesSection(ConfigModel cfgModel) {
+    return [
+      const SettingsHeader('Penalties'),
+
+      FieldFloat(
+        label: 'Repetition penalty',
+        name: 'repetitionPenalty',
+        initialValue: cfgModel.repetitionPenalty
+      ),
+      if(apiType == ApiType.llamaCpp)
+        FieldFloat(
+          label: 'Frequency penalty',
+          name: 'frequencyPenalty',
+          initialValue: cfgModel.frequencyPenalty
+        ),
+      if(apiType == ApiType.llamaCpp)
+        FieldFloat(
+          label: 'Presence penalty',
+          name: 'presencePenalty',
+          initialValue: cfgModel.presencePenalty
+        ),
+      FieldInt(
+        label: 'Penalty range',
+        name: 'repetitionPenaltyRange',
+        initialValue: cfgModel.repetitionPenaltyRange
+      ),
+      if(apiType == ApiType.neodim)
+        FieldFloat(
+          label: 'Penalty slope',
+          name: 'repetitionPenaltySlope',
+          initialValue: cfgModel.repetitionPenaltySlope,
+        ),
+      SettingContainer(
+        label: 'Include preamble in the penalty range',
+        child: FormBuilderCheckbox(
+          name: 'repetitionPenaltyIncludePreamble',
+          initialValue: cfgModel.repetitionPenaltyIncludePreamble,
+          title: const SizedBox.shrink()
+        )
+      ),
+      if(apiType == ApiType.neodim)
+        SettingContainer(
+          label: 'Include generated text in the penalty range',
+          child: FormBuilderDropdown(
+            name: 'repetitionPenaltyIncludeGenerated',
+            initialValue: cfgModel.repetitionPenaltyIncludeGenerated,
+            items: enumToDropdown(RepPenGenerated.values),
+            valueTransformer: (v) => v?.name
+          )
+        ),
+      if(apiType == ApiType.neodim)
+        SettingContainer(
+          label: 'Truncate the penalty range to the input',
+          child: FormBuilderCheckbox(
+            name: 'repetitionPenaltyTruncateToInput',
+            initialValue: cfgModel.repetitionPenaltyTruncateToInput,
+            title: const SizedBox.shrink()
+          )
+        ),
+      FieldInt(
+        label: 'Penalty lines without extra symbols',
+        name: 'repetitionPenaltyLinesWithNoExtraSymbols',
+        initialValue: cfgModel.repetitionPenaltyLinesWithNoExtraSymbols
+      ),
+      SettingContainer(
+        label: 'Keep the original penalty text',
+        child: FormBuilderCheckbox(
+          name: 'repetitionPenaltyKeepOriginalPrompt',
+          initialValue: cfgModel.repetitionPenaltyKeepOriginalPrompt,
+          title: const SizedBox.shrink()
+        )
+      ),
+      SettingContainer(
+        label: 'Remove participant names from the penalty text',
+        child: FormBuilderCheckbox(
+          name: 'repetitionPenaltyRemoveParticipantNames',
+          initialValue: cfgModel.repetitionPenaltyRemoveParticipantNames,
+          title: const SizedBox.shrink()
+        )
+      ),
+      if(apiType == ApiType.neodim)
+        FieldInt(
+          label: 'No repeat N-gram size',
+          name: 'noRepeatNGramSize',
+          initialValue: cfgModel.noRepeatNGramSize
+        ),
+      FieldInt(
+        label: 'Add words to the blacklist on retry',
+        name: 'addWordsToBlacklistOnRetry',
+        initialValue: cfgModel.addWordsToBlacklistOnRetry
+      ),
+      SettingContainer(
+        label: 'Also add special symbols to the blacklist',
+        child: FormBuilderCheckbox(
+          name: 'addSpecialSymbolsToBlacklist',
+          initialValue: cfgModel.addSpecialSymbolsToBlacklist,
+          title: const SizedBox.shrink()
+        )
+      ),
+      FieldInt(
+        label: 'Remove old words from the blacklist on retry',
+        name: 'removeWordsFromBlacklistOnRetry',
+        initialValue: cfgModel.removeWordsFromBlacklistOnRetry
+      ),
+    ];
+  }
+
+  List<Widget> controlSection(ConfigModel cfgModel) {
+    return [
+      const SettingsHeader('Control'),
+      
+      if(apiType == ApiType.neodim)
+        FieldInt(
+          label: 'Generate extra sequences for quick retries', 
+          name: 'extraRetries', 
+          initialValue: cfgModel.extraRetries
+        ),
+      SettingContainer(
+        label: 'Stop the generation on ".", "!", "?"',
+        child: FormBuilderCheckbox(
+          name: 'stopOnPunctuation',
+          initialValue: cfgModel.stopOnPunctuation,
+          title: const SizedBox.shrink()
+        )
+      ),
+      SettingContainer(
+        label: 'Undo the text up to these symbols: .!?*:()',
+        child: FormBuilderCheckbox(
+          name: 'undoBySentence',
+          initialValue: cfgModel.undoBySentence,
+          title: const SizedBox.shrink()
+        )
+      ),
+      if(convType == ConversationType.chat)
+        SettingContainer(
+          label: 'Combine chat lines',
+          child: FormBuilderDropdown(
+            name: 'combineChatLines',
+            initialValue: cfgModel.combineChatLines,
+            items: enumToDropdown(CombineChatLinesType.values),
+            valueTransformer: (v) => v?.name
+          )
+        ),
+      if(convType == ConversationType.chat || convType == ConversationType.groupChat)
+        SettingContainer(
+          label: 'Always alternate chat participants in continuous mode',
+          child: FormBuilderCheckbox(
+            name: 'continuousChatForceAlternateParticipants',
+            initialValue: cfgModel.continuousChatForceAlternateParticipants,
+            title: const SizedBox.shrink()
+          )
+        ),
+      if(convType == ConversationType.groupChat)
+        SettingContainer(
+          label: 'Colon at the start inserts the previous participant\'s name\nYes - no colon means a non-dialog line\nNo - colon inserts a non-dialog line',
+          child: FormBuilderCheckbox(
+            name: 'colonStartIsPreviousName',
+            initialValue: cfgModel.colonStartIsPreviousName,
+            title: const SizedBox.shrink()
+          )
+        ),
+      if(convType == ConversationType.groupChat)
+        SettingContainer(
+          label: 'Participant on retry',
+          child: FormBuilderDropdown(
+            name: 'participantOnRetry',
+            initialValue: cfgModel.participantOnRetry,
+            items: enumToDropdown(ParticipantOnRetry.values),
+            valueTransformer: (v) => v?.name
+          )
+        ),
+    ];
+  }
+
+  List<DropdownMenuItem<T>> enumToDropdown<T extends Enum>(List<T> items) {
+    return items.map((item) => DropdownMenuItem(
+      value: item,
+      child: Text(item.name.toNoCase()),
+    )).toList();
   }
 
   String getPersonNameLabel(int authorIndex) {
@@ -202,7 +564,7 @@ class _SettingsPageState extends State<SettingsPage> {
       return 'Person ${authorIndex + 1} (you) name';
     }
     if(convType == ConversationType.adventure || convType == ConversationType.story)
-        return 'Storyteller name';
+      return 'Storyteller name';
     if(convType == ConversationType.groupChat)
       return 'Group participants names (separate by commas)';
     return 'Person ${authorIndex + 1} name';
@@ -215,403 +577,202 @@ class _SettingsPageState extends State<SettingsPage> {
       return 'Person ${authorIndex + 1} (you) color';
     }
     if(convType == ConversationType.adventure || convType == ConversationType.story)
-        return 'Storyteller color';
+      return 'Storyteller color';
     if(convType == ConversationType.groupChat)
       return 'Group participants color';
     return 'Person ${authorIndex + 1} color';
   }
+}
 
-  CardSettingsSection participantsSection(BuildContext context, MessagesModel msgModel, Conversation curConv) {
-    return CardSettingsSection(
-      header: CardSettingsHeader(
-        label: 'Participants'
-      ),
+class SettingsHeader extends StatelessWidget {
+  const SettingsHeader(this.text);
+
+  final String text;
+
+  @override
+  Widget build(context) {
+    return Row(
       children: [
-        for(var authorIndex = 0; authorIndex < msgModel.participants.length; authorIndex++)
-          ...[
-            if(convType != ConversationType.story || authorIndex != Message.youIndex)
-              CardSettingsText(
-                key: ValueKey('authorName-$authorIndex'),
-                label: getPersonNameLabel(authorIndex),
-                initialValue: msgModel.participants[authorIndex].name,
-                validator: validateRequired,
-                onSaved: onStringSave((s) => msgModel.setAuthorName(authorIndex, s)),
-                maxLength: 64
-              ),
-            if(convType != ConversationType.story || authorIndex != Message.youIndex)
-              CardSettingsColorPicker(
-                key: ValueKey('authorColor-$authorIndex'),
-                label: getPersonColorLabel(authorIndex),
-                initialValue: msgModel.participants[authorIndex].color,
-                onSaved: (c) {
-                  if(c != null)
-                    msgModel.setAuthorColor(authorIndex, c);
-                },
-              )
-          ]
-      ],
-    );
-  }
-
-  CardSettingsListPicker picker<T extends Enum>({
-    required String label,
-    required T initialItem,
-    required List<T> items,
-    required Function(T) onSaved,
-    Function(T)? onChanged,
-    bool enabled = true
-  }) {
-    return CardSettingsListPicker<String>(
-      label: label,
-      initialItem: initialItem.name.toNoCase(),
-      items: items.map((v) => v.name.toNoCase()).toList(),
-      onSaved: (s) {
-        if(s == null)
-          return;
-        var strVal = s.toCamelCase();
-        var enumVal = items.byNameOrFirst(strVal);
-        onSaved(enumVal);
-      },
-      onChanged: onChanged == null ? null : (s) {
-        if(s == null)
-          return;
-        var strVal = s.toCamelCase();
-        var enumVal = items.byNameOrFirst(strVal);
-        onChanged(enumVal);
-      },
-      enabled: enabled
-    );
-  }
-
-  CardSettingsText cardSettingsDouble({
-    required String label,
-    required double initialValue,
-    required String? Function(double) validator,
-    required void Function(double) onSaved
-  }) {
-    var intVal = initialValue.ceil();
-    // Use raw text field with some modifications
-    // because the original CardSettingsDouble uses auto-formatting
-    // that prevents entering values like 0.01
-    return CardSettingsText(
-      label: label,
-      initialValue: intVal == initialValue ? intVal.toString() : initialValue.toString(),
-      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-      validator: (s) {
-        if(s == null)
-          return 'Required';
-        s = s.trim();
-        if(s.isEmpty)
-          return 'Required';
-        var val = double.tryParse(s);
-        if(val == null)
-          return 'Invalid value';
-        return validator(val);
-      },
-      onSaved: (s) {
-        if(s == null)
-          return;
-        s = s.trim();
-        var val = double.tryParse(s);
-        if(val == null)
-          return;
-        onSaved(val);
-      }
-    );
-  }
-
-  CardSettingsSection configSection(BuildContext context, ConfigModel cfgModel) {
-    var supportedWarpers = switch(apiType) {
-      ApiType.neodim => NeodimRequest.supportedWarpers,
-      ApiType.llamaCpp => LlamaCppRequest.supportedWarpers,
-      _ => <Warper>[]
-    };
-
-    return CardSettingsSection(
-      header: CardSettingsHeader(
-        label: 'Configuration'
-      ),
-      children: [
-        picker(
-          label: 'API type',
-          initialItem: cfgModel.apiType,
-          items: ApiType.values,
-          onSaved: (s) => cfgModel.setApiType(s),
-          onChanged: (newApiType) {
-            setState(() {
-              apiType = newApiType;
-            });
-          }
-        ),
-        CardSettingsText(
-          label: 'API endpoint',
-          initialValue: cfgModel.apiEndpoint,
-          validator: validateRequired,
-          onSaved: onStringSave((s) => cfgModel.setApiEndpoint(s)),
-          maxLength: 1024
-        ),
-        CardSettingsInt(
-          label: 'Generated tokens',
-          initialValue: cfgModel.generatedTokensCount,
-          validator: validateNonNegativeInt,
-          onSaved: onIntSave((x) => cfgModel.setGeneratedTokensCount(x))
-        ),
-        if(apiType == ApiType.neodim)
-          CardSettingsInt(
-            label: 'Max total tokens',
-            initialValue: cfgModel.maxTotalTokens,
-            validator: validateNonNegativeInt,
-            onSaved: onIntSave((x) => cfgModel.setMaxTotalTokens(x)),
-          ),
-        if(apiType == ApiType.llamaCpp)
-          picker(
-            label: 'Temperature mode',
-            initialItem: cfgModel.temperatureMode,
-            items: TemperatureMode.values,
-            onSaved: (newTemperatureMode) => cfgModel.setTemperatureMode(newTemperatureMode),
-            onChanged: (newTemperatureMode) {
-              setState(() {
-                temperatureMode = newTemperatureMode;
-              });
-            }
-          ),
-        if(temperatureMode == TemperatureMode.static || apiType != ApiType.llamaCpp)
-          cardSettingsDouble(
-            label: 'Temperature',
-            initialValue: cfgModel.temperature,
-            validator: validatePositiveDouble,
-            onSaved: (x) => cfgModel.setTemperature(x)
-          ),
-        if(temperatureMode == TemperatureMode.dynamic && apiType == ApiType.llamaCpp)
-          cardSettingsDouble(
-            label: 'Min. temperature',
-            initialValue: cfgModel.temperature,
-            validator: validatePositiveDouble,
-            onSaved: (x) => cfgModel.setTemperature(x)
-          ),
-        if(temperatureMode == TemperatureMode.dynamic && apiType == ApiType.llamaCpp)
-          cardSettingsDouble(
-            label: 'Max. temperature',
-            initialValue: cfgModel.dynaTempHigh,
-            validator: validatePositiveDouble,
-            onSaved: (x) => cfgModel.setDynaTempHigh(x)
-          ),
-        if(temperatureMode == TemperatureMode.dynamic && apiType == ApiType.llamaCpp)
-          cardSettingsDouble(
-            label: 'Dynamic temperature exponent',
-            initialValue: cfgModel.dynaTempExponent,
-            validator: validatePositiveDouble,
-            onSaved: (x) => cfgModel.setDynaTempExponent(x)
-          ),
-        CardSettingsInt(
-          label: 'Top K',
-          initialValue: cfgModel.topK,
-          validator: validateNonNegativeInt,
-          onSaved: onIntSave((x) => cfgModel.setTopK(x))
-        ),
-        cardSettingsDouble(
-          label: 'Top P (nucleus sampling)',
-          initialValue: cfgModel.topP,
-          validator: validateNormalizedDouble,
-          onSaved: (x) => cfgModel.setTopP(x)
-        ),
-        if(apiType == ApiType.llamaCpp)
-          cardSettingsDouble(
-            label: 'Min P',
-            initialValue: cfgModel.minP,
-            validator: validateNormalizedDouble,
-            onSaved: (x) => cfgModel.setMinP(x)
-          ),
-        cardSettingsDouble(
-          label: 'Tail-free sampling',
-          initialValue: cfgModel.tfs,
-          validator: validateNormalizedDouble,
-          onSaved: (x) => cfgModel.setTfs(x)
-        ),
-        cardSettingsDouble(
-          label: 'Typical sampling',
-          initialValue: cfgModel.typical,
-          validator: validateNormalizedDouble,
-          onSaved: (x) => cfgModel.setTypical(x)
-        ),
-        if(apiType == ApiType.neodim)
-          cardSettingsDouble(
-            label: 'Top A',
-            initialValue: cfgModel.topA,
-            validator: validateNormalizedDouble,
-            onSaved: (x) => cfgModel.setTopA(x)
-          ),
-        if(apiType == ApiType.neodim)
-          cardSettingsDouble(
-            label: 'Penalty alpha',
-            initialValue: cfgModel.penaltyAlpha,
-            validator: validateNormalizedDouble,
-            onSaved: (x) => cfgModel.setPenaltyAlpha(x)
-          ),
-        if(apiType == ApiType.llamaCpp)
-          picker(
-            label: 'Mirostat',
-            initialItem: cfgModel.mirostat,
-            items: MirostatVersion.values,
-            onSaved: (s) => cfgModel.setMirostat(s)
-          ),
-        if(apiType == ApiType.llamaCpp)
-          cardSettingsDouble(
-            label: 'Mirostat Tau',
-            initialValue: cfgModel.mirostatTau,
-            validator: validatePositiveDouble,
-            onSaved: (x) => cfgModel.setMirostatTau(x)
-          ),
-        if(apiType == ApiType.llamaCpp)
-          cardSettingsDouble(
-            label: 'Mirostat Eta',
-            initialValue: cfgModel.mirostatEta,
-            validator: validateNormalizedDouble,
-            onSaved: (x) => cfgModel.setMirostatEta(x)
-          ),
-        cardSettingsDouble(
-          label: 'Repetition penalty',
-          initialValue: cfgModel.repetitionPenalty,
-          validator: validateNonNegativeDouble,
-          onSaved: (x) => cfgModel.setRepetitionPenalty(x)
-        ),
-        if(apiType == ApiType.llamaCpp)
-          cardSettingsDouble(
-            label: 'Frequency penalty',
-            initialValue: cfgModel.frequencyPenalty,
-            validator: validateNonNegativeDouble,
-            onSaved: (x) => cfgModel.setFrequencyPenalty(x)
-          ),
-        if(apiType == ApiType.llamaCpp)
-          cardSettingsDouble(
-            label: 'Presence penalty',
-            initialValue: cfgModel.presencePenalty,
-            validator: validateNonNegativeDouble,
-            onSaved: (x) => cfgModel.setPresencePenalty(x)
-          ),
-        CardSettingsInt(
-          label: 'Penalty range',
-          initialValue: cfgModel.repetitionPenaltyRange,
-          validator: validateNonNegativeInt,
-          onSaved: onIntSave((x) => cfgModel.setRepetitionPenaltyRange(x))
-        ),
-        if(apiType == ApiType.neodim)
-          cardSettingsDouble(
-            label: 'Penalty slope',
-            initialValue: cfgModel.repetitionPenaltySlope,
-            validator: validateNonNegativeDouble,
-            onSaved: (x) => cfgModel.setRepetitionPenaltySlope(x)
-          ),
-        CardSettingsSwitch(
-          label: 'Include preamble in the penalty range',
-          initialValue: cfgModel.repetitionPenaltyIncludePreamble,
-          onSaved: (val) => cfgModel.setRepetitionPenaltyIncludePreamble(val ?? false),
-        ),
-        if(apiType == ApiType.neodim)
-          picker(
-            label: 'Include generated text in the penalty range',
-            initialItem: cfgModel.repetitionPenaltyIncludeGenerated,
-            items: RepPenGenerated.values,
-            onSaved: (s) => cfgModel.setRepetitionPenaltyIncludeGenerated(s)
-          ),
-        if(apiType == ApiType.neodim)
-          CardSettingsSwitch(
-            label: 'Truncate the penalty range to the input',
-            initialValue: cfgModel.repetitionPenaltyTruncateToInput,
-            onSaved: (val) => cfgModel.setRepetitionPenaltyTruncateToInput(val ?? false),
-          ),
-        CardSettingsInt(
-          label: 'Penalty lines without extra symbols',
-          initialValue: cfgModel.repetitionPenaltyLinesWithNoExtraSymbols,
-          validator: validateNonNegativeInt,
-          onSaved: onIntSave((x) => cfgModel.setRepetitionPenaltyLinesWithNoExtraSymbols(x))
-        ),
-        CardSettingsSwitch(
-          label: 'Keep the original penalty text',
-          initialValue: cfgModel.repetitionPenaltyKeepOriginalPrompt,
-          onSaved: (val) => cfgModel.setRepetitionPenaltyKeepOriginalPrompt(val ?? false)
-        ),
-        CardSettingsSwitch(
-          label: 'Remove participant names from the penalty text',
-          initialValue: cfgModel.repetitionPenaltyRemoveParticipantNames,
-          onSaved: (val) => cfgModel.setRepetitionPenaltyRemoveParticipantNames(val ?? true),
-        ),
-        if(apiType == ApiType.neodim)
-          CardSettingsInt(
-            label: 'No repeat N-gram size',
-            initialValue: cfgModel.noRepeatNGramSize,
-            validator: validateNonNegativeInt,
-            onSaved: onIntSave((x) => cfgModel.setNoRepeatNGramSize(x))
-          ),
-        if(supportedWarpers.isNotEmpty)
-          CardSettingsWarpersOrder(
-            supportedWarpers: supportedWarpers,
-            initialValue: cfgModel.warpersOrder,
-            onSaved: (order) => cfgModel.setWarpersOrder(order)
-          ),
-        if(apiType == ApiType.neodim)
-          CardSettingsInt(
-            label: 'Generate extra sequences for quick retries',
-            initialValue: cfgModel.extraRetries,
-            validator: validateNonNegativeInt,
-            onSaved: onIntSave((x) => cfgModel.setExtraRetries(x))
-          ),
-        CardSettingsInt(
-          label: 'Add words to blacklist on retry',
-          initialValue: cfgModel.addWordsToBlacklistOnRetry,
-          validator: validateNonNegativeInt,
-          onSaved: onIntSave((x) => cfgModel.setAddWordsToBlacklistOnRetry(x))
-        ),
-        CardSettingsSwitch(
-          label: 'Also add special symbols to blacklist',
-          initialValue: cfgModel.addSpecialSymbolsToBlacklist,
-          onSaved: (val) => cfgModel.setAddSpecialSymbolsToBlacklist(val ?? false)
-        ),
-        CardSettingsInt(
-          label: 'Remove old words from blacklist on retry',
-          initialValue: cfgModel.removeWordsFromBlacklistOnRetry,
-          validator: validateNonNegativeInt,
-          onSaved: onIntSave((x) => cfgModel.setRemoveWordsFromBlacklistOnRetry(x))
-        ),
-        CardSettingsSwitch(
-          label: 'Stop the generation on ".", "!", "?"',
-          initialValue: cfgModel.stopOnPunctuation,
-          onSaved: (val) => cfgModel.setStopOnPunctuation(val ?? false)
-        ),
-        CardSettingsSwitch(
-          label: 'Undo the text up to these symbols: .!?*:()',
-          initialValue: cfgModel.undoBySentence,
-          onSaved: (val) => cfgModel.setUndoBySentence(val ?? false)
-        ),
-        if(convType == ConversationType.chat)
-          picker(
-            label: 'Combine chat lines',
-            initialItem: cfgModel.combineChatLines,
-            items: CombineChatLinesType.values,
-            onSaved: (s) => cfgModel.setGroupChatLines(s)
-          ),
-        if(convType == ConversationType.chat || convType == ConversationType.groupChat)
-          CardSettingsSwitch(
-            label: 'Always alternate chat participants in continuous mode',
-            initialValue: cfgModel.continuousChatForceAlternateParticipants,
-            onSaved: (val) => cfgModel.setContinuousChatForceAlternateParticipants(val ?? true)
-          ),
-        if(convType == ConversationType.groupChat)
-          CardSettingsSwitch(
-            label: 'Colon at the start inserts the previous participant\'s name',
-            initialValue: cfgModel.colonStartIsPreviousName,
-            onSaved: (val) => cfgModel.setColonStartIsPreviousName(val ?? true),
-            trueLabel: 'Yes, and no colon means a non-dialog line',
-            falseLabel: 'No, colon inserts a non-dialog line'
-          ),
-        if(convType == ConversationType.groupChat)
-          picker(
-            label: 'Participant on retry',
-            initialItem: cfgModel.participantOnRetry,
-            items: ParticipantOnRetry.values,
-            onSaved: (s) => cfgModel.setSameParticipantOnRetry(s)
+        Expanded(
+          child: Card(
+            color: Theme.of(context).colorScheme.secondaryContainer,
+            child: Text(
+              text,
+              style: Theme.of(context).textTheme.headlineSmall
+            ).padAll
           )
+        )
       ]
+    );
+  }
+}
+
+class SettingContainer extends StatelessWidget {
+  const SettingContainer({
+    required this.label,
+    required this.child
+  });
+
+  final String label;
+  final Widget child;
+
+  @override
+  Widget build(context) {
+    return Column(
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Text(
+                label,
+                style: Theme.of(context).textTheme.titleMedium
+              ),
+            ),
+            Pad.horizontalSpace,
+            Expanded(
+              //flex: 1,
+              child: child
+            )
+          ],
+        ),
+        const Divider()
+      ],
+    ).padHorizontal;
+  }
+}
+
+class FieldInt extends StatelessWidget {
+  const FieldInt({
+    required this.label,
+    required this.name,
+    required this.initialValue,
+    this.allowZero = true
+  });
+
+  final String label;
+  final String name;
+  final int initialValue;
+  final bool allowZero;
+
+  @override
+  Widget build(context) {
+    return SettingContainer(
+      label: label,
+      child: FormBuilderTextField(
+        name: name,
+        initialValue: initialValue.toString(),
+        valueTransformer: (s) => s == null ? initialValue : int.tryParse(s) ?? initialValue,
+        keyboardType: TextInputType.number,
+        validator: FormBuilderValidators.compose([
+          SettingsPage.required(),
+          FormBuilderValidators.integer(errorText: 'Must be an integer'),
+          FormBuilderValidators.min(
+            allowZero ? 0 : 1,
+            errorText: allowZero ? 'Must not be negative' : 'Must be positive'
+          )
+        ]),
+      )
+    );
+  }
+}
+
+class FieldFloat extends StatelessWidget {
+  const FieldFloat({
+    required this.label,
+    required this.name,
+    required this.initialValue,
+    this.allowZero = true,
+    this.normalized = false
+  });
+
+  final String label;
+  final String name;
+  final double initialValue;
+  final bool allowZero;
+  final bool normalized;
+
+  @override
+  Widget build(context) {
+    return SettingContainer(
+      label: label,
+      child: FormBuilderTextField(
+        name: name,
+        initialValue: initialValue.toString(),
+        valueTransformer: (s) => s == null ? initialValue : double.tryParse(s) ?? initialValue,
+        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+        validator: FormBuilderValidators.compose([
+          SettingsPage.required(),
+          FormBuilderValidators.numeric(errorText: 'Must be a number'),
+          FormBuilderValidators.min(
+            0,
+            inclusive: allowZero,
+            errorText: allowZero ? 'Must not be negative' : 'Must be positive'
+          ),
+          if(normalized)
+            FormBuilderValidators.max(1, inclusive: true, errorText: 'Must be between 0 and 1'),
+        ]),
+      )
+    );
+  }
+}
+
+class FieldWarpers extends StatelessWidget {
+  FieldWarpers({
+    required List<Warper> initialValue,
+    required this.supportedWarpers
+  }) {
+    normalizedInitialValue = initialValue.toList();
+  }
+
+  late final List<Warper> normalizedInitialValue;
+  final List<Warper> supportedWarpers;
+
+  void normalize(List<Warper> warpers) {
+    ConfigModel.normalizeWarpers(warpers);
+    warpers.removeWhere((warper) => !supportedWarpers.contains(warper));
+  }
+
+  @override
+  Widget build(context) {
+    normalize(normalizedInitialValue);
+
+    return SettingContainer(
+      label: 'Warpers order\n(drag by the handles to reorder)',
+      child: FormBuilderField(
+        name: 'warpersOrder',
+        initialValue: normalizedInitialValue.map((w) => w.name).toList(),
+        builder: (field) {
+          var order = field.value?.toList() ?? [];
+          var warpers = order.map((name) => Warper.values.byName(name)).toList();
+          normalize(warpers);
+          var normalizedOrder = warpers.map((w) => w.name).toList();
+          if(!order.equals(normalizedOrder)) {
+            WidgetsBinding.instance.addPostFrameCallback(
+               (_) => field.didChange(normalizedOrder)
+            );
+          }
+          return ReorderableListView(
+            shrinkWrap: true,
+            buildDefaultDragHandles: false,
+            onReorder: (int oldIndex, int newIndex) {
+              if(oldIndex < newIndex)
+                newIndex -= 1;
+              var item = order.removeAt(oldIndex);
+              order.insert(newIndex, item);
+              field.didChange(order);
+            },
+            children: order.mapIndexed((index, warper) => ListTile(
+              key: ValueKey(warper),
+              title: Text(warper.toNoCase()),
+              trailing: ReorderableDragStartListener(
+                index: index,
+                child: const Icon(Icons.drag_handle)
+              ),
+            )).toList()
+          );
+        }
+      )
     );
   }
 }
