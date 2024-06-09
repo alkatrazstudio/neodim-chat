@@ -55,12 +55,7 @@ class _SettingsPageState extends State<SettingsPage> {
         title: Text(curConv.name),
         actions: [
           IconButton(
-            onPressed: () {
-              Navigator.push<void>(
-                context,
-                MaterialPageRoute(builder: (context) => const HelpPage())
-              );
-            },
+            onPressed: () => showHelpPage(context),
             icon: const Icon(Icons.help)
           )
         ]

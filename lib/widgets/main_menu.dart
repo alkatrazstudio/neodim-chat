@@ -99,10 +99,7 @@ class MainMenu extends StatelessWidget {
     }),
 
     MainMenuItem('Help', Icons.help, (context) {
-      Navigator.push<void>(
-        context,
-        MaterialPageRoute(builder: (context) => const HelpPage())
-      );
+      showHelpPage(context);
     }),
 
     MainMenuItem('Debug', Icons.bug_report, (context) {

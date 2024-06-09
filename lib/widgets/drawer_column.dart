@@ -50,12 +50,7 @@ class DrawerColumnState extends State<DrawerColumn> {
               ),
               ElevatedButton(
                 child: const Text('Help'),
-                onPressed: () {
-                  Navigator.push<void>(
-                    context,
-                    MaterialPageRoute(builder: (context) => const HelpPage())
-                  );
-                }
+                onPressed: () => showHelpPage(context)
               )
             ]
           )

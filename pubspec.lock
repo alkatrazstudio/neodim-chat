@@ -254,22 +254,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "9.3.0"
-  flutter_html:
-    dependency: "direct main"
-    description:
-      name: flutter_html
-      sha256: "02ad69e813ecfc0728a455e4bf892b9379983e050722b1dce00192ee2e41d1ee"
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.0.0-beta.2"
-  flutter_html_table:
-    dependency: "direct main"
-    description:
-      name: flutter_html_table
-      sha256: e20c72d67ea2512e7b4949f6f7dd13d004e773b0f82c586a21f895e6bd90383c
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.0.0-beta.2"
   flutter_keyboard_visibility:
     dependency: transitive
     description:
@@ -318,14 +302,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.0"
-  flutter_layout_grid:
-    dependency: transitive
-    description:
-      name: flutter_layout_grid
-      sha256: "88b4f8484a0874962e27c47733ad256aeb26acc694a9f029edbef771d301885a"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.0.7"
   flutter_lints:
     dependency: "direct dev"
     description:
@@ -368,6 +344,14 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_widget_from_html_core:
+    dependency: transitive
+    description:
+      name: flutter_widget_from_html_core
+      sha256: cc1d9be3d187ce668ee02091cd5442dfb050cdaf98e0ab9a4d12ad008f966979
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.14.12"
   form_builder_extra_fields:
     dependency: "direct main"
     description:
@@ -408,6 +392,15 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.3.1"
+  help_page:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: dbefc63802f1d60a965a1d8fc4fdb18df24903cf
+      resolved-ref: dbefc63802f1d60a965a1d8fc4fdb18df24903cf
+      url: "https://github.com/z80maniac/flutter_help_page.git"
+    source: git
+    version: "0.0.1"
   html:
     dependency: transitive
     description:
@@ -504,14 +497,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.0.0"
-  list_counter:
-    dependency: transitive
-    description:
-      name: list_counter
-      sha256: c447ae3dfcd1c55f0152867090e67e219d42fe6d4f2807db4bbe8b8d69912237
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.2"
   logging:
     dependency: transitive
     description:
@@ -569,7 +554,7 @@ packages:
     source: hosted
     version: "2.1.0"
   package_info_plus:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: package_info_plus
       sha256: b93d8b4d624b4ea19b0a5a208b2d6eff06004bc3ce74c06040b120eeadd00ce0
@@ -712,14 +697,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.3.0"
-  quiver:
-    dependency: transitive
-    description:
-      name: quiver
-      sha256: b1c1ac5ce6688d77f65f3375a9abb9319b3cb32486bdc7a1e0fdf004d7ba4e47
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.2.1"
   shelf:
     dependency: transitive
     description:
@@ -846,7 +823,7 @@ packages:
     source: hosted
     version: "1.3.2"
   url_launcher:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: url_launcher
       sha256: "6ce1e04375be4eed30548f10a315826fd933c1e493206eab82eed01f438c8d2e"
