@@ -41,7 +41,7 @@ Future<MessageDialogResult?> showMessageDialog(
   void submitMsg(BuildContext ctx, String text) {
     text = text.trim();
     if(doFormat)
-      text = Message.format(text, chatFormat);
+      text = Message.format(text, chatFormat, false);
     if(text.isEmpty || (text == initialText && newParticipantIndex == participantIndex))
       Navigator.of(context).pop();
     else

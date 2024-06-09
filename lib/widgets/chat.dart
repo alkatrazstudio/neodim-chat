@@ -39,9 +39,9 @@ class GeneratedResult {
 
   bool get isEmpty => text.isEmpty && preText.isEmpty;
 
-  static GeneratedResult fromRawOutput(String output, bool chatFormat, bool extractPreText) {
+  static GeneratedResult fromRawOutput(String output, bool chatFormat, bool extractPreText, bool continueLastMsg) {
     if(!extractPreText)
-      return GeneratedResult(text: Message.format(output, chatFormat));
+      return GeneratedResult(text: Message.format(output, chatFormat, continueLastMsg));
 
     // If the output does not start with a space,
     // then it's probably the continuation of the last word from the prompt.
@@ -51,7 +51,7 @@ class GeneratedResult {
     var preText = match?.group(0) ?? ''; // the possible last part of the last word from the prompt
     var text = output.substring(preText.length);
     return GeneratedResult(
-      text: Message.format(text, chatFormat),
+      text: Message.format(text, chatFormat, continueLastMsg),
       preText: preText.trimRight()
     );
   }
@@ -120,13 +120,13 @@ class ChatState extends State<Chat> {
           if(participantName.isNotEmpty)
             participantName = participantName.substring(0, 1).toUpperCase() +  participantName.substring(1);
           var textPart = match.group(2) ?? '';
-          textPart = Message.format(textPart, chatFormat);
+          textPart = Message.format(textPart, chatFormat, false);
           text = '$participantName${MessagesModel.chatPromptSeparator} $textPart';
         } else {
-          text = Message.format(text, chatFormat);
+          text = Message.format(text, chatFormat, false);
         }
       } else {
-        text = Message.format(text, chatFormat);
+        text = Message.format(text, chatFormat, false);
       }
     }
     text = text.trim();
@@ -248,7 +248,7 @@ class ChatState extends State<Chat> {
     retryCache.clear();
 
     var isChat = curConv.isChat;
-    var chatFormat = (isChat || participantIndex == Message.youIndex) && (!continueLastMsg || participantIndex != msgModel.lastParticipantIndex);
+    var chatFormat = (isChat || participantIndex == Message.youIndex) && !continueLastMsg;
     var extractPreText = !isChat && participantIndex != Message.youIndex;
 
     var nTries = isChat ? 3 : 1;
@@ -259,8 +259,8 @@ class ChatState extends State<Chat> {
         var isSingle = texts.length == 1;
         results = texts
           .map((text) => isSingle
-            ? GeneratedResult.fromRawOutput(text, chatFormat, extractPreText)
-            : GeneratedResult(text: Message.format(text, chatFormat))
+            ? GeneratedResult.fromRawOutput(text, chatFormat, extractPreText, continueLastMsg)
+            : GeneratedResult(text: Message.format(text, chatFormat, continueLastMsg))
           )
           .where((result) => !result.isEmpty)
           .toSet().toList();
@@ -366,8 +366,8 @@ class ChatState extends State<Chat> {
     }
 
     if(msgText.isNotEmpty) {
-      if(!result.isError && lastMsg != null && continueLastMsg && authorIndex == msgModel.lastParticipantIndex)
-        msgModel.setText(lastMsg, '${lastMsg.text} $msgText', false);
+      if(!result.isError && lastMsg != null && continueLastMsg)
+        msgModel.setText(lastMsg, lastMsg.text + msgText, false);
       else
         msgModel.addText(msgText, true, authorIndex);
     }
@@ -766,10 +766,12 @@ class _ChatButtonsState extends State<ChatButtons> {
     );
   }
 
-  Widget btnGenerate(bool isYou, ApiModel neodimModel) {
+  Widget btnGenerate(bool isYou, ApiModel neodimModel, MessagesModel msgModel) {
     return ChatButton(
       onPressed: (isLong) {
-        widget.addGenerated(isYou ? Message.youIndex : Message.storyIndex, continueLastMsg: isLong);
+        var authorIndex = isYou ? Message.youIndex : Message.storyIndex;
+        var continueLastMsg = isLong && authorIndex == msgModel.lastParticipantIndex;
+        widget.addGenerated(authorIndex, continueLastMsg: continueLastMsg);
       },
       isEnabled: !neodimModel.isApiRunning,
       icon: Icons.speaker_notes_outlined,
@@ -822,8 +824,8 @@ class _ChatButtonsState extends State<ChatButtons> {
       btnRedo(context, msgModel),
       btnRetry(msgModel, cfgModel, curConv, neodimModel)
     ], [
-      btnGenerate(false, neodimModel),
-      btnGenerate(true, neodimModel),
+      btnGenerate(false, neodimModel, msgModel),
+      btnGenerate(true, neodimModel, msgModel),
       btnAdd(false, neodimModel),
       btnAdd(true, neodimModel)
     ]];
@@ -841,7 +843,7 @@ class _ChatButtonsState extends State<ChatButtons> {
       btnRedo(context, msgModel),
       btnRetry(msgModel, cfgModel, curConv, neodimModel)
     ], [
-      btnGenerate(false, neodimModel),
+      btnGenerate(false, neodimModel, msgModel),
       btnAdd(false, neodimModel),
       btnAdd(true, neodimModel)
     ]];
@@ -855,7 +857,7 @@ class _ChatButtonsState extends State<ChatButtons> {
     ConfigModel cfgModel
   ) {
     return [[
-      btnGenerate(false, neodimModel),
+      btnGenerate(false, neodimModel, msgModel),
       btnUndo(msgModel, cfgModel, curConv),
       btnRedo(context, msgModel),
       btnRetry(msgModel, cfgModel, curConv, neodimModel)

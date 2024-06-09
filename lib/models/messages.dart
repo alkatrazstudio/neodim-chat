@@ -39,7 +39,7 @@ class Message {
   @JsonKey(defaultValue: false)
   final bool isGenerated;
 
-  static String format(String text, bool forChat) {
+  static String format(String text, bool forChat, bool continueLastMsg) {
     text = text.replaceAll('<s>', '');
     text = text.replaceAll('</s>', '');
     text = text.replaceAll('<pad>', '');
@@ -50,7 +50,8 @@ class Message {
     text = text.replaceAll(RegExp(r'\.{4,}'), '...');
     text = text.replaceAll(RegExp(r'!+'), '!');
     text = text.replaceAll(RegExp(r'\?+'), '?');
-    text = text.replaceAll(RegExp(r'''^([^\p{Letter}\p{Number}\("\*]|[\s|_])+''', unicode: true), '');
+    if(!continueLastMsg)
+      text = text.replaceAll(RegExp(r'''^([^\p{Letter}\p{Number}\("\*])+''', unicode: true), '');
     if(forChat)
       text = text.replaceAll(RegExp(r'''([^\p{Letter}\p{Number}\.!\?\)"\*]|[\s|_])+$''', unicode: true), '');
     text = text.replaceAllMapped(RegExp(r'\b(dr|gen|hon|mr|mrs|ms|messrs|mmes|msgr|prof|rev|rt|sr|st|v)\b(\.)?', caseSensitive: false), (m) => '${m[1]?.substring(0, 1).toUpperCase()}${m[1]?.substring(1)}${m[2] ?? '.'}');
@@ -59,7 +60,7 @@ class Message {
     text = text.replaceAllMapped(RegExp(r'([.,:;])\s*(\p{Letter})', unicode: true), (m) => '${m[1]} ${m[2]}');
     text = text.replaceAllMapped(RegExp(r'([^\p{Number}][.!?,:;])\s*(\p{Number})', unicode: true), (m) => '${m[1]} ${m[2]}');
     text = text.replaceAll(RegExp(r'\s+'), ' ');
-    text = text.trim();
+    text = continueLastMsg ? text.trimRight() : text.trim();
     if(text.isEmpty)
       return text;
 
@@ -322,15 +323,7 @@ class MessagesModel extends ChangeNotifier {
     var text = getTextForChat(msgs, combineLines, groupChat, continueLastMsg);
     var aiInput = text;
     var participantIndex = participants.indexOf(promptedParticipant);
-    if(combineLines == CombineChatLinesType.onlyForServer || continueLastMsg) {
-      if(participantIndex == lastParticipantIndex) {
-        aiInput += ' ';
-      } else {
-        aiInput += '\n';
-        if(participantIndex == Message.youIndex || !groupChat)
-          aiInput += getPromptForChat(promptedParticipant);
-      }
-    } else {
+    if(combineLines != CombineChatLinesType.onlyForServer && !continueLastMsg) {
       if(participantIndex == Message.youIndex || !groupChat)
         aiInput += getPromptForChat(promptedParticipant);
     }
