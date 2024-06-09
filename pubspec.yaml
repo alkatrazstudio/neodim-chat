@@ -23,6 +23,7 @@ dependencies:
   flutter_form_builder: 9.3.0
   form_builder_validators: 10.0.1
   form_builder_extra_fields: 10.2.0
+  wakelock_plus: 1.2.5
 
   help_page:
     git:

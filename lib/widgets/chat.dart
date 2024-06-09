@@ -8,12 +8,12 @@ import 'package:flutter/services.dart';
 
 import 'package:collection/collection.dart';
 import 'package:provider/provider.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../models/api_model.dart';
 import '../models/config.dart';
 import '../models/conversations.dart';
 import '../models/messages.dart';
-import '../util/wakelock.dart';
 import '../widgets/chat_button.dart';
 import '../widgets/chat_msg.dart';
 
@@ -385,12 +385,12 @@ class ChatState extends State<Chat> {
 
   void enableAutoGen(Conversation conv) {
     generatingForConv = conv;
-    Wakelock.set(true);
+    WakelockPlus.enable();
   }
 
   void disableAutoGen() {
     generatingForConv = null;
-    Wakelock.set(false);
+    WakelockPlus.disable();
   }
 
   Future<void> nextAutoGen() async {

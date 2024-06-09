@@ -443,7 +443,7 @@ void showHelpPage(BuildContext context) {
         HelpPagePackage.flutter('flutter_lints', HelpPageLicense.bsd3),
         HelpPagePackage.flutter('build_runner', HelpPageLicense.bsd3),
         HelpPagePackage.flutter('json_serializable', HelpPageLicense.bsd3),
-        HelpPagePackage.flutter('wakelock', HelpPageLicense.bsd3),
+        HelpPagePackage.flutter('wakelock_plus', HelpPageLicense.bsd3),
         HelpPagePackage.flutter('json_view', HelpPageLicense.mit),
         HelpPagePackage.flutter('change_case', HelpPageLicense.mit)
       ],
