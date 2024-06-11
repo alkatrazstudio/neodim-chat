@@ -138,12 +138,12 @@ class ChatState extends State<Chat> {
   }
 
   String getAiInput(
-      Conversation c,
-      MessagesModel msgModel,
-      ConfigModel cfgModel,
-      Participant nextParticipant,
-      int nextParticipantIndex,
-      bool continueLastMsg
+    Conversation c,
+    MessagesModel msgModel,
+    ConfigModel cfgModel,
+    Participant nextParticipant,
+    int nextParticipantIndex,
+    bool continueLastMsg
   ) {
     var combineLines = c.type != ConversationType.chat ? CombineChatLinesType.no : cfgModel.combineChatLines;
     switch(c.type) {
