@@ -141,6 +141,14 @@ class ApiRequestLlamaCpp {
     );
     var respJson = response.body;
     var resp = jsonDecode(respJson) as Map<String, dynamic>;
+    if(resp.containsKey('error')) {
+      var error = resp['error'] as Map<String, dynamic>;
+      var code = (error['code'] as int?) ?? 0;
+      var msg = (error['message'] as String?) ?? '';
+      var type = (error['type'] as String?) ?? '';
+      var fullErr = '[$code - $type]: $msg';
+      throw Exception(fullErr);
+    }
     return resp;
   }
 
