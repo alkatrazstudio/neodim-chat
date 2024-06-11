@@ -70,6 +70,8 @@ class ChatState extends State<Chat> {
   String aiInputForRetryCache = '';
   Conversation? generatingForConv;
   Set<String> blacklistWordsForRetry = {};
+  Message? continueMsg;
+  String continueText = '';
 
   Future<void> submit(BuildContext context, int authorIndex, bool format) async {
     var msgModel = Provider.of<MessagesModel>(context, listen: false);
@@ -253,6 +255,8 @@ class ChatState extends State<Chat> {
 
     var nTries = isChat ? 3 : 1;
     List<GeneratedResult> results = [];
+    continueMsg = null;
+    continueText = '';
     while(true) {
       try {
         var texts = await widget.generate(aiInput, repPenInput, promptedParticipant, blacklistWordsForRetry, continueLastMsg, undoMessage);
@@ -351,6 +355,7 @@ class ChatState extends State<Chat> {
       return;
 
     var lastMsg = msgModel.messages.lastOrNull;
+
     String msgText;
     if(
       !result.isError
@@ -372,6 +377,17 @@ class ChatState extends State<Chat> {
         msgModel.addText(msgText, true, authorIndex);
     }
     await ConversationsModel.saveCurrentData(context);
+
+    setState(() {
+      var lastMsg = msgModel.messages.lastOrNull;
+      if(continueLastMsg && lastMsg != null) {
+        continueMsg = lastMsg;
+        continueText = result.fullText;
+      } else {
+        continueMsg = null;
+        continueText = '';
+      }
+    });
 
     if(generatingForConv != null && !result.isError)
       nextAutoGen();
@@ -527,7 +543,9 @@ class ChatState extends State<Chat> {
               text += ' ';
             text = '$name${MessagesModel.chatPromptSeparator}$text';
             inputController.text = text;
-          }
+          },
+          continueMsg: continueMsg,
+          continueText: continueText
         ),
 
         Consumer<ApiModel>(builder: (context, neodimModel, child) {
@@ -563,12 +581,16 @@ class ChatButtons extends StatefulWidget {
   const ChatButtons({
     required this.addGenerated,
     required this.submit,
-    required this.changeGroupParticipantName
+    required this.changeGroupParticipantName,
+    required this.continueMsg,
+    required this.continueText
   });
 
   final Function(int authorIndex, {Message? undoMessage, bool useBlacklist, bool continueLastMsg}) addGenerated;
   final Function(int authorIndex, bool format) submit;
   final Function(String newName) changeGroupParticipantName;
+  final Message? continueMsg;
+  final String continueText;
 
   @override
   State<ChatButtons> createState() => _ChatButtonsState();
@@ -580,6 +602,23 @@ class _ChatButtonsState extends State<ChatButtons> {
   static const List<String> undoUntilChars = ['.', '!', '?', '*', ':', ')'];
   static const List<String> undoUntilOnChars = ['('];
   static const List<String> undoUntilOnCharsBeforeSpace = ['*', '"', "'"];
+
+  Message? get effectiveContinueMsg {
+    if(widget.continueText.isEmpty)
+      return null;
+    var continueMsg = widget.continueMsg;
+    if(continueMsg == null)
+      return null;
+    var msgModel = Provider.of<MessagesModel>(context, listen: false);
+    var lastMsg = msgModel.messages.lastOrNull;
+    if(lastMsg == null)
+      return null;
+    if(lastMsg != continueMsg)
+      return null;
+    if(!lastMsg.text.endsWith(widget.continueText))
+      return null;
+    return continueMsg;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -755,13 +794,43 @@ class _ChatButtonsState extends State<ChatButtons> {
   Widget btnRetry(MessagesModel msgModel, ConfigModel cfgModel, Conversation curConv, ApiModel neodimModel) {
     return ChatButton(
       onPressed: (isLong) async {
-        var undoItem = await undo(msgModel, cfgModel, curConv, false);
-        var msg = undoItem?.message;
-        if(msg == null)
-          return;
-        widget.addGenerated(msg.authorIndex, undoMessage: msg, useBlacklist: !isLong);
+        var continueMsg = effectiveContinueMsg;
+        if(continueMsg != null) {
+          var undoItem = UndoItem(message: continueMsg, text: widget.continueText);
+          var newText = continueMsg.text.substring(0, continueMsg.text.length - widget.continueText.length);
+          msgModel.setText(continueMsg, newText, false);
+          setState(() {
+            undoConversation = curConv;
+            undoQueue.add(undoItem);
+          });
+          await ConversationsModel.saveCurrentData(context);
+          // create a fake undo message for blacklist
+          var undoMessage = Message(
+            text: widget.continueText,
+            authorIndex: continueMsg.authorIndex,
+            isGenerated: continueMsg.isGenerated
+          );
+          widget.addGenerated(
+            continueMsg.authorIndex,
+            undoMessage: undoMessage,
+            useBlacklist: !isLong,
+            continueLastMsg: true
+          );
+        } else {
+          var undoItem = await undo(msgModel, cfgModel, curConv, false);
+          var msg = undoItem?.message;
+          if(msg == null)
+            return;
+          widget.addGenerated(msg.authorIndex, undoMessage: msg, useBlacklist: !isLong);
+        }
       },
-      isEnabled: !neodimModel.isApiRunning && msgModel.generatedAtEnd != null,
+      isEnabled:
+        !neodimModel.isApiRunning
+        && (
+          msgModel.generatedAtEnd != null
+          ||
+          effectiveContinueMsg != null
+        ),
       icon: Icons.refresh
     );
   }
