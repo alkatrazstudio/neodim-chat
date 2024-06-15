@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import 'package:change_case/change_case.dart';
 import 'package:collection/collection.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:form_builder_extra_fields/form_builder_extra_fields.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
@@ -147,7 +148,7 @@ class _SettingsPageState extends State<SettingsPage> {
           validator: FormBuilderValidators.compose([
             SettingsPage.required(),
             FormBuilderValidators.maxLength(32, errorText: '32 symbols max')
-          ]),
+          ])
         )
       ),
       SettingContainer(
@@ -163,6 +164,7 @@ class _SettingsPageState extends State<SettingsPage> {
       ),
       SettingContainer(
         label: 'Preamble',
+        vertical: true,
         child: FormBuilderTextField(
           name: 'preamble',
           minLines: 5,
@@ -182,14 +184,19 @@ class _SettingsPageState extends State<SettingsPage> {
           if(convType != ConversationType.story || authorIndex != Message.youIndex)
             SettingContainer(
               label: getPersonNameLabel(authorIndex),
+              vertical: authorIndex != Message.youIndex && convType == ConversationType.groupChat,
               child: FormBuilderTextField(
                 key: ValueKey('authorName-$authorIndex'),
                 name: 'authorName-$authorIndex',
                 initialValue: msgModel.participants[authorIndex].name,
                 valueTransformer: (s) => s?.trim(),
+                minLines: 1,
+                maxLines: authorIndex != Message.youIndex && convType == ConversationType.groupChat ? 5 : 1,
+                inputFormatters: [FilteringTextInputFormatter.deny(RegExp(r'\n'))],
                 validator: FormBuilderValidators.compose([
                   SettingsPage.required()
                 ]),
+                textInputAction: TextInputAction.done
               )
             ),
           if(convType != ConversationType.story || authorIndex != Message.youIndex)
@@ -605,11 +612,13 @@ class SettingsHeader extends StatelessWidget {
 class SettingContainer extends StatelessWidget {
   const SettingContainer({
     required this.label,
-    required this.child
+    required this.child,
+    this.vertical = false
   });
 
   final String label;
   final Widget child;
+  final bool vertical;
 
   @override
   Widget build(context) {
@@ -624,13 +633,17 @@ class SettingContainer extends StatelessWidget {
                 style: Theme.of(context).textTheme.titleMedium
               ),
             ),
-            Pad.horizontalSpace,
-            Expanded(
-              //flex: 1,
-              child: child
-            )
+            if(!vertical)
+             Pad.horizontalSpace,
+            if(!vertical)
+              Expanded(
+                //flex: 1,
+                child: child
+              )
           ],
         ),
+        if(vertical)
+          child,
         const Divider()
       ],
     ).padHorizontal;
