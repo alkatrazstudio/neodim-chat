@@ -1,6 +1,17 @@
 # Neodim Chat - CHANGELOG
 
 
+## v0.11.0 (June 15, 2024)
+
+- Added: handling llama.cpp errors
+- Changed: after continuing the message, retry only the generated part
+- Changed: the settings page
+- Improved: continuing a message
+- Improved: auto-formatting
+- Improved: help page now have icons for button reference
+- Fixed: zero length repetition penalty did not select the entire text for penalty when using llama.cpp
+
+
 ## v0.10.0 (February 24, 2024)
 
 - Added: searching conversations by name
