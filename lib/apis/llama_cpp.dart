@@ -209,7 +209,8 @@ class ApiRequestLlamaCpp {
       }
       if(params.cfgModel.repetitionPenaltyIncludePreamble)
         maxRepeatLastN += preambleTokensCount;
-      repeatLastN = min(params.cfgModel.repetitionPenaltyRange, maxRepeatLastN);
+      repeatLastN = params.cfgModel.repetitionPenaltyRange == 0 ? maxRepeatLastN : params.cfgModel.repetitionPenaltyRange;
+      repeatLastN = min(repeatLastN, maxRepeatLastN);
       if(repeatLastN == 0)
         repPenText = '';
     } else {
@@ -217,7 +218,8 @@ class ApiRequestLlamaCpp {
         repPenText = params.cfgModel.inputPreamble + repPenText;
       var repPenTokens = await tokenize(endpoint, repPenText);
       maxRepeatLastN = repPenTokens.length;
-      repeatLastN = min(params.cfgModel.repetitionPenaltyRange, maxRepeatLastN);
+      repeatLastN = params.cfgModel.repetitionPenaltyRange == 0 ? maxRepeatLastN : params.cfgModel.repetitionPenaltyRange;
+      repeatLastN = min(repeatLastN, maxRepeatLastN);
       if(repeatLastN == 0) {
         repPenText = '';
       } else {
