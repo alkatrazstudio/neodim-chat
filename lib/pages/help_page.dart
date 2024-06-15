@@ -9,7 +9,7 @@ const _llamaCppBaseUrl = 'https://github.com/ggerganov/llama.cpp';
 
 const _manualHtml = '''
 <p>
-  This is a client application that can be used together with
+  Neodim Chat is a client application that can be used together with
   <a href="$_serverBaseUrl">Neodim Server</a>
   or with <a href="$_llamaCppBaseUrl">llama.cpp</a>.
   Before using Neodim Chat, make sure that either of these servers is up and running,
@@ -29,21 +29,24 @@ const _manualHtml = '''
   <a href="$_serverBaseUrl">Neodim Server</a> or <a href="$_llamaCppBaseUrl">llama.cpp</a>,
   so you can find an additional information about them on the corresponding websites</a>.
   It is advisable to read all the documentation about the server you use before using Neodim Chat.
+  Some parameters are only available for a certain type of a server
+  or only when other certain parameters are set.
+  If the parameter is not supported for any reason it will not be shown on the settings page.
 </p>
 
 <h3>Conversation</h3>
 <ul>
   <li>
     <strong>Name</strong> - the identifier for your chat.
-    Can by any string. Will be shown in the side drawer.
+    Can be any string. Will be shown in the side drawer.
   </li>
   <li>
     <strong>Type</strong> - what this conversation represents.
     "Chat" mean a regular chat between two participants.
     "Adventure" means playing a text adventure game.
-    "Story" means just writing a story text as-is.
-    The first participant (with speech bubbles on the right) represents the player.
+    I this case, the first participant (with speech bubbles on the right) represents the player.
     The other participant represents "the story", i.e. it's not a person talking but just simple story text.
+    "Story" means just writing a story text as-is.
     "Group chat" is a chat where the second participant is a group of different participants.
     In this case you need to write all the names of these participants
     in the "Group participants names", separating them with commas.
@@ -81,12 +84,13 @@ const _manualHtml = '''
     even if the parameter can be used by other APIs.
   </li>
   <li>
-    <strong>API endpoint</strong> - the full URL that points to the API server.
+    <strong>API endpoint</strong> - the URL that points to the API server.
     For Neodim Server may contain the protocol, the port and the "/generate" part,
     e.g. "http://192.168.1.123:8787/generate".
     For llama.cpp server it may contain the protocol and the port,
     e.g. "http://192.168.1.123:8080".
     However, for both servers, you can just specify only IP or the hostname, e.g. "192.168.1.123".
+    In this case the rest parts (protocol, port, path) will be chosen automatically.
   </li>
 </ul>
 
@@ -328,90 +332,72 @@ const _manualHtml = '''
 
 <h2>Controls</h2>
 Below is the list of the controls that are located below the input field.
-The controls are listed from left to right.
 
-<h3>Chat mode</h3>
-
-<h4>First row</h4>
-<ul>
-  <li>Participants (only in group chat mode) - choose a participant's name.</li>
-  <li>Undo - removes the last message.</li>
-  <li>Redo - restores the previously removed message.</li>
-  <li>Retry - generates new text for the last message.</li>
-</ul>
-
-<h4>Second row</h4>
-<ul>
-  <li>Generate new message for the second (left) participant.</li>
-  <li>Generate new message for the first (right) participant.</li>
-  <li>Add the user text (in the input field) to the second (left) participant.</li>
-  <li>Add the user text (in the input field) to the first (right) participant.</li>
-</ul>
-
-You can also press the send button in the input field
+<h3>Chat/Group Chat mode</h3>
+<div><widget name="participants"></widget> Participants (only in the group chat mode) - choose a participant's name.</div>
+<div><widget name="undo"></widget> Undo - removes the last message.</div>
+<div><widget name="redo"></widget> Redo - restores the previously removed message.</div>
+<div><widget name="retry"></widget> Retry - generates new text for the last message.</div>
+<div><widget name="genLeft"></widget> Generate a new message for the second (left) participant.</div>
+<div><widget name="genRight"></widget> Generate a new message for the first (right) participant.</div>
+<div><widget name="addLeft"></widget> Add the user text (in the input field) to the second (left) participant.</div>
+<div><widget name="addRight"></widget> Add the user text (in the input field) to the first (right) participant.</div>
+<p>
+You can also press the send button <widget name="send"></widget> in the input field
 or the send button on your keyboard to add currently edited text in the input field
 to the chat and start generating a reply.
+</p>
 
 <h3>Adventure mode</h3>
-
-<h4>First row</h4>
-<ul>
-  <li>Undo - removes the last message.</li>
-  <li>Redo - restores the removed message.</li>
-  <li>Retry - generates new text for the last message.</li>
-</ul>
-
-<h4>Second row</h4>
-<ul>
-  <li>Generate new potion of the story.</li>
-  <li>Add the user text (in the input field) as a new portions of the story.</li>
-</ul>
-
-<h3>Story mode</h3>
-
-<ul>
-  <li>Generate new potion of the story.</li>
-  <li>Undo - removes the last message.</li>
-  <li>Redo - restores the removed message.</li>
-  <li>Retry - generates new text for the last message.</li>
-</ul>
-
-You can also press the send button in the input field
+<div><widget name="undo"></widget> Undo - removes the last message.</div>
+<div><widget name="redo"></widget> Redo - restores the removed message.</div>
+<div><widget name="retry"></widget> Retry - generates new text for the last message.</div>
+<div><widget name="genLeft"></widget> Generate a new portion of the story.</div>
+<div><widget name="addLeft"></widget> Add the user text (in the input field) as a new portion of the story.</div>
+<p>
+You can also press the send button <widget name="send"></widget> in the input field
 or the send button on your keyboard to add currently edited text in the input field
 as the player's action.
-It's preferable to prefix all player's actions with "You",
-e.g. "You steal the crown" instead of just "Steal the crown".
+</p>
+
+<h3>Story mode</h3>
+<div><widget name="genLeft"></widget> Generate a new potion of the story.</div>
+<div><widget name="undo"></widget> Undo - removes the last message.</div>
+<div><widget name="redo"></widget> Redo - restores the removed message.</div>
+<div><widget name="retry"></widget> Retry - generates new text for the last message.</div>
+<p>
+To add your own text to the story press the send button <widget name="send"></widget> in the input field
+or the send button on your keyboard.
+</p>
 
 <h3>Long tap</h3>
-You can long tap a button to perform its secondary action.
-Here's the list of secondary actions for each button:
+<p>You can long tap a button to perform its secondary action.
+Here's the list of secondary actions for each button:</p>
 
-<ul>
-  <li>Undo - undo the entire speech bubble, ignoring the "Undo the text up to these symbols" setting.</li>
-  <li>Retry - reset the blacklist before retrying</li>
-  <li>Generate - continue the last speech bubble instead of generating a new one</li>
-  <li>Add - add a message without any formatting</li>
-</ul>
+<div><widget name="undo"></widget> Undo - undo the entire speech bubble, ignoring the "Undo the text up to these symbols" setting.</div>
+<div><widget name="retry"></widget> Retry - reset the blacklist before retrying</div>
+<div><widget name="genLeft"></widget><widget name="genRight"></widget> Generate - continue the last speech bubble instead of generating a new one</div>
+<div><widget name="addLeft"></widget><widget name="addRight"></widget> Add - add a message without any formatting</div>
 
 <h2>Miscellaneous</h2>
 <ul>
-  <li>The red line(s) at the bottom represents the GPU usage.</li>
+  <li>The red line(s) at the bottom represents the GPU usage (supported only for Neodim Server).</li>
   <li>If the message is dimmed it means it wasn't part of the prompt (context) that was passed to the AI.
-    Increase the "Max total tokens" parameter to pass more text to the AI.</li>
+    Increase the "Max total tokens" parameter (supported only for Neodim Server) to pass more text to the AI.</li>
   <li>If a message has a slight red border around it,
     then it means that it was generated by AI and never modified by you.</li>
   <li>Try not to move away from the main screen while server generates a new message.
     If the main window is out of focus, then the message may not arrive.</li>
-  <li>If the input field is empty then pressing the send button will
+  <li>If the input field is empty then pressing the send button <widget name="send"></widget> will
     generate a new reply in the chat mode or a new portion of the story in the adventure mode.</li>
-  <li>Long pressing the submit button will start a continuous generation.
-    It can be stopped by pressing the button again.</li>
-  <li>In the group chat mode, you can write non-dialog comments.
-    Enter a line without ":" as the left participant, it will be recognized as a comment,
-    unless you set the "Insert previous participant name if not manually set" option.
-  </li>
-  <li>In the group chap mode, you can start the message of the left participant with a ":".
-    This will automatically prepend the previous participant's name.</li>
+  <li>Long pressing the send button <widget name="send"></widget> will start a continuous generation.
+    It can be stopped by pressing the button <widget name="sendContinuous"></widget> again.</li>
+  <li>By default, in the group chat mode, you can write non-dialog comments.
+    Enter a line without ":" as the left participant, it will be recognized as a comment.
+    This behavior can be changed via the "Colon at the start..." setting.</li>
+  <li>By default, in the group chap mode, you can start the message of the left participant with a ":".
+    This will automatically prepend the previous participant's name.
+    This behavior can be changed via the "Colon at the start..." setting.</li>
 </ul>
 ''';
 
@@ -423,6 +409,18 @@ void showHelpPage(BuildContext context) {
       githubAuthor: 'alkatrazstudio',
       githubProject: 'neodim-chat',
       manualHtml: _manualHtml,
+      manualHtmlWidgets: {
+        'participants': const Icon(Icons.person),
+        'undo': const Icon(Icons.undo),
+        'redo': const Icon(Icons.redo),
+        'retry': const Icon(Icons.refresh),
+        'genLeft': const Icon(Icons.speaker_notes_outlined),
+        'genRight': Transform.scale(scaleX: -1, child: const Icon(Icons.speaker_notes_outlined)),
+        'addLeft': Transform.scale(scaleX: -1, child: const Icon(Icons.add_comment_outlined)),
+        'addRight': const Icon(Icons.add_comment_outlined),
+        'send': const Icon(Icons.send),
+        'sendContinuous': const Icon(Icons.fast_forward)
+      },
       license: HelpPageLicense.gpl3,
       showGooglePlayLink: true,
       changelogFilename: 'CHANGELOG.md',
