@@ -306,8 +306,8 @@ class ChatState extends State<Chat> {
       if(curConv.type == ConversationType.groupChat) {
         text = text.replaceFirst(RegExp(r'[^:]*:\s*'), '');
       }
-      var rx =  RegExp(cfgModel.addSpecialSymbolsToBlacklist ? r'([^\w()*]|\b)+' : r'\W+');
-      var words = text.split(rx).where((s) => s.isNotEmpty).toSet();
+      var rx = RegExp(cfgModel.addSpecialSymbolsToBlacklist ? r'[*()\p{Number}]|\p{Letter}+' : r'\p{Number}|\p{Letter}+', unicode: true);
+      var words = rx.allMatches(text).map((m) => m.group(0) ?? '').where((s) => s.isNotEmpty).toSet();
       var availableWordsToAdd = words.difference(blacklistWordsForRetry);
 
       for(var a=0; a<cfgModel.addWordsToBlacklistOnRetry; a++) {
