@@ -1,6 +1,11 @@
 # Neodim Chat - CHANGELOG
 
 
+## v0.11.1 (July 30, 2024)
+
+- Fixed: blacklist for non-English words
+
+
 ## v0.11.0 (June 15, 2024)
 
 - Added: handling llama.cpp errors

@@ -1,0 +1,3 @@
+- Fixed: blacklist for non-English words
+
+Full changelog: https://github.com/alkatrazstudio/neodim-chat/blob/master/CHANGELOG.md
