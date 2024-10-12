@@ -189,6 +189,9 @@ class ConfigModel extends ChangeNotifier {
   @JsonKey(defaultValue: ParticipantOnRetry.any, unknownEnumValue: ParticipantOnRetry.any)
   ParticipantOnRetry participantOnRetry = ParticipantOnRetry.any;
 
+  @JsonKey(defaultValue: false)
+  bool streamResponse = false;
+
   String get inputPreamble {
     var s = preamble.trim();
     if(s.isEmpty)
@@ -406,6 +409,11 @@ class ConfigModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setStreamResponse(bool newStreamResponse) {
+    streamResponse = newStreamResponse;
+    notifyListeners();
+  }
+
   void load(ConfigModel other) {
     apiType = other.apiType;
     apiEndpoint = other.apiEndpoint;
@@ -448,6 +456,7 @@ class ConfigModel extends ChangeNotifier {
     removeWordsFromBlacklistOnRetry = other.removeWordsFromBlacklistOnRetry;
     colonStartIsPreviousName = other.colonStartIsPreviousName;
     participantOnRetry = other.participantOnRetry;
+    streamResponse = other.streamResponse;
 
     notifyListeners();
   }

@@ -579,3 +579,32 @@ class MessagesModel extends ChangeNotifier {
   }
   Map<String, dynamic> toJson() => _$MessagesModelToJson(this);
 }
+
+class StreamMessageModel extends ChangeNotifier {
+  StreamMessageModel(): super();
+
+  int authorIndex = Message.youIndex;
+  String text = '';
+
+  Message get message => Message(
+    text: text.replaceAll('\n', ' '),
+    authorIndex: authorIndex,
+    isGenerated: true
+  );
+
+  void reset(int authorIndex) {
+    this.authorIndex = authorIndex;
+    text = '';
+    notifyListeners();
+  }
+
+  void addText(String newText) {
+    text += newText;
+    notifyListeners();
+  }
+
+  void hide() {
+    text = '';
+    notifyListeners();
+  }
+}

@@ -92,6 +92,11 @@ const _manualHtml = '''
     However, for both servers, you can just specify only IP or the hostname, e.g. "192.168.1.123".
     In this case the rest parts (protocol, port, path) will be chosen automatically.
   </li>
+  <li>
+    <strong>Stream the response</strong> - if set, the generated text will be appearing gradually,
+    as soon as the next word/token is generated - it will appear right away.
+    If not set - the generated text will only appear at the end, when all the response from the server is completed.
+  </li>
 </ul>
 
 <h3>Sampling</h3>
@@ -442,6 +447,7 @@ void showHelpPage(BuildContext context) {
         HelpPagePackage.flutter('build_runner', HelpPageLicense.bsd3),
         HelpPagePackage.flutter('json_serializable', HelpPageLicense.bsd3),
         HelpPagePackage.flutter('wakelock_plus', HelpPageLicense.bsd3),
+        HelpPagePackage.flutter('dio', HelpPageLicense.mit),
         HelpPagePackage.flutter('json_view', HelpPageLicense.mit),
         HelpPagePackage.flutter('change_case', HelpPageLicense.mit)
       ],

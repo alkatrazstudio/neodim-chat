@@ -15,6 +15,7 @@ void appMain() {
   runApp(MultiProvider(
     providers: [
       ChangeNotifierProvider(create: (_) => MessagesModel()),
+      ChangeNotifierProvider(create: (_) => StreamMessageModel()),
       ChangeNotifierProvider(create: (_) => ConversationsModel()),
       ChangeNotifierProvider(create: (_) => ConfigModel()),
       ChangeNotifierProvider(create: (_) => ApiModel())

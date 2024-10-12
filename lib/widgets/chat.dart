@@ -470,10 +470,34 @@ class ChatState extends State<Chat> {
               return const SizedBox.shrink();
             return ListView.builder(
               padding: const EdgeInsets.only(bottom: 10),
-              itemCount: msgModel.messages.length,
+              itemCount: msgModel.messages.length + 1,
               reverse: true,
               itemBuilder: (ctx, i) {
-                var msgIndex = msgModel.messages.length - i - 1;
+                if(i == 0) {
+                  return Consumer<StreamMessageModel>(
+                    builder: (context, streamMsg, child) {
+                      var message = streamMsg.message;
+                      if(message.text.isEmpty)
+                        return const SizedBox.shrink();
+                      var curConv = convModel.current;
+                      if(curConv == null)
+                        return const SizedBox.shrink();
+                      var cfgModel = Provider.of<ConfigModel>(context, listen: false);
+                      if(!cfgModel.streamResponse)
+                        return const SizedBox.shrink();
+
+                      return ChatMsg(
+                        msg: streamMsg.message,
+                        author: msgModel.participants[streamMsg.authorIndex],
+                        isUsed: true,
+                        conversation: curConv,
+                        allowTap: false
+                      );
+                    },
+                  );
+                }
+
+                var msgIndex = msgModel.messages.length - i;
                 var msg = msgModel.messages[msgIndex];
                 var isUsed = msgIndex >= convModel.notUsedMessagesCount;
                 return ChatMsg(

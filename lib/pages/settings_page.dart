@@ -211,7 +211,7 @@ class _SettingsPageState extends State<SettingsPage> {
         ]
     ];
   }
-  
+
   List<Widget> serverSection(ConfigModel cfgModel) {
     return [
       const SettingsHeader('Server'),
@@ -237,6 +237,15 @@ class _SettingsPageState extends State<SettingsPage> {
           ]),
         )
       ),
+      if(apiType == ApiType.llamaCpp)
+        SettingContainer(
+          label: 'Stream the response',
+          child: FormBuilderCheckbox(
+            name: 'streamResponse',
+            initialValue: cfgModel.streamResponse,
+            title: const SizedBox.shrink()
+          )
+        )
     ];
   }
 
@@ -488,11 +497,11 @@ class _SettingsPageState extends State<SettingsPage> {
   List<Widget> controlSection(ConfigModel cfgModel) {
     return [
       const SettingsHeader('Control'),
-      
+
       if(apiType == ApiType.neodim)
         FieldInt(
-          label: 'Generate extra sequences for quick retries', 
-          name: 'extraRetries', 
+          label: 'Generate extra sequences for quick retries',
+          name: 'extraRetries',
           initialValue: cfgModel.extraRetries
         ),
       SettingContainer(

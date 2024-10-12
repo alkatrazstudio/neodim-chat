@@ -33,12 +33,14 @@ class HomePage extends StatelessWidget {
     if(participantNames.length == 1)
       return participantNames[0];
 
+    var streamMsgModel = Provider.of<StreamMessageModel>(context, listen: false);
     var response = await ApiRequest.run(
       context,
       inputText,
       repPenText,
       participantNames,
-      null
+      null,
+      (newText) => streamMsgModel.addText(newText),
     );
     if(response == null)
       return null;
@@ -69,11 +71,13 @@ class HomePage extends StatelessWidget {
     if(conv == null)
       return [];
 
+    var streamMsgModel = Provider.of<StreamMessageModel>(context, listen: false);
+    var promptedParticipantIndex = msgModel.participants.indexOf(promptedParticipant);
+    streamMsgModel.reset(promptedParticipantIndex);
     var inputMessages = msgModel.getMessagesSnapshot();
     apiModel.setApiRunning(true);
     try {
       var addedPromptSuffix = '';
-      var promptedParticipantIndex = msgModel.participants.indexOf(promptedParticipant);
       if(conv.type == ConversationType.groupChat && promptedParticipantIndex != Message.youIndex && !continueLastMsg) {
         var participantNames = msgModel.getGroupParticipantNames(false);
         String? participantName;
@@ -103,6 +107,7 @@ class HomePage extends StatelessWidget {
         addedPromptSuffix = '$participantName${MessagesModel.chatPromptSeparator}';
         inputText += addedPromptSuffix;
         addedPromptSuffix += ' ';
+        streamMsgModel.addText('${MessagesModel.chatPromptSeparator} ');
       }
 
       var response = await ApiRequest.run(
@@ -110,12 +115,14 @@ class HomePage extends StatelessWidget {
         inputText,
         repPenText,
         null,
-        blacklistWordsForRetry
+        blacklistWordsForRetry,
+        (newText) => streamMsgModel.addText(newText),
       );
       if(response == null)
         return [];
       apiModel.setResponse(response);
       apiModel.setApiRunning(false);
+      streamMsgModel.hide();
       var combineLines = conv.type == ConversationType.chat ? CombineChatLinesType.no : cfgModel.combineChatLines;
       convModel.updateUsedMessagesCount(
         response.usedPrompt, promptedParticipant, msgModel, inputMessages, combineLines, addedPromptSuffix, continueLastMsg);
@@ -123,6 +130,7 @@ class HomePage extends StatelessWidget {
       lines = lines.map((line) => addedPromptSuffix + line).toList();
       return lines;
     } catch (e) {
+      streamMsgModel.hide();
       apiModel.setApiRunning(false);
       rethrow;
     }

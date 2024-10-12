@@ -3,7 +3,9 @@
 
 import 'dart:convert';
 import 'dart:math';
+import 'dart:typed_data';
 
+import 'package:dio/dio.dart';
 import 'package:http/http.dart' as http;
 import 'package:neodim_chat/models/config.dart';
 
@@ -37,7 +39,8 @@ class LlamaCppRequest {
     required this.ignoreEos,
     required this.samplers,
     required this.logitBias,
-    required this.seed
+    required this.seed,
+    required this.stream
   });
 
   final double temperature;
@@ -65,6 +68,7 @@ class LlamaCppRequest {
   final List<(String, dynamic)> logitBias;
   final List<Warper> samplers;
   final int seed;
+  final bool stream;
 
   static Map<Warper, String> get warpersMap => {
     Warper.topK: 'top_k',
@@ -104,6 +108,7 @@ class LlamaCppRequest {
       'logit_bias': logitBias.map((b) => [b.$1, b.$2]).toList(),
       'samplers': warpersToJson(samplers),
       'seed': seed,
+      'stream': stream,
       'cache_prompt': true
     };
   }
@@ -134,7 +139,18 @@ class LlamaCppResponse {
 
 class ApiRequestLlamaCpp {
   static Random rnd = Random();
-  
+
+  static raiseErrorIfNeeded(Map<String, dynamic> response) {
+    if(!response.containsKey('error'))
+      return;
+    var error = response['error'] as Map<String, dynamic>;
+    var code = (error['code'] as int?) ?? 0;
+    var msg = (error['message'] as String?) ?? '';
+    var type = (error['type'] as String?) ?? '';
+    var fullErr = '[$code - $type]: $msg';
+    throw Exception(fullErr);
+  }
+
   static Future<Map<String, dynamic>> httpPostRaw(String endpoint, Map<String, dynamic> data) async {
     var reqJson = jsonEncode(data);
     var endpointUri = Uri.parse(endpoint);
@@ -146,15 +162,63 @@ class ApiRequestLlamaCpp {
     );
     var respJson = response.body;
     var resp = jsonDecode(respJson) as Map<String, dynamic>;
-    if(resp.containsKey('error')) {
-      var error = resp['error'] as Map<String, dynamic>;
-      var code = (error['code'] as int?) ?? 0;
-      var msg = (error['message'] as String?) ?? '';
-      var type = (error['type'] as String?) ?? '';
-      var fullErr = '[$code - $type]: $msg';
-      throw Exception(fullErr);
-    }
+    raiseErrorIfNeeded(resp);
     return resp;
+  }
+
+  static Future<Map<String, dynamic>> httpPostRawStream(String endpoint, Map<String, dynamic> data, void Function(String newText) onNewStreamText) async {
+    var dio = Dio();
+    var response = await dio.post<ResponseBody>(endpoint,
+      options: Options(
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        responseType: ResponseType.stream
+      ),
+      data: data
+    );
+    var stream = response.data?.stream;
+    if(stream == null)
+      throw Exception('No response stream.');
+    var msgBuf = <int>[];
+    Map<String, dynamic>? lastMsgObj;
+    var allContent = '';
+    var nl = '\n'.codeUnits.first;
+    var prefixes = ['data: ', 'error: '];
+    await for (var bytes in stream) {
+      msgBuf.addAll(bytes);
+      while(true) {
+        var nlPos = msgBuf.indexOf(nl);
+        if(nlPos == -1)
+          break;
+        var msgBytes = msgBuf.sublist(0, nlPos);
+        msgBuf = msgBuf.sublist(nlPos + 1);
+        var msg = utf8.decode(msgBytes);
+        if(msg.isEmpty)
+          continue;
+        String? usedPrefix;
+        for(var prefix in prefixes) {
+          if(msg.startsWith(prefix)) {
+            usedPrefix = prefix;
+            break;
+          }
+        }
+        if(usedPrefix == null)
+          throw Exception('Invalid stream part prefix.');
+        var lastMsgJson = msg.substring(usedPrefix.length);
+        lastMsgObj = jsonDecode(lastMsgJson) as Map<String, dynamic>;
+        raiseErrorIfNeeded(lastMsgObj);
+        var content = lastMsgObj['content'] as String;
+        if(content.isEmpty)
+          continue;
+        allContent += content;
+        onNewStreamText(content);
+      }
+    }
+    if(lastMsgObj == null)
+      throw Exception('No final response from the stream');
+    lastMsgObj['content'] = allContent;
+    return lastMsgObj;
   }
 
   static Future<Map<String, dynamic>> httpGetRaw(String endpoint) async {
@@ -302,12 +366,15 @@ class ApiRequestLlamaCpp {
       ignoreEos: grammar == null,
       logitBias: logitBias,
       samplers: params.cfgModel.warpersOrder,
-      seed: seed
+      seed: seed,
+      stream: params.cfgModel.streamResponse
     );
 
     var requestMap = request.toApiRequestMap();
     params.apiModel.startRawRequest(requestMap);
-    var responseMap = await httpPostRaw('$endpoint/completion', requestMap);
+    var responseMap = request.stream
+      ? await httpPostRawStream('$endpoint/completion', requestMap, params.onNewStreamText)
+      : await httpPostRaw('$endpoint/completion', requestMap);
     var response = LlamaCppResponse.fromApiResponseMap(responseMap);
     params.apiModel.endRawRequest(responseMap, response.tokensPredicted);
 

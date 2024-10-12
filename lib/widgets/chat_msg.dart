@@ -15,13 +15,15 @@ class ChatMsg extends StatelessWidget {
     required this.msg,
     required this.author,
     required this.isUsed,
-    required this.conversation
+    required this.conversation,
+    this.allowTap = true
   });
 
   final Message msg;
   final Participant author;
   final bool isUsed;
   final Conversation conversation;
+  final bool allowTap;
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +42,7 @@ class ChatMsg extends StatelessWidget {
         style: TextStyle(
           color: Theme.of(context).textTheme.bodyLarge?.color?.withOpacity(opacity)
         ),
-        onTap: () async {
+        onTap: !allowTap ? null : () async {
           var chatFormat = conversation.isChat || msg.authorIndex == Message.youIndex;
           var participants = Provider.of<MessagesModel>(context, listen: false).participants;
           var result = await showMessageDialog(

@@ -38,7 +38,8 @@ class ApiRequestParams {
     required this.conversation,
     required this.cfgModel,
     required this.msgModel,
-    required this.apiModel
+    required this.apiModel,
+    required this.onNewStreamText
   });
 
   final String inputText;
@@ -49,6 +50,7 @@ class ApiRequestParams {
   final ConfigModel cfgModel;
   final MessagesModel msgModel;
   final ApiModel apiModel;
+  final void Function(String newText) onNewStreamText;
 }
 
 class ApiRequest {
@@ -57,7 +59,8 @@ class ApiRequest {
     String inputText,
     String? repPenText,
     List<String>? participantNames,
-    Set<String>? blacklistWordsForRetry
+    Set<String>? blacklistWordsForRetry,
+    void Function(String newText) onNewStreamText
   ) async {
     var convModel = Provider.of<ConversationsModel>(context, listen: false);
     var conversation = convModel.current;
@@ -76,7 +79,8 @@ class ApiRequest {
       conversation: conversation,
       cfgModel: cfgModel,
       msgModel: msgModel,
-      apiModel: apiModel
+      apiModel: apiModel,
+      onNewStreamText: onNewStreamText
     );
 
     ApiResponse? result;
