@@ -36,7 +36,8 @@ class LlamaCppRequest {
     required this.grammar,
     required this.ignoreEos,
     required this.samplers,
-    required this.logitBias
+    required this.logitBias,
+    required this.seed
   });
 
   final double temperature;
@@ -63,6 +64,7 @@ class LlamaCppRequest {
   final bool ignoreEos;
   final List<(String, dynamic)> logitBias;
   final List<Warper> samplers;
+  final int seed;
 
   static Map<Warper, String> get warpersMap => {
     Warper.topK: 'top_k',
@@ -101,6 +103,7 @@ class LlamaCppRequest {
       'ignore_eos': ignoreEos,
       'logit_bias': logitBias.map((b) => [b.$1, b.$2]).toList(),
       'samplers': warpersToJson(samplers),
+      'seed': seed,
       'cache_prompt': true
     };
   }
@@ -130,6 +133,8 @@ class LlamaCppResponse {
 }
 
 class ApiRequestLlamaCpp {
+  static Random rnd = Random();
+  
   static Future<Map<String, dynamic>> httpPostRaw(String endpoint, Map<String, dynamic> data) async {
     var reqJson = jsonEncode(data);
     var endpointUri = Uri.parse(endpoint);
@@ -270,6 +275,8 @@ class ApiRequestLlamaCpp {
         dynaTempRange = 0;
     }
 
+    var seed = 0x100000000 * rnd.nextInt(0x7FFFFFFF) + rnd.nextInt(0x100000000);
+
     var request = LlamaCppRequest(
       temperature: temperature != 0 ? temperature : 1,
       dynaTempRange: dynaTempRange,
@@ -294,7 +301,8 @@ class ApiRequestLlamaCpp {
       grammar: grammar,
       ignoreEos: grammar == null,
       logitBias: logitBias,
-      samplers: params.cfgModel.warpersOrder
+      samplers: params.cfgModel.warpersOrder,
+      seed: seed
     );
 
     var requestMap = request.toApiRequestMap();
