@@ -52,6 +52,8 @@ class Message {
     text = text.replaceAll(RegExp(r'\?+'), '?');
     if(!continueLastMsg)
       text = text.replaceAll(RegExp(r'''^([^\p{Letter}\p{Number}\("\*])+''', unicode: true), '');
+    else
+      forChat = false;
     if(forChat)
       text = text.replaceAll(RegExp(r'''([^\p{Letter}\p{Number}\.!\?\)"\*]|[\s|_])+$''', unicode: true), '');
     text = text.replaceAllMapped(RegExp(r'\b(dr|gen|hon|mr|mrs|ms|messrs|mmes|msgr|prof|rev|rt|sr|st|v)\b(\.)?', caseSensitive: false), (m) => '${m[1]?.substring(0, 1).toUpperCase()}${m[1]?.substring(1)}${m[2] ?? '.'}');

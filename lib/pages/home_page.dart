@@ -130,7 +130,6 @@ class HomePage extends StatelessWidget {
       lines = lines.map((line) => addedPromptSuffix + line).toList();
       return lines;
     } catch (e) {
-      streamMsgModel.hide();
       apiModel.setApiRunning(false);
       rethrow;
     }

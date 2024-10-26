@@ -250,7 +250,7 @@ class ChatState extends State<Chat> {
     retryCache.clear();
 
     var isChat = curConv.isChat;
-    var chatFormat = (isChat || participantIndex == Message.youIndex) && !continueLastMsg;
+    var chatFormat = isChat || participantIndex == Message.youIndex;
     var extractPreText = !isChat && participantIndex != Message.youIndex;
 
     var nTries = isChat ? 3 : 1;
@@ -332,14 +332,14 @@ class ChatState extends State<Chat> {
     }
   }
 
-  Future<void> addGenerated(
+  Future<void> generateAndAdd(
     BuildContext context,
     int authorIndex, {
-    Message? undoMessage,
-    bool useBlacklist = true,
-    bool continueLastMsg = false
-  }) async {
-    var msgModel = Provider.of<MessagesModel>(context, listen: false);
+      Message? undoMessage,
+      bool useBlacklist = true,
+      bool continueLastMsg = false
+    }
+  ) async {
     var curConv = Provider.of<ConversationsModel>(context, listen: false).current;
     if(curConv == null)
       return;
@@ -354,6 +354,44 @@ class ChatState extends State<Chat> {
     if(result.isEmpty)
       return;
 
+    var streamMsgModel = Provider.of<StreamMessageModel>(context, listen: false);
+    if(result.isError) {
+      var text = Message.format(streamMsgModel.text, curConv.isChat || authorIndex == Message.youIndex, continueLastMsg);
+      if(text.isNotEmpty) {
+        addGenerated(
+          context,
+          authorIndex,
+          undoMessage,
+          useBlacklist,
+          continueLastMsg,
+          GeneratedResult(text: text),
+          curConv
+        );
+      }
+    }
+    addGenerated(
+      context,
+      authorIndex,
+      undoMessage,
+      useBlacklist,
+      continueLastMsg,
+      result,
+      curConv
+    );
+    streamMsgModel.hide();
+  }
+
+  Future<void> addGenerated(
+    BuildContext context,
+    int authorIndex,
+    Message? undoMessage,
+    bool useBlacklist,
+    bool continueLastMsg,
+    GeneratedResult result,
+    Conversation curConv
+  ) async {
+
+    var msgModel = Provider.of<MessagesModel>(context, listen: false);
     var lastMsg = msgModel.messages.lastOrNull;
 
     String msgText;
@@ -455,7 +493,7 @@ class ChatState extends State<Chat> {
         return;
     }
 
-    addGenerated(context, nextAuthorIndex);
+    generateAndAdd(context, nextAuthorIndex);
   }
 
   @override
@@ -525,7 +563,7 @@ class ChatState extends State<Chat> {
             return const SizedBox.shrink();
 
           return ChatInput(
-            addGenerated: (authorIndex) => addGenerated(context, authorIndex),
+            addGenerated: (authorIndex) => generateAndAdd(context, authorIndex),
             submit: (authorIndex) => submit(context, authorIndex, true),
             inputController: inputController,
             isGenerating: generatingForConv == curConv,
@@ -548,7 +586,7 @@ class ChatState extends State<Chat> {
             Message? undoMessage,
             bool useBlacklist = true,
             bool continueLastMsg = false
-          }) => addGenerated(
+          }) => generateAndAdd(
             context,
             authorIndex,
             undoMessage: undoMessage,
