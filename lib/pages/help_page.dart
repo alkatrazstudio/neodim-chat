@@ -50,6 +50,8 @@ const _manualHtml = '''
     "Group chat" is a chat where the second participant is a group of different participants.
     In this case you need to write all the names of these participants
     in the "Group participants names", separating them with commas.
+    You can not change the type if there are any messages in the chat.
+    One exception: you can convert a chat to a group chat.
   </li>
   <li>
     <strong>Preamble</strong> - the text that will sent to the server

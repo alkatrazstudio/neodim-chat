@@ -18,6 +18,7 @@ import '../models/config.dart';
 import '../models/conversations.dart';
 import '../models/messages.dart';
 import '../pages/help_page.dart';
+import '../widgets/dialogs.dart';
 import '../widgets/pad.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -153,14 +154,34 @@ class _SettingsPageState extends State<SettingsPage> {
       ),
       SettingContainer(
         label: typeEditable ? 'Type' : 'Type (cannot change if messages are present)',
-        child: FormBuilderDropdown(
-          name: 'type',
-          initialValue: curConv.type,
-          items: enumToDropdown(ConversationType.values),
-          valueTransformer: (v) => v?.name,
-          enabled: typeEditable,
-          onChanged: (type) => setState(() => convType = type)
-        ),
+        child: Column(
+          children: [
+            FormBuilderDropdown(
+              name: 'type',
+              initialValue: curConv.type,
+              items: enumToDropdown(ConversationType.values),
+              valueTransformer: (v) => v?.name,
+              enabled: typeEditable,
+              onChanged: (type) => setState(() => convType = type)
+            ),
+            if(!typeEditable && curConv.type == ConversationType.chat)
+              Padding(
+                padding: const EdgeInsets.only(top: 5),
+                child: ElevatedButton(
+                  onPressed: () async {
+                    if(!await showConfirmDialog(context, curConv.name, 'Convert to group chat?\n\nThis cannot be undone.'))
+                      return;
+                    await curConv.convertChatToGroupChat(context);
+                    await curConv.loadAsCurrent(context);
+                    formKey.currentState?.patchValue({
+                      'type': ConversationType.groupChat
+                    });
+                  },
+                  child: const Text('Convert to\ngroup chat')
+                )
+              )
+          ],
+        )
       ),
       SettingContainer(
         label: 'Preamble',

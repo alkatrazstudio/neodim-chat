@@ -26,7 +26,7 @@ class Message {
   static const int youIndex = 0;
   static const int dmIndex = 1;
   static const int storyIndex = dmIndex;
-  static const int chatGroupIndex = dmIndex;
+  static const int groupChatIndex = dmIndex;
 
   bool get isYou => authorIndex == youIndex;
 
@@ -79,6 +79,11 @@ class Message {
     text = text.replaceAll(RegExp(r'\bim\b', caseSensitive: false), "I'm");
     text = text = text.replaceAll(RegExp(r'\bi\b'), 'I');
     return text;
+  }
+
+  Message withText(String newText, [bool unsetGenerated = false]) {
+    var newMsg = Message(text: newText, authorIndex: authorIndex, isGenerated: !unsetGenerated && isGenerated);
+    return newMsg;
   }
 
   static Message fromJson(Map<String, dynamic> json) => _$MessageFromJson(json);
@@ -460,7 +465,7 @@ class MessagesModel extends ChangeNotifier {
     if(i < 0)
       return;
 
-    m = Message(text: newText, authorIndex: m.authorIndex, isGenerated: !unsetGenerated && m.isGenerated);
+    m = m.withText(newText, unsetGenerated);
     messages[i] = m;
     notifyListeners();
   }
@@ -549,8 +554,18 @@ class MessagesModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setAllMessages(List<Message> newMessages) {
+    messages.clear();
+    messages.addAll(newMessages);
+    notifyListeners();
+  }
+
+  void notify() {
+    notifyListeners();
+  }
+
   List<String> getGroupParticipantNames(bool gatherAll) {
-    var names = participants[Message.chatGroupIndex].name.split(',');
+    var names = participants[Message.groupChatIndex].name.split(',');
     names = names.map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
     if(!gatherAll)
       return names;

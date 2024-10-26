@@ -144,6 +144,26 @@ class Conversation {
     }
   }
 
+  Future<void> convertChatToGroupChat(BuildContext ctx) async {
+    var data = await loadData();
+    var newMessages = data.msgModel.messages.map((msg) {
+      String newText;
+      if(msg.authorIndex == Message.youIndex) {
+        newText = msg.text;
+      } else {
+        var authorName = data.msgModel.participants[msg.authorIndex].name;
+        newText = '$authorName${MessagesModel.chatPromptSeparator} ${msg.text}';
+      }
+      var newMsg = msg.withText(newText);
+      return newMsg;
+    }).toList();
+    data.msgModel.setAllMessages(newMessages);
+    await saveData(data);
+    var convModel = Provider.of<ConversationsModel>(ctx, listen: false);
+    convModel.setType(this, ConversationType.groupChat);
+    await ConversationsModel.saveList(ctx);
+  }
+
   static Conversation fromJson(Map<String, dynamic> json) {
     json['type'] ??= ConversationType.chat;
     json['createdAt'] ??= DateTime.fromMicrosecondsSinceEpoch(0).toIso8601String();
@@ -224,12 +244,12 @@ class ConversationsModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> setName(Conversation c, String newName) async {
+  void setName(Conversation c, String newName) {
     c.name = newName;
     notifyListeners();
   }
 
-  Future<void> setType(Conversation c, ConversationType newType) async {
+  void setType(Conversation c, ConversationType newType) {
     c.type = newType;
     notifyListeners();
   }
