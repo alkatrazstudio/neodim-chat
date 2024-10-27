@@ -68,8 +68,17 @@ class Message {
 
     if(forChat)
       text = text[0].toUpperCase() + text.substring(1);
-    if(forChat && !text.endsWith('.') && !text.endsWith('!') && !text.endsWith('?') && !text.endsWith(')') && !text.endsWith('*'))
+    if(
+      forChat
+      && !text.endsWith('.')
+      && !text.endsWith('!')
+      && !text.endsWith('?')
+      && !text.endsWith(')')
+      && !text.endsWith('*')
+      && !(text.startsWith('"') && text.endsWith('"') && '"'.allMatches(text).toList().length == 2)
+    ) {
       text += '.';
+    }
 
     text = text.replaceAllMapped(RegExp(r'\b(can|won|don|doesn|haven|hasn|couldn|shouldn|wouldn|mustn|didn|aren|isn|wasn)(t)\b', caseSensitive: false), (m) => "${m[1]}'${m[2]}");
     text = text.replaceAllMapped(RegExp(r'\b(you|they|that|this)(ll)\b', caseSensitive: false), (m) => "${m[1]}'${m[2]}");
