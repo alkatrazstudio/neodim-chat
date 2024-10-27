@@ -402,7 +402,7 @@ Here's the list of secondary actions for each button:</p>
   <li>By default, in the group chat mode, you can write non-dialog comments.
     Enter a line without ":" as the left participant, it will be recognized as a comment.
     This behavior can be changed via the "Colon at the start..." setting.</li>
-  <li>By default, in the group chap mode, you can start the message of the left participant with a ":".
+  <li>By default, in the group chat mode, you can start the message of the left participant with a ":".
     This will automatically prepend the previous participant's name.
     This behavior can be changed via the "Colon at the start..." setting.</li>
   <li>If supported by the API server, you can stop the generation
