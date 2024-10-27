@@ -39,6 +39,7 @@ class ApiRequestParams {
     required this.cfgModel,
     required this.msgModel,
     required this.apiModel,
+    required this.apiCancelModel,
     required this.onNewStreamText
   });
 
@@ -50,6 +51,7 @@ class ApiRequestParams {
   final ConfigModel cfgModel;
   final MessagesModel msgModel;
   final ApiModel apiModel;
+  final ApiCancelModel apiCancelModel;
   final void Function(String newText) onNewStreamText;
 }
 
@@ -70,6 +72,7 @@ class ApiRequest {
     var cfgModel = Provider.of<ConfigModel>(context, listen: false);
     var msgModel = Provider.of<MessagesModel>(context, listen: false);
     var apiModel = Provider.of<ApiModel>(context, listen: false);
+    var apiCancelModel = Provider.of<ApiCancelModel>(context, listen: false);
 
     var params = ApiRequestParams(
       inputText: inputText,
@@ -80,6 +83,7 @@ class ApiRequest {
       cfgModel: cfgModel,
       msgModel: msgModel,
       apiModel: apiModel,
+      apiCancelModel: apiCancelModel,
       onNewStreamText: onNewStreamText
     );
 

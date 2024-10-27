@@ -42,3 +42,15 @@ class ApiModel extends ChangeNotifier {
     notifyListeners();
   }
 }
+
+class ApiCancelModel extends ChangeNotifier {
+  void Function()? cancelFunc;
+
+  void setCancelFunc(void Function()? newCancelFunc) {
+    cancelFunc = newCancelFunc;
+    notifyListeners();
+  }
+}
+
+class ApiCancelException implements Exception {
+}

@@ -405,6 +405,8 @@ Here's the list of secondary actions for each button:</p>
   <li>By default, in the group chap mode, you can start the message of the left participant with a ":".
     This will automatically prepend the previous participant's name.
     This behavior can be changed via the "Colon at the start..." setting.</li>
+  <li>If supported by the API server, you can stop the generation
+    by pressing the <widget name="stop"></widget> button</li>
 </ul>
 ''';
 
@@ -426,6 +428,7 @@ void showHelpPage(BuildContext context) {
         'addLeft': Transform.scale(scaleX: -1, child: const Icon(Icons.add_comment_outlined)),
         'addRight': const Icon(Icons.add_comment_outlined),
         'send': const Icon(Icons.send),
+        'stop': const Icon(Icons.stop),
         'sendContinuous': const Icon(Icons.fast_forward)
       },
       license: HelpPageLicense.gpl3,

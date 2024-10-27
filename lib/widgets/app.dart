@@ -18,7 +18,8 @@ void appMain() {
       ChangeNotifierProvider(create: (_) => StreamMessageModel()),
       ChangeNotifierProvider(create: (_) => ConversationsModel()),
       ChangeNotifierProvider(create: (_) => ConfigModel()),
-      ChangeNotifierProvider(create: (_) => ApiModel())
+      ChangeNotifierProvider(create: (_) => ApiModel()),
+      ChangeNotifierProvider(create: (_) => ApiCancelModel())
     ],
     child: App()
   ));

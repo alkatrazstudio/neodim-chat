@@ -28,11 +28,17 @@ class Chat extends StatefulWidget {
   State<Chat> createState() => ChatState();
 }
 
+enum GeneratedResultType {
+  response,
+  error,
+  cancel
+}
+
 class GeneratedResult {
   const GeneratedResult({
     required this.text,
     this.preText = '',
-    this.isError = false
+    this.type = GeneratedResultType.response
   });
 
   static const GeneratedResult empty = GeneratedResult(text: '');
@@ -58,7 +64,7 @@ class GeneratedResult {
 
   final String text;
   final String preText;
-  final bool isError;
+  final GeneratedResultType type;
 
   String get fullText => [preText, text].where((s) => s.isNotEmpty).join(' ');
 }
@@ -274,7 +280,7 @@ class ChatState extends State<Chat> {
       } catch(e) {
         results = [GeneratedResult(
           text: e.toString().replaceAll('\n', ''),
-          isError: true
+          type: e is ApiCancelException ? GeneratedResultType.cancel : GeneratedResultType.response
         )];
         break;
       }
@@ -355,8 +361,9 @@ class ChatState extends State<Chat> {
       return;
 
     var streamMsgModel = Provider.of<StreamMessageModel>(context, listen: false);
-    if(result.isError) {
-      var text = Message.format(streamMsgModel.text, curConv.isChat || authorIndex == Message.youIndex, continueLastMsg);
+    if(result.type != GeneratedResultType.response) {
+      var chatFormat = (curConv.isChat || authorIndex == Message.youIndex) && result.type != GeneratedResultType.cancel;
+      var text = Message.format(streamMsgModel.text, chatFormat, continueLastMsg);
       if(text.isNotEmpty) {
         addGenerated(
           context,
@@ -369,15 +376,23 @@ class ChatState extends State<Chat> {
         );
       }
     }
-    addGenerated(
-      context,
-      authorIndex,
-      undoMessage,
-      useBlacklist,
-      continueLastMsg,
-      result,
-      curConv
-    );
+    if(result.type == GeneratedResultType.cancel) {
+      if(generatingForConv != null && generatingForConv == curConv) {
+        setState(() {
+          disableAutoGen();
+        });
+      }
+    } else {
+      addGenerated(
+        context,
+        authorIndex,
+        undoMessage,
+        useBlacklist,
+        continueLastMsg,
+        result,
+        curConv
+      );
+    }
     streamMsgModel.hide();
   }
 
@@ -390,13 +405,13 @@ class ChatState extends State<Chat> {
     GeneratedResult result,
     Conversation curConv
   ) async {
-
     var msgModel = Provider.of<MessagesModel>(context, listen: false);
     var lastMsg = msgModel.messages.lastOrNull;
 
     String msgText;
+    var isError = result.type != GeneratedResultType.response;
     if(
-      !result.isError
+      !isError
       && lastMsg != null
       && result.preText.isNotEmpty
       && lastMsg.authorIndex == authorIndex
@@ -410,7 +425,7 @@ class ChatState extends State<Chat> {
     }
 
     if(msgText.isNotEmpty) {
-      if(!result.isError && lastMsg != null && continueLastMsg)
+      if(!isError && lastMsg != null && continueLastMsg)
         lastMsg = msgModel.setText(lastMsg, lastMsg.text + msgText, false);
       else
         msgModel.addText(msgText, true, authorIndex);
@@ -428,14 +443,8 @@ class ChatState extends State<Chat> {
       }
     });
 
-    if(generatingForConv != null && !result.isError)
+    if(generatingForConv != null && !isError)
       nextAutoGen();
-
-    if(result.isError && generatingForConv != null && generatingForConv == curConv) {
-      setState(() {
-        disableAutoGen();
-      });
-    }
   }
 
   void enableAutoGen(Conversation conv) {
@@ -1073,47 +1082,58 @@ class ChatInput extends StatelessWidget {
       },
       decoration: InputDecoration(
         hintText: nextParticipant.name,
-        suffixIcon: GestureDetector(
-          onLongPress: () {
-            Feedback.forLongPress(context);
-            onGeneratingSwitch(!isGenerating);
-          },
-          child:IconButton(
-            icon: Icon(isGenerating ? Icons.fast_forward : Icons.send),
-            onPressed: () {
-              if(isGenerating) {
-                onGeneratingSwitch(false);
-                return;
-              }
-
-              if(neodimModel.isApiRunning)
-                return;
-
-              inputController.text = inputController.text.trim();
-              var wasEmpty = inputController.text.isEmpty;
-              submit(nextParticipantIndex);
-
-              switch(convModel.current?.type) {
-                case ConversationType.chat:
-                case ConversationType.groupChat:
-                  var genParticipantIndex = msgModel.getNextParticipantIndex(null);
-                  addGenerated(genParticipantIndex);
-                  break;
-
-                case ConversationType.adventure:
-                  addGenerated(Message.dmIndex);
-                  break;
-
-                case ConversationType.story:
-                  if(wasEmpty)
-                    addGenerated(Message.storyIndex);
-                  break;
-
-                default:
-                  break;
-              }
+        suffixIcon: Consumer<ApiCancelModel>(
+          builder: (context, apiCancelModel, child) {
+            var cancelFunc = apiCancelModel.cancelFunc;
+            if(cancelFunc != null) {
+              return IconButton(
+                icon: const Icon(Icons.stop),
+                onPressed: () => cancelFunc()
+              );
             }
-          )
+            return GestureDetector(
+              onLongPress: () {
+                Feedback.forLongPress(context);
+                onGeneratingSwitch(!isGenerating);
+              },
+              child: IconButton(
+                icon: Icon(isGenerating ? Icons.fast_forward : Icons.send),
+                onPressed: () {
+                  if(isGenerating) {
+                    onGeneratingSwitch(false);
+                    return;
+                  }
+
+                  if(neodimModel.isApiRunning)
+                    return;
+
+                  inputController.text = inputController.text.trim();
+                  var wasEmpty = inputController.text.isEmpty;
+                  submit(nextParticipantIndex);
+
+                  switch(convModel.current?.type) {
+                    case ConversationType.chat:
+                    case ConversationType.groupChat:
+                      var genParticipantIndex = msgModel.getNextParticipantIndex(null);
+                      addGenerated(genParticipantIndex);
+                      break;
+
+                    case ConversationType.adventure:
+                      addGenerated(Message.dmIndex);
+                      break;
+
+                    case ConversationType.story:
+                      if(wasEmpty)
+                        addGenerated(Message.storyIndex);
+                      break;
+
+                    default:
+                      break;
+                  }
+                }
+              )
+            );
+          }
         ),
         contentPadding: const EdgeInsets.only(left: 5, top: 15)
       ),

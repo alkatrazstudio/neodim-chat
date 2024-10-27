@@ -3,14 +3,13 @@
 
 import 'dart:convert';
 import 'dart:math';
-import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
-import 'package:http/http.dart' as http;
-import 'package:neodim_chat/models/config.dart';
 
 import '../apis/request.dart';
 import '../apis/response.dart';
+import '../models/api_model.dart';
+import '../models/config.dart';
 import '../models/messages.dart';
 
 class LlamaCppRequest {
@@ -151,22 +150,31 @@ class ApiRequestLlamaCpp {
     throw Exception(fullErr);
   }
 
-  static Future<Map<String, dynamic>> httpPostRaw(String endpoint, Map<String, dynamic> data) async {
-    var reqJson = jsonEncode(data);
-    var endpointUri = Uri.parse(endpoint);
-    var response = await http.post(endpointUri,
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: reqJson
+  static Future<Map<String, dynamic>> httpPostRaw(String endpoint, Map<String, dynamic> data, CancelToken cancelToken) async {
+    var dio = Dio();
+    var response = await dio.post<Map<String, dynamic>>(endpoint,
+      options: Options(
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        responseType: ResponseType.json
+      ),
+      data: data,
+      cancelToken: cancelToken
     );
-    var respJson = response.body;
-    var resp = jsonDecode(respJson) as Map<String, dynamic>;
+    var resp = response.data;
+    if(resp == null)
+      throw Exception('Null response.');
     raiseErrorIfNeeded(resp);
     return resp;
   }
 
-  static Future<Map<String, dynamic>> httpPostRawStream(String endpoint, Map<String, dynamic> data, void Function(String newText) onNewStreamText) async {
+  static Future<Map<String, dynamic>> httpPostRawStream(
+    String endpoint,
+    Map<String, dynamic> data,
+    void Function(String newText) onNewStreamText,
+    CancelToken cancelToken
+  ) async {
     var dio = Dio();
     var response = await dio.post<ResponseBody>(endpoint,
       options: Options(
@@ -175,7 +183,8 @@ class ApiRequestLlamaCpp {
         },
         responseType: ResponseType.stream
       ),
-      data: data
+      data: data,
+      cancelToken: cancelToken
     );
     var stream = response.data?.stream;
     if(stream == null)
@@ -221,30 +230,53 @@ class ApiRequestLlamaCpp {
     return lastMsgObj;
   }
 
-  static Future<Map<String, dynamic>> httpGetRaw(String endpoint) async {
-    var endpointUri = Uri.parse(endpoint);
-    var response = await http.get(endpointUri);
-    var respJson = response.body;
-    var resp = jsonDecode(respJson) as Map<String, dynamic>;
+  static Future<Map<String, dynamic>> httpGetRaw(String endpoint, CancelToken cancelToken) async {
+    var dio = Dio();
+    var response = await dio.get<Map<String, dynamic>>(endpoint,
+      options: Options(
+        responseType: ResponseType.json
+      ),
+      cancelToken: cancelToken
+    );
+    var resp = response.data;
+    if(resp == null)
+      throw Exception('Null response.');
+    raiseErrorIfNeeded(resp);
     return resp;
   }
 
-  static Future<List<int>> tokenize(String endpoint, String content) async {
-    var response = await httpPostRaw('$endpoint/tokenize', {'content': content});
+  static Future<List<int>> tokenize(String endpoint, String content, ApiCancelModel apiCancelModel) async {
+    var response = await runWithCancelToken(apiCancelModel, (cancelToken) => httpPostRaw('$endpoint/tokenize', {'content': content}, cancelToken));
     var tokens = (response['tokens'] as List<dynamic>).map((token) => token as int).toList();
     return tokens;
   }
 
-  static Future<String> detokenize(String endpoint, List<int> tokens) async {
-    var response = await httpPostRaw('$endpoint/detokenize', {'tokens': tokens});
+  static Future<String> detokenize(String endpoint, List<int> tokens, ApiCancelModel apiCancelModel) async {
+    var response = await runWithCancelToken(apiCancelModel, (cancelToken) => httpPostRaw('$endpoint/detokenize', {'tokens': tokens}, cancelToken));
     var content = response['content'] as String;
     return content;
+  }
+
+  static Future<T> runWithCancelToken<T>(ApiCancelModel apiCancelModel, Future<T> Function(CancelToken) f) async {
+    try {
+      var cancelToken = CancelToken();
+      apiCancelModel.setCancelFunc(() => cancelToken.cancel());
+      var result = await f(cancelToken);
+      return result;
+    } on DioException catch(e) {
+      if(e.type == DioExceptionType.cancel)
+        throw ApiCancelException();
+      rethrow;
+    } finally {
+      apiCancelModel.setCancelFunc(null);
+    }
   }
 
   static Future<ApiResponse?> run(ApiRequestParams params) async {
     var endpoint = ApiRequest.normalizeEndpoint(params.cfgModel.apiEndpoint, 8080, '');
 
-    var infoResponse = await httpGetRaw('$endpoint/props');
+    var infoResponse = await runWithCancelToken(params.apiCancelModel, (cancelToken) => httpGetRaw('$endpoint/props', cancelToken));
+    raiseErrorIfNeeded(infoResponse);
     var contextSize = infoResponse['default_generation_settings']['n_ctx'] as int;
 
     int preambleTokensCount;
@@ -256,13 +288,13 @@ class ApiRequestLlamaCpp {
     var allInput = params.inputText;
     var preamble = params.cfgModel.inputPreamble;
     if(preamble.isNotEmpty) {
-      preambleTokensCount = (await tokenize(endpoint, preamble)).length;
+      preambleTokensCount = (await tokenize(endpoint, preamble, params.apiCancelModel)).length;
       allInput = preamble + allInput;
     } else {
       preambleTokensCount = 0;
     }
 
-    var allInputTokens = params.inputText.isEmpty ? <int>[] : await tokenize(endpoint, params.inputText);
+    var allInputTokens = params.inputText.isEmpty ? <int>[] : await tokenize(endpoint, params.inputText, params.apiCancelModel);
     int maxRepeatLastN;
     var repPenText = params.repPenText;
     int repeatLastN;
@@ -285,7 +317,7 @@ class ApiRequestLlamaCpp {
     } else {
       if(params.cfgModel.repetitionPenaltyIncludePreamble)
         repPenText = params.cfgModel.inputPreamble + repPenText;
-      var repPenTokens = await tokenize(endpoint, repPenText);
+      var repPenTokens = await tokenize(endpoint, repPenText, params.apiCancelModel);
       maxRepeatLastN = repPenTokens.length;
       repeatLastN = params.cfgModel.repetitionPenaltyRange == 0 ? maxRepeatLastN : params.cfgModel.repetitionPenaltyRange;
       repeatLastN = min(repeatLastN, maxRepeatLastN);
@@ -294,7 +326,7 @@ class ApiRequestLlamaCpp {
       } else {
         if(repeatLastN < repPenTokens.length) {
           repPenTokens = repPenTokens.sublist(repPenTokens.length - repeatLastN);
-          repPenText = await detokenize(endpoint, repPenTokens);
+          repPenText = await detokenize(endpoint, repPenTokens, params.apiCancelModel);
         }
       }
     }
@@ -372,15 +404,18 @@ class ApiRequestLlamaCpp {
 
     var requestMap = request.toApiRequestMap();
     params.apiModel.startRawRequest(requestMap);
-    var responseMap = request.stream
-      ? await httpPostRawStream('$endpoint/completion', requestMap, params.onNewStreamText)
-      : await httpPostRaw('$endpoint/completion', requestMap);
+    var responseMap = await runWithCancelToken(
+      params.apiCancelModel,
+      (cancelToken) => request.stream
+        ? httpPostRawStream('$endpoint/completion', requestMap, params.onNewStreamText, cancelToken)
+        : httpPostRaw('$endpoint/completion', requestMap, cancelToken)
+    );
     var response = LlamaCppResponse.fromApiResponseMap(responseMap);
     params.apiModel.endRawRequest(responseMap, response.tokensPredicted);
 
     var usedPromptTokensCount = response.tokensEvaluated - preambleTokensCount;
     var usedTokens = allInputTokens.sublist(max(0, allInputTokens.length - usedPromptTokensCount));
-    var usedPrompt = await detokenize(endpoint, usedTokens);
+    var usedPrompt = await detokenize(endpoint, usedTokens, params.apiCancelModel);
     if(usedPrompt.startsWith(' '))
       usedPrompt = usedPrompt.substring(1);
 
