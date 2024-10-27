@@ -401,8 +401,9 @@ class ChatState extends State<Chat> {
       && result.preText.isNotEmpty
       && lastMsg.authorIndex == authorIndex
       && !curConv.isChat
+      && !continueLastMsg
     ) {
-      msgModel.setText(lastMsg, lastMsg.text + result.preText, false);
+      lastMsg = msgModel.setText(lastMsg, lastMsg.text + result.preText, false);
       msgText = result.text;
     } else {
       msgText = result.fullText;
@@ -410,7 +411,7 @@ class ChatState extends State<Chat> {
 
     if(msgText.isNotEmpty) {
       if(!result.isError && lastMsg != null && continueLastMsg)
-        msgModel.setText(lastMsg, lastMsg.text + msgText, false);
+        lastMsg = msgModel.setText(lastMsg, lastMsg.text + msgText, false);
       else
         msgModel.addText(msgText, true, authorIndex);
     }
