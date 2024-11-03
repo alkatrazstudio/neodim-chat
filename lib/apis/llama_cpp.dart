@@ -76,7 +76,7 @@ class LlamaCppRequest {
   static Map<Warper, String> get warpersMap => {
     Warper.topK: 'top_k',
     Warper.tfs: 'tfs_z',
-    Warper.typical: 'typical_p',
+    Warper.typical: 'typ_p',
     Warper.topP: 'top_p',
     Warper.minP: 'min_p',
     Warper.xtc: 'xtc',
