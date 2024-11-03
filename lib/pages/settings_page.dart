@@ -341,40 +341,40 @@ class _SettingsPageState extends State<SettingsPage> {
         label: 'Top P (nucleus sampling)',
         name: 'topP',
         initialValue: cfgModel.topP,
-        normalized: true
+        maxValue: 1
       ),
       if(apiType == ApiType.llamaCpp)
         FieldFloat(
           label: 'Min P',
           name: 'minP',
           initialValue: cfgModel.minP,
-          normalized: true
+          maxValue: 1
         ),
       FieldFloat(
         label: 'Tail-free sampling',
         name: 'tfs',
         initialValue: cfgModel.tfs,
-        normalized: true
+        maxValue: 1
       ),
       FieldFloat(
         label: 'Typical sampling',
         name: 'typical',
         initialValue: cfgModel.typical,
-        normalized: true
+        maxValue: 1
       ),
       if(apiType == ApiType.neodim)
         FieldFloat(
           label: 'Top A',
           name: 'topA',
           initialValue: cfgModel.topA,
-          normalized: true
+          maxValue: 1
         ),
       if(apiType == ApiType.neodim)
         FieldFloat(
           label: 'Penalty Alpha',
           name: 'penaltyAlpha',
           initialValue: cfgModel.penaltyAlpha,
-          normalized: true
+          maxValue: 1
         ),
       if(apiType == ApiType.llamaCpp)
         SettingContainer(
@@ -399,7 +399,21 @@ class _SettingsPageState extends State<SettingsPage> {
           label: 'Mirostat Eta',
           name: 'mirostatEta',
           initialValue: cfgModel.mirostatEta,
-          normalized: true,
+          maxValue: 1
+        ),
+      if(apiType == ApiType.llamaCpp)
+        FieldFloat(
+          label: 'XTC probability',
+          name: 'xtcProbability',
+          initialValue: cfgModel.xtcProbability,
+          maxValue: 1
+        ),
+      if(apiType == ApiType.llamaCpp)
+        FieldFloat(
+          label: 'XTC threshold',
+          name: 'xtcThreshold',
+          initialValue: cfgModel.xtcThreshold,
+          maxValue: 0.5
         ),
       FieldWarpers(
         supportedWarpers: supportedWarpers,
@@ -721,14 +735,14 @@ class FieldFloat extends StatelessWidget {
     required this.name,
     required this.initialValue,
     this.allowZero = true,
-    this.normalized = false
+    this.maxValue
   });
 
   final String label;
   final String name;
   final double initialValue;
   final bool allowZero;
-  final bool normalized;
+  final double? maxValue;
 
   @override
   Widget build(context) {
@@ -747,8 +761,8 @@ class FieldFloat extends StatelessWidget {
             inclusive: allowZero,
             errorText: allowZero ? 'Must not be negative' : 'Must be positive'
           ),
-          if(normalized)
-            FormBuilderValidators.max(1, inclusive: true, errorText: 'Must be between 0 and 1'),
+          if(maxValue != null)
+            FormBuilderValidators.max(maxValue!, inclusive: true, errorText: 'Must be between 0 and $maxValue')
         ]),
       )
     );

@@ -188,6 +188,19 @@ const _manualHtml = '''
     while a higher learning rate will make the algorithm more responsive.
   </li>
   <li>
+    <strong>XTC probability</strong> -
+    probability of applying XTC (Exclude Top Choice) sampler when choosing the next token.
+    Recommended value: 0.5.
+  </li>
+  <li>
+    <strong>XTC threshold</strong> -
+    if XTC (Exclude Top Choice) sampler is applied,
+    remove all tokens that have this or higher probability except for the least probable token among them.
+    Since at least one token in the threshold range must be preserved,
+    the threshold cannot be higher than 0.5, because there can only be one token with a probability higher than 0.5.
+    Recommended value: 0.1. Recommended to use in the combination with the Min-P sampler.
+  </li>
+  <li>
     <strong>Warpers order</strong> - the order in which the filters/samplers/warpers are applied.
   </li>
 </ul>

@@ -41,6 +41,7 @@ enum Warper {
   typical,
   topP,
   minP,
+  xtc,
   topA,
   temperature
 }
@@ -116,6 +117,12 @@ class ConfigModel extends ChangeNotifier {
 
   @JsonKey(defaultValue: 0.1)
   double mirostatEta = 0.1;
+
+  @JsonKey(defaultValue: 0.0)
+  double xtcProbability = 0.0;
+
+  @JsonKey(defaultValue: 0.1)
+  double xtcThreshold = 0.1;
 
   @JsonKey(fromJson: warpersListFromJson)
   List<Warper> warpersOrder = Warper.values;
@@ -289,6 +296,16 @@ class ConfigModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setXtcProbability(double newXtcProbability) {
+    xtcProbability = newXtcProbability;
+    notifyListeners();
+  }
+
+  void setXtcThreshold(double newXtcThreshold) {
+    xtcThreshold = newXtcThreshold;
+    notifyListeners();
+  }
+
   void setWarpersOrder(List<Warper> newWarpersOrder) {
     warpersOrder = newWarpersOrder;
     notifyListeners();
@@ -433,6 +450,8 @@ class ConfigModel extends ChangeNotifier {
     mirostat = other.mirostat;
     mirostatEta = other.mirostatEta;
     mirostatTau = other.mirostatTau;
+    xtcProbability = other.xtcProbability;
+    xtcThreshold = other.xtcThreshold;
     warpersOrder = other.warpersOrder.toList();
     repetitionPenalty = other.repetitionPenalty;
     frequencyPenalty = other.frequencyPenalty;

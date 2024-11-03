@@ -29,6 +29,8 @@ class LlamaCppRequest {
     required this.mirostat,
     required this.mirostatTau,
     required this.mirostatEta,
+    required this.xtcProbability,
+    required this.xtcThreshold,
     required this.repeatPenalty,
     required this.frequencyPenalty,
     required this.presencePenalty,
@@ -57,6 +59,8 @@ class LlamaCppRequest {
   final int mirostat;
   final double mirostatTau;
   final double mirostatEta;
+  final double xtcProbability;
+  final double xtcThreshold;
   final double repeatPenalty;
   final double frequencyPenalty;
   final double presencePenalty;
@@ -75,6 +79,7 @@ class LlamaCppRequest {
     Warper.typical: 'typical_p',
     Warper.topP: 'top_p',
     Warper.minP: 'min_p',
+    Warper.xtc: 'xtc',
     Warper.temperature: 'temperature'
   };
   static List<Warper> get supportedWarpers => ApiRequest.supportedWarpers(warpersMap);
@@ -97,6 +102,8 @@ class LlamaCppRequest {
       'mirostat': mirostat,
       'mirostat_tau': mirostatTau,
       'mirostat_eta': mirostatEta,
+      'xtc_probability': xtcProbability,
+      'xtc_threshold': xtcThreshold,
       'repeat_penalty': repeatPenalty,
       'frequency_penalty': frequencyPenalty,
       'presence_penalty': presencePenalty,
@@ -389,6 +396,8 @@ class ApiRequestLlamaCpp {
       mirostat: mirostat,
       mirostatTau: params.cfgModel.mirostatTau,
       mirostatEta: params.cfgModel.mirostatEta,
+      xtcProbability: params.cfgModel.xtcProbability,
+      xtcThreshold: params.cfgModel.xtcThreshold,
       repeatPenalty: params.cfgModel.repetitionPenalty != 0 ? params.cfgModel.repetitionPenalty : 1,
       frequencyPenalty: params.cfgModel.frequencyPenalty,
       presencePenalty: params.cfgModel.presencePenalty,
