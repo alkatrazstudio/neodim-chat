@@ -481,9 +481,17 @@ class ConfigModel extends ChangeNotifier {
   }
 
   static void normalizeWarpers(List<Warper> warpers) {
+    Warper? prevWarper;
     for(var warper in Warper.values) {
-      if(!warpers.contains(warper))
-        warpers.add(warper);
+      if(!warpers.contains(warper)) {
+        if(prevWarper == null) {
+          warpers.insert(0, warper);
+        } else {
+          var prevWarperPos = warpers.indexOf(prevWarper);
+          warpers.insert(prevWarperPos + 1, warper);
+        }
+      }
+      prevWarper = warper;
     }
   }
 
