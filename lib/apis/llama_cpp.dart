@@ -24,7 +24,6 @@ class LlamaCppRequest {
     required this.nKeep,
     required this.prompt,
     required this.stop,
-    required this.tfsZ,
     required this.typicalP,
     required this.mirostat,
     required this.mirostatTau,
@@ -54,7 +53,6 @@ class LlamaCppRequest {
   final int nKeep;
   final String prompt;
   final List<String> stop;
-  final double tfsZ;
   final double typicalP;
   final int mirostat;
   final double mirostatTau;
@@ -75,7 +73,6 @@ class LlamaCppRequest {
 
   static Map<Warper, String> get warpersMap => {
     Warper.topK: 'top_k',
-    Warper.tfs: 'tfs_z',
     Warper.typical: 'typ_p',
     Warper.topP: 'top_p',
     Warper.minP: 'min_p',
@@ -97,7 +94,6 @@ class LlamaCppRequest {
       'n_keep': nKeep,
       'prompt': prompt,
       'stop': stop,
-      'tfs_z': tfsZ,
       'typical_p': typicalP,
       'mirostat': mirostat,
       'mirostat_tau': mirostatTau,
@@ -391,7 +387,6 @@ class ApiRequestLlamaCpp {
       nKeep: preambleTokensCount,
       prompt: allInput,
       stop: stopStrings,
-      tfsZ: params.cfgModel.tfs != 0 ? params.cfgModel.tfs : 1,
       typicalP: params.cfgModel.typical != 0 ? params.cfgModel.typical : 1,
       mirostat: mirostat,
       mirostatTau: params.cfgModel.mirostatTau,

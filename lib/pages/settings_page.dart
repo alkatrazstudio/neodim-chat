@@ -350,12 +350,13 @@ class _SettingsPageState extends State<SettingsPage> {
           initialValue: cfgModel.minP,
           maxValue: 1
         ),
-      FieldFloat(
-        label: 'Tail-free sampling',
-        name: 'tfs',
-        initialValue: cfgModel.tfs,
-        maxValue: 1
-      ),
+      if(apiType == ApiType.neodim)
+        FieldFloat(
+          label: 'Tail-free sampling',
+          name: 'tfs',
+          initialValue: cfgModel.tfs,
+          maxValue: 1
+        ),
       FieldFloat(
         label: 'Typical sampling',
         name: 'typical',
