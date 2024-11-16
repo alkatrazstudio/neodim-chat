@@ -52,7 +52,7 @@ class ApiRequestParams {
   final MessagesModel msgModel;
   final ApiModel apiModel;
   final ApiCancelModel apiCancelModel;
-  final void Function(String newText) onNewStreamText;
+  final void Function(String newText)? onNewStreamText;
 }
 
 class ApiRequest {
@@ -62,7 +62,7 @@ class ApiRequest {
     String? repPenText,
     List<String>? participantNames,
     Set<String>? blacklistWordsForRetry,
-    void Function(String newText) onNewStreamText
+    void Function(String newText)? onNewStreamText
   ) async {
     var convModel = Provider.of<ConversationsModel>(context, listen: false);
     var conversation = convModel.current;

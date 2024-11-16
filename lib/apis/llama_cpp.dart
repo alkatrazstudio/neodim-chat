@@ -188,7 +188,7 @@ class ApiRequestLlamaCpp {
   static Future<Map<String, dynamic>> httpPostRawStream(
     String endpoint,
     Map<String, dynamic> data,
-    void Function(String newText) onNewStreamText,
+    void Function(String newText)? onNewStreamText,
     CancelToken cancelToken
   ) async {
     var dio = Dio();
@@ -237,7 +237,8 @@ class ApiRequestLlamaCpp {
         if(content.isEmpty)
           continue;
         allContent += content;
-        onNewStreamText(content);
+        if(onNewStreamText != null)
+          onNewStreamText(content);
       }
     }
     if(lastMsgObj == null)

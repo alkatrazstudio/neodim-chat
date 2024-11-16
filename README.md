@@ -16,7 +16,7 @@ You can read the detailed help in the app itself.
 ## Key features
 
 * Chat between [two](#chat-mode) or [more](#group-chat-mode) participants
-* The next chat participant is chosen by AI (when more than two participants are involved)
+* The next chat participant can be chosen by AI
 * Write a [story](#story-mode) (as a "monologue" of one participant)
 * Text [adventure game](#adventure-mode) simulation
 * Write comments in between chat lines (i.e. non-dialog text)

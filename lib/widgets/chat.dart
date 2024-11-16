@@ -22,7 +22,15 @@ class Chat extends StatefulWidget {
     required this.generate
   });
 
-  final Future<List<String>> Function(String, String?, Participant, Set<String>, bool continueLastMsg, Message? undoMessage) generate;
+  final Future<List<String>> Function(
+    String aiInput,
+    String? repPenInput,
+    Participant promptedParticipant,
+    String? promptedParticipantName,
+    Set<String> blacklistWordsForRetry,
+    bool continueLastMsg,
+    Message? undoMessage
+  ) generate;
 
   @override
   State<Chat> createState() => ChatState();
@@ -171,62 +179,15 @@ class ChatState extends State<Chat> {
     }
   }
 
-  String? getRepPenInput(Conversation c, MessagesModel msgModel, ConfigModel cfgModel) {
-    switch(c.type) {
-      case ConversationType.chat:
-        if(cfgModel.repetitionPenaltyKeepOriginalPrompt) {
-          return msgModel.getOriginalRepetitionPenaltyTextForChat(
-              msgModel.messages,
-              false,
-              cfgModel.repetitionPenaltyRemoveParticipantNames
-          );
-        } else {
-          return msgModel.getRepetitionPenaltyTextForChat(
-            msgModel.messages,
-            cfgModel.repetitionPenaltyLinesWithNoExtraSymbols,
-            false,
-            cfgModel.repetitionPenaltyRemoveParticipantNames
-          );
-        }
-
-      case ConversationType.groupChat:
-        if(cfgModel.repetitionPenaltyKeepOriginalPrompt) {
-          return msgModel.getOriginalRepetitionPenaltyTextForChat(
-              msgModel.messages,
-              true,
-              cfgModel.repetitionPenaltyRemoveParticipantNames
-          );
-        } else {
-          return msgModel.getRepetitionPenaltyTextForChat(
-            msgModel.messages,
-            cfgModel.repetitionPenaltyLinesWithNoExtraSymbols,
-            true,
-            cfgModel.repetitionPenaltyRemoveParticipantNames
-          );
-        }
-
-      case ConversationType.adventure:
-        if(cfgModel.repetitionPenaltyKeepOriginalPrompt)
-          return null;
-        return msgModel.repetitionPenaltyTextForAdventure;
-
-      case ConversationType.story:
-        if(cfgModel.repetitionPenaltyKeepOriginalPrompt)
-          return null;
-        return msgModel.repetitionPenaltyTextForStory;
-
-      default:
-        return null;
-    }
-  }
-
   Future<GeneratedResult> getGenerated(
     BuildContext context,
     int participantIndex, {
-    Message? undoMessage,
-    bool useBlacklist = true,
-    bool continueLastMsg = false
-  }) async {
+      String? participantName,
+      Message? undoMessage,
+      bool useBlacklist = true,
+      bool continueLastMsg = false
+    }
+  ) async {
     var convModel = Provider.of<ConversationsModel>(context, listen: false);
     var curConv = convModel.current;
     if(curConv == null)
@@ -250,7 +211,7 @@ class ChatState extends State<Chat> {
         blacklistWordsForRetry = {};
     }
 
-    var repPenInput = getRepPenInput(curConv, msgModel, cfgModel);
+    var repPenInput = Conversation.getRepPenInput(context);
 
     aiInputForRetryCache = aiInput;
     retryCache.clear();
@@ -265,7 +226,7 @@ class ChatState extends State<Chat> {
     continueText = '';
     while(true) {
       try {
-        var texts = await widget.generate(aiInput, repPenInput, promptedParticipant, blacklistWordsForRetry, continueLastMsg, undoMessage);
+        var texts = await widget.generate(aiInput, repPenInput, promptedParticipant, participantName, blacklistWordsForRetry, continueLastMsg, undoMessage);
         var isSingle = texts.length == 1;
         results = texts
           .map((text) => isSingle
@@ -341,6 +302,7 @@ class ChatState extends State<Chat> {
   Future<void> generateAndAdd(
     BuildContext context,
     int authorIndex, {
+      String? authorName,
       Message? undoMessage,
       bool useBlacklist = true,
       bool continueLastMsg = false
@@ -353,10 +315,16 @@ class ChatState extends State<Chat> {
     var result = await getGenerated(
       context,
       authorIndex,
+      participantName: authorName,
       undoMessage: undoMessage,
       useBlacklist: useBlacklist,
       continueLastMsg: continueLastMsg
     );
+    if(result.type == GeneratedResultType.cancel && generatingForConv != null && generatingForConv == curConv) {
+      setState(() {
+        disableAutoGen();
+      });
+    }
     if(result.isEmpty)
       return;
 
@@ -365,7 +333,8 @@ class ChatState extends State<Chat> {
       var chatFormat = (curConv.isChat || authorIndex == Message.youIndex) && result.type != GeneratedResultType.cancel;
       var text = Message.format(streamMsgModel.text, chatFormat, continueLastMsg);
       if(text.isNotEmpty) {
-        addGenerated(
+        streamMsgModel.hide(); // first hide the streaming message to avoid showing it as a duplicate
+        await addGenerated(
           context,
           authorIndex,
           undoMessage,
@@ -376,14 +345,8 @@ class ChatState extends State<Chat> {
         );
       }
     }
-    if(result.type == GeneratedResultType.cancel) {
-      if(generatingForConv != null && generatingForConv == curConv) {
-        setState(() {
-          disableAutoGen();
-        });
-      }
-    } else {
-      addGenerated(
+    if(result.type != GeneratedResultType.cancel) {
+      await addGenerated(
         context,
         authorIndex,
         undoMessage,
@@ -443,8 +406,8 @@ class ChatState extends State<Chat> {
       }
     });
 
-    if(generatingForConv != null && !isError)
-      nextAutoGen();
+    if(generatingForConv != null && result.type == GeneratedResultType.response)
+      nextAutoGenWithErrorHandling();
   }
 
   void enableAutoGen(Conversation conv) {
@@ -455,6 +418,10 @@ class ChatState extends State<Chat> {
   void disableAutoGen() {
     generatingForConv = null;
     WakelockPlus.disable();
+  }
+
+  void nextAutoGenWithErrorHandling() {
+    nextAutoGen().catchError((_) => setState(() => disableAutoGen()));
   }
 
   Future<void> nextAutoGen() async {
@@ -473,24 +440,18 @@ class ChatState extends State<Chat> {
     if(curConv != generatingForConv)
       return;
     var msgModel = Provider.of<MessagesModel>(context, listen: false);
-    var cfgModel = Provider.of<ConfigModel>(context, listen: false);
 
-    var nextAuthorIndex = Message.storyIndex;
+    int nextAuthorIndex;
+    String? nextAuthorName;
     switch(curConv.type)
     {
       case ConversationType.chat:
       case ConversationType.groupChat:
-        if(cfgModel.continuousChatForceAlternateParticipants) {
-          nextAuthorIndex = msgModel.getNextParticipantIndex(null);
-        } else {
-          nextAuthorIndex = Random().nextInt(msgModel.participants.length);
-          if(nextAuthorIndex == msgModel.lastParticipantIndex)
-            nextAuthorIndex = Random().nextInt(msgModel.participants.length);
-        }
+        (nextAuthorIndex, nextAuthorName) = await Conversation.getNextParticipantNameFromServer(context, true, null);
         break;
 
       case ConversationType.adventure:
-        nextAuthorIndex = msgModel.getNextParticipantIndex(null);
+        nextAuthorIndex = msgModel.nextParticipantIndex;
         if(nextAuthorIndex == Message.youIndex && Random().nextDouble() < 0.6)
           nextAuthorIndex = Message.dmIndex;
         break;
@@ -503,7 +464,7 @@ class ChatState extends State<Chat> {
         return;
     }
 
-    generateAndAdd(context, nextAuthorIndex);
+    await generateAndAdd(context, nextAuthorIndex, authorName: nextAuthorName);
   }
 
   @override
@@ -581,7 +542,7 @@ class ChatState extends State<Chat> {
               setState(() {
                 if(newIsGenerating) {
                   enableAutoGen(curConv);
-                  nextAutoGen();
+                  nextAutoGenWithErrorHandling();
                 } else {
                   disableAutoGen();
                 }
@@ -1032,7 +993,7 @@ class ChatInput extends StatelessWidget {
     switch(convModel.current?.type) {
       case ConversationType.chat:
       case ConversationType.groupChat:
-        nextParticipantIndex = msgModel.getNextParticipantIndex(null);
+        nextParticipantIndex = msgModel.nextParticipantIndex;
         break;
 
       case ConversationType.adventure:
@@ -1063,8 +1024,7 @@ class ChatInput extends StatelessWidget {
         switch(convModel.current?.type) {
           case ConversationType.chat:
           case ConversationType.groupChat:
-            var genParticipantIndex = msgModel.getNextParticipantIndex(null);
-            addGenerated(genParticipantIndex);
+            addGenerated(msgModel.nextParticipantIndex);
             break;
 
           case ConversationType.adventure:
@@ -1114,8 +1074,7 @@ class ChatInput extends StatelessWidget {
                   switch(convModel.current?.type) {
                     case ConversationType.chat:
                     case ConversationType.groupChat:
-                      var genParticipantIndex = msgModel.getNextParticipantIndex(null);
-                      addGenerated(genParticipantIndex);
+                      addGenerated(msgModel.nextParticipantIndex);
                       break;
 
                     case ConversationType.adventure:

@@ -6,7 +6,7 @@ NOTE: Before installing this app, make sure that you're able to run Neodim Serve
 == KEY FEATURES ==
 
 * Chat between two or more participants
-* The next chat participant is chosen by AI (when more than two participants are involved)
+* The next chat participant can be chosen by AI
 * Write a story (as a "monologue" of one participant)
 * Text adventure game simulation
 * Quick controls to generate/edit messages for any chat participant and undo/redo/retry messages

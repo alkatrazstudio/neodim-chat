@@ -3,6 +3,7 @@
 
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 
@@ -11,6 +12,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 
+import '../apis/request.dart';
+import '../models/api_model.dart';
 import '../models/config.dart';
 import '../models/messages.dart';
 import '../util/popups.dart';
@@ -119,11 +122,11 @@ class Conversation {
   }
 
   static String getCurrentPrompt(BuildContext context) {
-    var curConv = Provider.of<ConversationsModel>(context).current;
+    var curConv = Provider.of<ConversationsModel>(context, listen: false).current;
     if(curConv == null)
       return '';
 
-    var msgModel = Provider.of<MessagesModel>(context);
+    var msgModel = Provider.of<MessagesModel>(context, listen: false);
 
     switch(curConv.type)
     {
@@ -162,6 +165,145 @@ class Conversation {
     var convModel = Provider.of<ConversationsModel>(ctx, listen: false);
     convModel.setType(this, ConversationType.groupChat);
     await ConversationsModel.saveList(ctx);
+  }
+
+  static String? getRepPenInput(BuildContext context) {
+    var cfgModel = Provider.of<ConfigModel>(context, listen: false);
+    var msgModel = Provider.of<MessagesModel>(context, listen: false);
+    var curConv = Provider.of<ConversationsModel>(context, listen: false).current;
+    if(curConv == null)
+      return null;
+
+    switch(curConv.type) {
+      case ConversationType.chat:
+        if(cfgModel.repetitionPenaltyKeepOriginalPrompt) {
+          return msgModel.getOriginalRepetitionPenaltyTextForChat(
+            msgModel.messages,
+            false,
+            cfgModel.repetitionPenaltyRemoveParticipantNames
+          );
+        } else {
+          return msgModel.getRepetitionPenaltyTextForChat(
+            msgModel.messages,
+            cfgModel.repetitionPenaltyLinesWithNoExtraSymbols,
+            false,
+            cfgModel.repetitionPenaltyRemoveParticipantNames
+          );
+        }
+
+      case ConversationType.groupChat:
+        if(cfgModel.repetitionPenaltyKeepOriginalPrompt) {
+          return msgModel.getOriginalRepetitionPenaltyTextForChat(
+            msgModel.messages,
+            true,
+            cfgModel.repetitionPenaltyRemoveParticipantNames
+          );
+        } else {
+          return msgModel.getRepetitionPenaltyTextForChat(
+            msgModel.messages,
+            cfgModel.repetitionPenaltyLinesWithNoExtraSymbols,
+            true,
+            cfgModel.repetitionPenaltyRemoveParticipantNames
+          );
+        }
+
+      case ConversationType.adventure:
+        if(cfgModel.repetitionPenaltyKeepOriginalPrompt)
+          return null;
+        return msgModel.repetitionPenaltyTextForAdventure;
+
+      case ConversationType.story:
+        if(cfgModel.repetitionPenaltyKeepOriginalPrompt)
+          return null;
+        return msgModel.repetitionPenaltyTextForStory;
+
+      default:
+        return null;
+    }
+  }
+
+  static Future<String?> getNextGroupParticipantName(
+    BuildContext context,
+    String inputText,
+    List<String> participantNames
+  ) async {
+    if(participantNames.length == 1)
+      return participantNames[0];
+
+    var repPenInput = getRepPenInput(context);
+    var apiModel = Provider.of<ApiModel>(context, listen: false);
+    try {
+      apiModel.setApiRunning(true);
+      var response = await ApiRequest.run(
+        context,
+        inputText,
+        repPenInput,
+        participantNames,
+        null,
+        null
+      );
+      if(response == null)
+        return null;
+      var responseText = response.sequences.first.outputText;
+      if(participantNames.contains(responseText))
+        return responseText;
+    } finally {
+      apiModel.setApiRunning(false);
+    }
+    return null;
+  }
+
+  static Future<(int index, String name)> getNextParticipantNameFromServer(BuildContext context, bool includeYou, Message? undoMessage) async {
+    var cfgModel = Provider.of<ConfigModel>(context, listen: false);
+    var msgModel = Provider.of<MessagesModel>(context, listen: false);
+    var participantNames = msgModel.getGroupParticipantNames(false);
+    var groupChatParticipantNames = participantNames.toList();
+    if(undoMessage != null && undoMessage.authorIndex != Message.youIndex) {
+      switch(cfgModel.participantOnRetry) {
+        case ParticipantOnRetry.different:
+          if(participantNames.length > 1) {
+            var prevParticipantName = MessagesModel.extractParticipantName(undoMessage.text);
+            if(prevParticipantName.isNotEmpty)
+              participantNames = participantNames.where((name) => name != prevParticipantName).toList();
+          }
+          break;
+
+        case ParticipantOnRetry.same:
+          var prevParticipantName = MessagesModel.extractParticipantName(undoMessage.text);
+          if(prevParticipantName.isNotEmpty && participantNames.contains(prevParticipantName))
+            participantNames = [prevParticipantName];
+          break;
+
+        default:
+          break;
+      }
+    }
+    var youName = msgModel.participants[Message.youIndex].name;
+    if(includeYou)
+      participantNames.add(youName);
+
+    if(cfgModel.continuousChatForceAlternateParticipants) {
+      var lastMsg = msgModel.messages.lastOrNull;
+      if(lastMsg != null) {
+        var lastName = lastMsg.isYou ? youName : MessagesModel.extractParticipantName(lastMsg.text);
+        if(lastName.isNotEmpty)
+          participantNames = participantNames.where((name) => name != lastName).toList();
+      }
+    }
+
+    String? nextName;
+    if(participantNames.length == 1) {
+      nextName = participantNames.first;
+    } else {
+      var inputText = Conversation.getCurrentPrompt(context);
+      nextName = await getNextGroupParticipantName(context, inputText, participantNames);
+      if(nextName == null) {
+        var nextNameIndex = Random().nextInt(participantNames.length);
+        nextName = participantNames[nextNameIndex];
+      }
+    }
+    var nextParticipantIndex = (groupChatParticipantNames.contains(nextName) || nextName != youName) ? Message.groupChatIndex : Message.youIndex;
+    return (nextParticipantIndex, nextName);
   }
 
   static Conversation fromJson(Map<String, dynamic> json) {

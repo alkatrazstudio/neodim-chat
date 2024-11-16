@@ -152,9 +152,8 @@ class MessagesModel extends ChangeNotifier {
   String get repetitionPenaltyTextForAdventure => getRepetitionPenaltyTextForAdventure(messages);
   String get repetitionPenaltyTextForStory => getRepetitionPenaltyTextForStory(messages);
 
-  int getNextParticipantIndex(int? index) {
-    index ??= lastParticipantIndex;
-    var nextIndex = index + 1;
+  int get nextParticipantIndex {
+    var nextIndex = lastParticipantIndex + 1;
     if (nextIndex < participants.length)
       return nextIndex;
     return Message.youIndex;
@@ -614,7 +613,7 @@ class StreamMessageModel extends ChangeNotifier {
   String text = '';
 
   Message get message => Message(
-    text: text.replaceAll('\n', ' '),
+    text: text.replaceAll('\n', ' ').trim(),
     authorIndex: authorIndex,
     isGenerated: true
   );

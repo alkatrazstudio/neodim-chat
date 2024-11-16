@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../apis/request.dart';
-import '../apis/response.dart';
 import '../models/api_model.dart';
 import '../models/config.dart';
 import '../models/conversations.dart';
@@ -16,46 +15,12 @@ import '../widgets/drawer_column.dart';
 import '../widgets/main_menu.dart';
 
 class HomePage extends StatelessWidget {
-
-  String outputTextFromSequence(ApiResponseSequence s) {
-    var text = s.generatedText;
-    if(s.stopStringMatchIsSentenceEnd)
-      text = text + s.stopStringMatch;
-    return text.trimRight();
-  }
-
-  Future<String?> getNextGroupParticipantName(
-    BuildContext context,
-    String inputText,
-    String? repPenText,
-    List<String> participantNames
-  ) async {
-    if(participantNames.length == 1)
-      return participantNames[0];
-
-    var streamMsgModel = Provider.of<StreamMessageModel>(context, listen: false);
-    var response = await ApiRequest.run(
-      context,
-      inputText,
-      repPenText,
-      participantNames,
-      null,
-      (newText) => streamMsgModel.addText(newText),
-    );
-    if(response == null)
-      return null;
-
-    var responseText = response.sequences.map(outputTextFromSequence).first;
-    if(participantNames.contains(responseText))
-      return responseText;
-    return null;
-  }
-
   Future<List<String>> generate({
     required BuildContext context,
     required String inputText,
     required String? repPenText,
     required Participant promptedParticipant,
+    required String? promptedParticipantName,
     required Set<String> blacklistWordsForRetry,
     required bool continueLastMsg,
     required Message? undoMessage
@@ -75,41 +40,17 @@ class HomePage extends StatelessWidget {
     var promptedParticipantIndex = msgModel.participants.indexOf(promptedParticipant);
     streamMsgModel.reset(promptedParticipantIndex);
     var inputMessages = msgModel.getMessagesSnapshot();
-    apiModel.setApiRunning(true);
     try {
       var addedPromptSuffix = '';
       if(conv.type == ConversationType.groupChat && promptedParticipantIndex != Message.youIndex && !continueLastMsg) {
-        var participantNames = msgModel.getGroupParticipantNames(false);
-        String? participantName;
-        if(undoMessage != null && undoMessage.authorIndex != Message.youIndex) {
-          switch(cfgModel.participantOnRetry) {
-            case ParticipantOnRetry.different:
-              if(participantNames.length > 1) {
-                var prevParticipantName = MessagesModel.extractParticipantName(undoMessage.text);
-                if(prevParticipantName.isNotEmpty)
-                  participantNames = participantNames.where((name) => name != prevParticipantName).toList();
-              }
-              break;
-
-            case ParticipantOnRetry.same:
-              var prevParticipantName = MessagesModel.extractParticipantName(undoMessage.text);
-              if(prevParticipantName.isNotEmpty && participantNames.contains(prevParticipantName))
-                participantName = prevParticipantName;
-              break;
-
-            default:
-              break;
-          }
-        }
-        participantName ??= await getNextGroupParticipantName(context, inputText, repPenText, participantNames);
-        if(participantName == null)
-          throw Exception('Cannot get the correct participant name');
-        addedPromptSuffix = '$participantName${MessagesModel.chatPromptSeparator}';
+        if(promptedParticipantName == null)
+          (_, promptedParticipantName) = await Conversation.getNextParticipantNameFromServer(context, false, undoMessage);
+        addedPromptSuffix = '$promptedParticipantName${MessagesModel.chatPromptSeparator}';
+        streamMsgModel.addText(addedPromptSuffix);
         inputText += addedPromptSuffix;
         addedPromptSuffix += ' ';
-        streamMsgModel.addText('${MessagesModel.chatPromptSeparator} ');
       }
-
+      apiModel.setApiRunning(true);
       var response = await ApiRequest.run(
         context,
         inputText,
@@ -118,20 +59,18 @@ class HomePage extends StatelessWidget {
         blacklistWordsForRetry,
         (newText) => streamMsgModel.addText(newText),
       );
+      streamMsgModel.hide();
       if(response == null)
         return [];
       apiModel.setResponse(response);
-      apiModel.setApiRunning(false);
-      streamMsgModel.hide();
       var combineLines = conv.type == ConversationType.chat ? CombineChatLinesType.no : cfgModel.combineChatLines;
       convModel.updateUsedMessagesCount(
         response.usedPrompt, promptedParticipant, msgModel, inputMessages, combineLines, addedPromptSuffix, continueLastMsg);
-      var lines = response.sequences.map(outputTextFromSequence).toList();
+      var lines = response.sequences.map((seq) => seq.outputText).toList();
       lines = lines.map((line) => addedPromptSuffix + line).toList();
       return lines;
-    } catch (e) {
+    } finally {
       apiModel.setApiRunning(false);
-      rethrow;
     }
   }
 
@@ -161,6 +100,7 @@ class HomePage extends StatelessWidget {
                     text,
                     repPenText,
                     promptedParticipant,
+                    promptedParticipantName,
                     blacklistWordsForRetry,
                     continueLastMsg,
                     undoMessage
@@ -169,6 +109,7 @@ class HomePage extends StatelessWidget {
                     inputText: text,
                     repPenText: repPenText,
                     promptedParticipant: promptedParticipant,
+                    promptedParticipantName: promptedParticipantName,
                     blacklistWordsForRetry: blacklistWordsForRetry,
                     continueLastMsg: continueLastMsg,
                     undoMessage: undoMessage

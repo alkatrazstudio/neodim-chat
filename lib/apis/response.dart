@@ -23,6 +23,13 @@ class ApiResponseSequence {
   final String generatedText;
   final String stopStringMatch;
   final bool stopStringMatchIsSentenceEnd;
+
+  String get outputText {
+    var text = generatedText;
+    if(stopStringMatchIsSentenceEnd)
+      text = text + stopStringMatch;
+    return text.trimRight();
+  }
 }
 
 class ApiResponseGpu {
