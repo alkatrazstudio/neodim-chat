@@ -201,6 +201,29 @@ const _manualHtml = '''
     Recommended value: 0.1. Recommended to use in the combination with the Min-P sampler.
   </li>
   <li>
+    <strong>DRY multiplier</strong> -
+    (Don't Repeat Yourself) repetition penalty multiplier.
+    Controls the strength of the DRY sampling effect.
+    A value of 0.0 disables DRY sampling, while higher values increase its influence.
+    Recommended value: 0.8.
+  </li>
+  <li>
+    <strong>DRY base</strong> -
+    sets the base value for the exponential penalty calculation in DRY sampling.
+    Higher values lead to more aggressive penalization of repetitions.
+    Recommended value: 1.75
+  </li>
+  <li>
+    <strong>DRY allowed length</strong> -
+    the maximum length of repeated sequences that will not be penalized.
+    Repetitions shorter than or equal to this length are not penalized.
+  </li>
+  <li>
+    <strong>DRY range</strong> -
+    how many recent tokens to consider when applying the DRY penalty.
+    A value of 0 considers the entire context.
+  </li>
+  <li>
     <strong>Warpers order</strong> - the order in which the filters/samplers/warpers are applied.
   </li>
 </ul>

@@ -36,6 +36,7 @@ enum TemperatureMode {
 
 enum Warper {
   repetitionPenalty,
+  dry,
   topK,
   tfs,
   typical,
@@ -123,6 +124,18 @@ class ConfigModel extends ChangeNotifier {
 
   @JsonKey(defaultValue: 0.1)
   double xtcThreshold = 0.1;
+
+  @JsonKey(defaultValue: 0)
+  double dryMultiplier = 0;
+
+  @JsonKey(defaultValue: 1.75)
+  double dryBase = 1.75;
+
+  @JsonKey(defaultValue: 2)
+  int dryAllowedLength = 2;
+
+  @JsonKey(defaultValue: 0)
+  int dryRange = 0;
 
   @JsonKey(fromJson: warpersListFromJson)
   List<Warper> warpersOrder = Warper.values;
@@ -227,6 +240,10 @@ class ConfigModel extends ChangeNotifier {
     mirostatTau = other.mirostatTau;
     xtcProbability = other.xtcProbability;
     xtcThreshold = other.xtcThreshold;
+    dryMultiplier = other.dryMultiplier;
+    dryBase = other.dryBase;
+    dryAllowedLength = other.dryAllowedLength;
+    dryRange = other.dryRange;
     warpersOrder = other.warpersOrder.toList();
     repetitionPenalty = other.repetitionPenalty;
     frequencyPenalty = other.frequencyPenalty;

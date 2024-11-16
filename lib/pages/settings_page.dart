@@ -416,6 +416,30 @@ class _SettingsPageState extends State<SettingsPage> {
           initialValue: cfgModel.xtcThreshold,
           maxValue: 0.5
         ),
+      if(apiType == ApiType.llamaCpp)
+        FieldFloat(
+          label: 'DRY multiplier',
+          name: 'dryMultiplier',
+          initialValue: cfgModel.dryMultiplier
+        ),
+      if(apiType == ApiType.llamaCpp)
+        FieldFloat(
+          label: 'DRY base',
+          name: 'dryBase',
+          initialValue: cfgModel.dryBase
+        ),
+      if(apiType == ApiType.llamaCpp)
+        FieldInt(
+          label: 'DRY allowed length',
+          name: 'dryAllowedLength',
+          initialValue: cfgModel.dryAllowedLength
+        ),
+      if(apiType == ApiType.llamaCpp)
+        FieldInt(
+          label: 'DRY penalty range\n(0 - unlimited)',
+          name: 'dryRange',
+          initialValue: cfgModel.dryRange
+        ),
       FieldWarpers(
         supportedWarpers: supportedWarpers,
         initialValue: cfgModel.warpersOrder,

@@ -30,6 +30,11 @@ class LlamaCppRequest {
     required this.mirostatEta,
     required this.xtcProbability,
     required this.xtcThreshold,
+    required this.dryMultiplier,
+    required this.dryBase,
+    required this.dryAllowedLength,
+    required this.dryRange,
+    required this.drySequenceBreakers,
     required this.repeatPenalty,
     required this.frequencyPenalty,
     required this.presencePenalty,
@@ -59,6 +64,11 @@ class LlamaCppRequest {
   final double mirostatEta;
   final double xtcProbability;
   final double xtcThreshold;
+  final double dryMultiplier;
+  final double dryBase;
+  final int dryAllowedLength;
+  final int dryRange;
+  final List<String> drySequenceBreakers;
   final double repeatPenalty;
   final double frequencyPenalty;
   final double presencePenalty;
@@ -72,6 +82,7 @@ class LlamaCppRequest {
   final bool stream;
 
   static Map<Warper, String> get warpersMap => {
+    Warper.dry: 'dry',
     Warper.topK: 'top_k',
     Warper.typical: 'typ_p',
     Warper.topP: 'top_p',
@@ -100,6 +111,11 @@ class LlamaCppRequest {
       'mirostat_eta': mirostatEta,
       'xtc_probability': xtcProbability,
       'xtc_threshold': xtcThreshold,
+      'dry_multiplier': dryMultiplier,
+      'dry_base': dryBase,
+      'dry_allowed_length': dryAllowedLength,
+      'dry_penalty_last_n': dryRange,
+      'dry_sequence_breakers': drySequenceBreakers,
       'repeat_penalty': repeatPenalty,
       'frequency_penalty': frequencyPenalty,
       'presence_penalty': presencePenalty,
@@ -393,6 +409,11 @@ class ApiRequestLlamaCpp {
       mirostatEta: params.cfgModel.mirostatEta,
       xtcProbability: params.cfgModel.xtcProbability,
       xtcThreshold: params.cfgModel.xtcThreshold,
+      dryMultiplier: params.cfgModel.dryMultiplier,
+      dryBase: params.cfgModel.dryBase,
+      dryAllowedLength: params.cfgModel.dryAllowedLength,
+      dryRange: params.cfgModel.dryRange == 0 ? -1 : params.cfgModel.dryRange,
+      drySequenceBreakers: ['\n', ':', '"', '*', '>'],
       repeatPenalty: params.cfgModel.repetitionPenalty != 0 ? params.cfgModel.repetitionPenalty : 1,
       frequencyPenalty: params.cfgModel.frequencyPenalty,
       presencePenalty: params.cfgModel.presencePenalty,
