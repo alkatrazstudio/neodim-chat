@@ -506,27 +506,30 @@ class _SettingsPageState extends State<SettingsPage> {
             title: const SizedBox.shrink()
           )
         ),
-      FieldInt(
-        label: 'Penalty lines without extra symbols',
-        name: 'repetitionPenaltyLinesWithNoExtraSymbols',
-        initialValue: cfgModel.repetitionPenaltyLinesWithNoExtraSymbols
-      ),
-      SettingContainer(
-        label: 'Keep the original penalty text',
-        child: FormBuilderCheckbox(
-          name: 'repetitionPenaltyKeepOriginalPrompt',
-          initialValue: cfgModel.repetitionPenaltyKeepOriginalPrompt,
-          title: const SizedBox.shrink()
-        )
-      ),
-      SettingContainer(
-        label: 'Remove participant names from the penalty text',
-        child: FormBuilderCheckbox(
-          name: 'repetitionPenaltyRemoveParticipantNames',
-          initialValue: cfgModel.repetitionPenaltyRemoveParticipantNames,
-          title: const SizedBox.shrink()
-        )
-      ),
+      if(apiType == ApiType.neodim)
+        FieldInt(
+          label: 'Penalty lines without extra symbols',
+          name: 'repetitionPenaltyLinesWithNoExtraSymbols',
+          initialValue: cfgModel.repetitionPenaltyLinesWithNoExtraSymbols
+        ),
+      if(apiType == ApiType.neodim)
+        SettingContainer(
+          label: 'Keep the original penalty text',
+          child: FormBuilderCheckbox(
+            name: 'repetitionPenaltyKeepOriginalPrompt',
+            initialValue: cfgModel.repetitionPenaltyKeepOriginalPrompt,
+            title: const SizedBox.shrink()
+          )
+        ),
+      if(apiType == ApiType.neodim)
+        SettingContainer(
+          label: 'Remove participant names from the penalty text',
+          child: FormBuilderCheckbox(
+            name: 'repetitionPenaltyRemoveParticipantNames',
+            initialValue: cfgModel.repetitionPenaltyRemoveParticipantNames,
+            title: const SizedBox.shrink()
+          )
+        ),
       if(apiType == ApiType.neodim)
         FieldInt(
           label: 'No repeat N-gram size',
