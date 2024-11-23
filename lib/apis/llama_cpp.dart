@@ -387,7 +387,7 @@ class ApiRequestLlamaCpp {
     var seed = 0x100000000 * rnd.nextInt(0x7FFFFFFF) + rnd.nextInt(0x100000000);
 
     var request = LlamaCppRequest(
-      temperature: temperature != 0 ? temperature : 1,
+      temperature: temperature,
       dynaTempRange: dynaTempRange,
       dynaTempExponent: params.cfgModel.dynaTempExponent,
       topK: params.cfgModel.topK,

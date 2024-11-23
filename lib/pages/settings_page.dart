@@ -309,21 +309,21 @@ class _SettingsPageState extends State<SettingsPage> {
           label: 'Temperature',
           name: 'temperature',
           initialValue: cfgModel.temperature,
-          allowZero: false
+          allowZero: true
         ),
       if(temperatureMode == TemperatureMode.dynamic && apiType == ApiType.llamaCpp)
         FieldFloat(
           label: 'Min. temperature',
           name: 'temperature',
           initialValue: cfgModel.temperature,
-          allowZero: false
+          allowZero: true
         ),
       if(temperatureMode == TemperatureMode.dynamic && apiType == ApiType.llamaCpp)
         FieldFloat(
           label: 'Max. temperature',
           name: 'dynaTempHigh',
           initialValue: cfgModel.dynaTempHigh,
-          allowZero: false
+          allowZero: true
         ),
       if(temperatureMode == TemperatureMode.dynamic && apiType == ApiType.llamaCpp)
         FieldFloat(
