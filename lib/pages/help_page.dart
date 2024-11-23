@@ -291,6 +291,14 @@ const _manualHtml = '''
     <a href="$_serverBaseUrl#no_repeat_ngram_size-int-optional">more info</a>
   </li>
   <li>
+  <strong>Blacklist</strong> -
+  specify words or phrases to exclude.
+  One word/phrase per line.
+  This will not ban the lines as a whole, but instead it will ban all the tokens from specified lines.
+  Because of that, prefer adding short words.
+  May not work properly or impact the coherence of the inference depending on the model.
+  </li>
+  <li>
   <strong>Add words to the blacklist on retry</strong> -
   when pressing "retry" button, add this number of random words
   from the last speech bubble to a blacklist.

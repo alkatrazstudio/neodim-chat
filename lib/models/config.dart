@@ -194,6 +194,9 @@ class ConfigModel extends ChangeNotifier {
   @JsonKey(defaultValue: 10)
   int noRepeatNGramSize = 10;
 
+  @JsonKey(defaultValue: [])
+  List<String> initialBlacklist = const [];
+
   @JsonKey(defaultValue: 2)
   int addWordsToBlacklistOnRetry = 2;
 
@@ -262,6 +265,7 @@ class ConfigModel extends ChangeNotifier {
     combineChatLines = other.combineChatLines;
     continuousChatForceAlternateParticipants = other.continuousChatForceAlternateParticipants;
     noRepeatNGramSize = other.noRepeatNGramSize;
+    initialBlacklist = other.initialBlacklist.toList();
     addWordsToBlacklistOnRetry = other.addWordsToBlacklistOnRetry;
     addSpecialSymbolsToBlacklist = other.addSpecialSymbolsToBlacklist;
     removeWordsFromBlacklistOnRetry = other.removeWordsFromBlacklistOnRetry;

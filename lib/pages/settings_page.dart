@@ -536,6 +536,11 @@ class _SettingsPageState extends State<SettingsPage> {
           name: 'noRepeatNGramSize',
           initialValue: cfgModel.noRepeatNGramSize
         ),
+      FieldStringList(
+        label: 'Blacklist (one word or phrase per line)',
+        name: 'initialBlacklist',
+        initialValue: cfgModel.initialBlacklist
+      ),
       FieldInt(
         label: 'Add words to the blacklist on retry',
         name: 'addWordsToBlacklistOnRetry',
@@ -792,6 +797,33 @@ class FieldFloat extends StatelessWidget {
           if(maxValue != null)
             FormBuilderValidators.max(maxValue!, inclusive: true, errorText: 'Must be between 0 and $maxValue')
         ]),
+      )
+    );
+  }
+}
+
+class FieldStringList extends StatelessWidget {
+  FieldStringList({
+    required this.label,
+    required this.name,
+    required List<String> initialValue
+  }):
+    initialValue = initialValue.toList();
+
+  final String label;
+  final String name;
+  final List<String> initialValue;
+
+  @override
+  Widget build(context) {
+    return SettingContainer(
+      label: label,
+      child: FormBuilderTextField(
+        name: name,
+        initialValue: initialValue.join('\n'),
+        valueTransformer: (s) => s?.split('\n') ?? initialValue,
+        minLines: 5,
+        maxLines: 10
       )
     );
   }

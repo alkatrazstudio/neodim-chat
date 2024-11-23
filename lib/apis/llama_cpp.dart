@@ -340,12 +340,28 @@ class ApiRequestLlamaCpp {
       stopStrings = ApiRequest.getPlainTextStopStrings(params.msgModel, params.conversation);
     }
 
-    var logitBias = <(String, dynamic)>[];
-    if(params.blacklistWordsForRetry != null) {
-      for(var word in params.blacklistWordsForRetry!) {
-        logitBias.add((word, false));
+    var blacklistLines = params.cfgModel.initialBlacklist.map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
+    for(var word in params.blacklistWordsForRetry ?? <String>[])
+    blacklistLines.add(word);
+    var linesForBias = <String>[];
+    for(var f1 in [
+      (String s) => s,
+      (String s) => s.replaceFirstMapped(RegExp(r'^\p{Letter}', unicode: true), (m) => ' ${m[0]}')]
+    ) {
+      for(var f2 in [
+        (String s) => s,
+        (String s) => s.toLowerCase(),
+        (String s) => s.toUpperCase(),
+        (String s) => s.toLowerCase().replaceAllMapped(RegExp(r'(^|[^\p{Letter}])(\p{Letter})', unicode: true), (m) => '${m[1]}${m[2]!.toUpperCase()}')
+      ]) {
+        for(var blacklistLine in blacklistLines) {
+          var f1res = f1(blacklistLine);
+          var f2res = f2(f1res);
+          linesForBias.add(f2res);
+        }
       }
     }
+    var logitBias = linesForBias.toSet().map((line) => (line, false)).toList();
 
     var mirostat = switch(params.cfgModel.mirostat) {
       MirostatVersion.v1 => 1,
