@@ -432,6 +432,8 @@ Here's the list of secondary actions for each button:</p>
 
 <h2>Miscellaneous</h2>
 <ul>
+  <li>Tap the message to edit it. It will open an editing dialog.
+  You can long press the OK button in it to save the message without formatting (without needing to uncheck the "Auto-format" checkbox).</li>
   <li>The red line(s) at the bottom represents the GPU usage (supported only for Neodim Server).</li>
   <li>If the message is dimmed it means it wasn't part of the prompt (context) that was passed to the AI.
     Increase the "Max total tokens" parameter (supported only for Neodim Server) to pass more text to the AI.</li>

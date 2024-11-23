@@ -38,9 +38,9 @@ Future<MessageDialogResult?> showMessageDialog(
   var doFormat = true;
   var newParticipantIndex = participantIndex;
 
-  void submitMsg(BuildContext ctx, String text) {
+  void submitMsg(BuildContext ctx, String text, bool forceNoFormat) {
     text = text.trim();
-    if(doFormat)
+    if(doFormat && !forceNoFormat)
       text = Message.format(text, chatFormat, false);
     if(text.isEmpty || (text == initialText && newParticipantIndex == participantIndex))
       Navigator.of(context).pop();
@@ -115,7 +115,7 @@ Future<MessageDialogResult?> showMessageDialog(
                 controller: inputController,
                 textInputAction: TextInputAction.go,
                 onSubmitted: (text) {
-                  submitMsg(context, text);
+                  submitMsg(context, text, false);
                 }
               ),
               Row(
@@ -168,7 +168,10 @@ Future<MessageDialogResult?> showMessageDialog(
                     TextButton(
                       child: const Text('OK'),
                       onPressed: () {
-                        submitMsg(context, inputController.text);
+                        submitMsg(context, inputController.text, false);
+                      },
+                      onLongPress: () {
+                        submitMsg(context, inputController.text, true);
                       }
                     )
                   ]
