@@ -1,0 +1,10 @@
+- Removed: TFS and penalty prompt for llama.cpp (it was removed from the server)
+- Changed: the next random participant is always chosen by AI
+- Changed: temperature can be set to zero
+- Added: DRY and XTC samplers for llama.cpp
+- Added: streaming for llama.cpp
+- Added: allow to stop the API request for llama.cpp
+- Added: manual blacklist
+- Added: allow to convert chat to group chat
+
+Full changelog: https://github.com/alkatrazstudio/neodim-chat/blob/master/CHANGELOG.md

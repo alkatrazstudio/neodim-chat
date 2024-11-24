@@ -1,6 +1,24 @@
 # Neodim Chat - CHANGELOG
 
 
+## v0.12.0 (November 24, 2024)
+
+- Removed: TFS support for llama.cpp (it was removed from the server)
+- Removed: penalty prompt support for llama.cpp (it was removed from the server)
+- Changed: the next random participant is always chosen by AI
+- Changed: do not put a period at the end if a dialog line is just a quote
+- Changed: for existing conversations new samplers are inserted in more appropriate positions
+- Changed: temperature can be set to zero
+- Added: DRY sampler for llama.cpp
+- Added: XTC sampler for llama.cpp
+- Added: streaming for llama.cpp
+- Added: allow to stop the API request for llama.cpp
+- Added: manual blacklist
+- Added: long tap the OK button in the editing dialog to save the message without formatting
+- Added: allow to convert chat to group chat
+- Fixed: dialog line continuation
+
+
 ## v0.11.1 (July 30, 2024)
 
 - Fixed: blacklist for non-English words
