@@ -342,12 +342,12 @@ class ApiRequestLlamaCpp {
 
     var blacklistLines = params.cfgModel.initialBlacklist.map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
     for(var word in params.blacklistWordsForRetry ?? <String>[])
-    blacklistLines.add(word);
+      blacklistLines.add(word);
     var linesForBias = <String>[];
     for(var f1 in [
       (String s) => s,
-      (String s) => s.replaceFirstMapped(RegExp(r'^\p{Letter}', unicode: true), (m) => ' ${m[0]}')]
-    ) {
+      (String s) => ' $s'
+    ]) {
       for(var f2 in [
         (String s) => s,
         (String s) => s.toLowerCase(),
