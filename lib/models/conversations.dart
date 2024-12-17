@@ -7,6 +7,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import 'package:collection/collection.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
@@ -62,12 +63,17 @@ class Conversation {
     return convDir;
   }
 
-  Future<ConversationData> loadData() async {
+  static Future<ConversationData> loadDataById(String id) async {
     var dir = await dataDir();
     var f = File('${dir.path}/$id.json');
     var json = await f.readAsString();
     var jsonMap = jsonDecode(json) as Map<String, dynamic>;
     var data = ConversationData.fromJson(jsonMap);
+    return data;
+  }
+
+  Future<ConversationData> loadData() async {
+    var data = await loadDataById(id);
     return data;
   }
 
@@ -320,6 +326,23 @@ class Conversation {
 }
 
 
+@JsonSerializable()
+class ImportData {
+  const ImportData({
+    required this.createdAt,
+    required this.conversations,
+    required this.conversationData
+  });
+
+  final DateTime createdAt;
+  final List<Conversation> conversations;
+  final Map<String, ConversationData> conversationData;
+
+  static ImportData fromJson(Map<String, dynamic> json) => _$ImportDataFromJson(json);
+  Map<String, dynamic> toJson() => _$ImportDataToJson(this);
+}
+
+
 @JsonSerializable(explicitToJson: true)
 class ConversationData {
   const ConversationData({
@@ -418,10 +441,11 @@ class ConversationsModel extends ChangeNotifier {
     msgModel.load(MessagesModel());
   }
 
-  Future<void> setCurrent(BuildContext ctx, Conversation conversation) async {
+  Future<void> setCurrent(BuildContext ctx, Conversation? conversation) async {
     current = conversation;
     notUsedMessagesCount = 0;
-    conversation.lastSetAsCurrentAt = DateTime.now();
+    if(conversation != null)
+      conversation.lastSetAsCurrentAt = DateTime.now();
     notifyListeners();
     await saveList(ctx);
   }
@@ -465,6 +489,60 @@ class ConversationsModel extends ChangeNotifier {
       showPopupMsg(ctx, 'Can\'t save the list of conversations: $e');
       rethrow;
     }
+  }
+  
+  static Future<ImportData> export(BuildContext ctx, List<String> conversationIds) async {
+    var convModel = Provider.of<ConversationsModel>(ctx, listen: false);
+    var conversations = convModel.conversations.where((c) => conversationIds.contains(c.id)).toList();
+    var conversationData = <String, ConversationData>{};
+    for(var conv in conversations) {
+      var data = await Conversation.loadDataById(conv.id);
+      conversationData[conv.id] = data;
+    }
+    var importData = ImportData(
+      createdAt: DateTime.now(),
+      conversations: conversations,
+      conversationData: conversationData
+    );
+    return importData;
+  }
+
+  static Future<List<Conversation>> import(BuildContext ctx, ImportData importData, List<String> conversationIds) async {
+    var convModel = Provider.of<ConversationsModel>(ctx, listen: false);
+    var conversations = importData.conversations.where((c) => conversationIds.contains(c.id)).toList();
+    var failedConversations = <Conversation>[];
+    for(var conversation in conversations) {
+      var conversationData = importData.conversationData[conversation.id];
+      if(conversationData == null)
+        continue;
+      try {
+        await conversation.saveData(conversationData);
+      } catch(e) {
+        failedConversations.add(conversation);
+        continue;
+      }
+      var i = convModel.conversations.indexWhere((c) => c.id == conversation.id);
+      if(i == -1)
+        convModel.conversations.add(conversation);
+      else
+        convModel.conversations[i] = conversation;
+    }
+    await convModel.save();
+    convModel.notifyListeners();
+    return failedConversations;
+  }
+
+  static List<Conversation> filteredAndSorted(List<Conversation> conversations, String search) {
+    var searchFilter = search.trim().toUpperCase();
+    var convList = searchFilter.isEmpty
+      ? conversations
+      : conversations.where((c) => c.name.toUpperCase().contains(searchFilter)).toList();
+    convList = convList.sorted((a, b) {
+      var aDate = a.lastSetAsCurrentAt ?? a.createdAt;
+      var bDate = b.lastSetAsCurrentAt ?? b.createdAt;
+      return bDate.compareTo(aDate);
+    });
+    return convList;
   }
 
   static ConversationsModel fromJson(Map<String, dynamic> json) => _$ConversationsModelFromJson(json);

@@ -1,14 +1,21 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // 🄯 2024, Alexey Parfenov <zxed@alkatrazstudio.net>
 
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 
 import 'package:collection/collection.dart';
 import 'package:provider/provider.dart';
 
+import '../models/api_model.dart';
 import '../models/conversations.dart';
+import '../pages/export_page.dart';
 import '../pages/help_page.dart';
+import '../pages/import_page.dart';
 import '../pages/settings_page.dart';
+import '../util/popups.dart';
+import '../util/storage.dart';
 
 class DrawerColumn extends StatefulWidget {
   @override
@@ -98,6 +105,46 @@ class DrawerColumnState extends State<DrawerColumn> {
               );
             }
           )
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.pop(context);
+                Navigator.push<void>(
+                  context,
+                  MaterialPageRoute(builder: (context) => const ExportPage())
+                );
+              },
+              child: const Text('Export')
+            ),
+            Consumer<ApiModel>(
+              builder: (context, apiModel, child) {
+                return ElevatedButton(
+                  onPressed: apiModel.isApiRunning ? null : () async {
+                    try {
+                      var bytes = await Storage.loadFile('application/json');
+                      if(bytes == null)
+                        return;
+                      var json = utf8.decode(bytes);
+                      var jsonObj = jsonDecode(json) as Map<String, dynamic>;
+                      var importData = ImportData.fromJson(jsonObj);
+                      Navigator.pop(context);
+                      Navigator.push<void>(
+                        context,
+                        MaterialPageRoute(builder: (context) => ImportPage(importData: importData))
+                      );
+                    } catch(e) {
+                      Navigator.pop(context);
+                      showPopupMsg(context, 'Import failed: $e');
+                    }
+                  },
+                  child: const Text('Import')
+                );
+              }
+            )
+          ]
         )
       ]
     );
