@@ -25,6 +25,7 @@ dependencies:
   form_builder_extra_fields: 11.1.0
   wakelock_plus: 1.2.9
   dio: 5.7.0
+  url_launcher: 6.3.1
 
   help_page:
     git:

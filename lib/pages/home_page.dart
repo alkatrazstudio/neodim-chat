@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // 🄯 2022, Alexey Parfenov <zxed@alkatrazstudio.net>
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 import '../apis/request.dart';
 import '../models/api_model.dart';
@@ -94,6 +96,35 @@ class HomePage extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.max,
             children: [
+              Consumer<ConversationsModel>(builder: (context, convModel, child) {
+                if(convModel.current != null)
+                  return const SizedBox.shrink();
+                return Column(
+                  spacing: 10,
+                  children: [
+                    const Row(
+                      spacing: 5,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.warning),
+                        Text('WARNING', style: TextStyle(fontWeight: FontWeight.bold))
+                      ]
+                    ),
+                    const Text('The app will be removed from Google Play soon!'),
+                    RichText(
+                      text: TextSpan(
+                        text: '[read more]',
+                        style: TextStyle(decoration: TextDecoration.underline),
+                        recognizer: TapGestureRecognizer()
+                          ..onTap = () => launchUrlString(
+                            'https://github.com/alkatrazstudio/neodim-chat#warning-the-app-will-soon-be-removed-from-google-play',
+                            mode: LaunchMode.externalApplication
+                          )
+                      )
+                    )
+                  ]
+                );
+              }),
               Expanded(
                 child: Chat(
                   generate: (
