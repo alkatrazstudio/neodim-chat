@@ -327,9 +327,6 @@ class ApiRequestNeodim {
         case ConversationType.story:
           truncatePromptUntil = MessagesModel.sentenceStops;
           break;
-
-        default:
-          return null;
       }
       stopStrings = ApiRequest.getPlainTextStopStrings(params.msgModel, params.conversation);
       if(params.cfgModel.stopOnPunctuation) {

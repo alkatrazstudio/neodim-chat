@@ -448,9 +448,6 @@ class MessagesModel extends ChangeNotifier {
         case ConversationType.groupChat:
           testText = getAiInputForChat(testMessages, promptedParticipant, combineLines, true, continueLastMsg);
           break;
-
-        default:
-          throw Exception('Invalid chat type: $chatType');
       }
       testText += addedPromptSuffix;
       if(testText.length >= testPromptLength) {

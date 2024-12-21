@@ -34,13 +34,13 @@ class ChatMsg extends StatelessWidget {
       margin: const BubbleEdges.only(top: 10),
       alignment: msg.isYou ? Alignment.topRight : Alignment.topLeft,
       nip: msg.isYou ? BubbleNip.rightBottom : BubbleNip.leftBottom,
-      color: author.color.withOpacity(opacity),
-      borderColor: msg.isGenerated ? Colors.red.withOpacity(0.25 * opacity) : null,
+      color: author.color.withValues(alpha: opacity),
+      borderColor: msg.isGenerated ? Colors.red.withValues(alpha: 0.25 * opacity) : null,
       child: SelectableText(
         msg.text,
         textAlign: TextAlign.left,
         style: TextStyle(
-          color: Theme.of(context).textTheme.bodyLarge?.color?.withOpacity(opacity)
+          color: Theme.of(context).textTheme.bodyLarge?.color?.withValues(alpha: opacity)
         ),
         onTap: !allowTap ? null : () async {
           var chatFormat = conversation.isChat || msg.authorIndex == Message.youIndex;

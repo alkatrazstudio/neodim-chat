@@ -173,9 +173,6 @@ class ChatState extends State<Chat> {
 
       case ConversationType.story:
         return msgModel.aiInputForStory;
-
-      default:
-        return '';
     }
   }
 
@@ -459,9 +456,6 @@ class ChatState extends State<Chat> {
       case ConversationType.story:
         nextAuthorIndex = Message.storyIndex;
         break;
-
-      default:
-        return;
     }
 
     await generateAndAdd(context, nextAuthorIndex, authorName: nextAuthorName);
@@ -683,9 +677,6 @@ class _ChatButtonsState extends State<ChatButtons> {
       case ConversationType.story:
         buttonRows = storyButtons(context, msgModel, curConv, neodimModel, cfgModel);
         break;
-
-      default:
-        buttonRows = [];
     }
 
     return Column(

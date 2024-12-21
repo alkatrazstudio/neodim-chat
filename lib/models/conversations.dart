@@ -147,9 +147,6 @@ class Conversation {
 
       case ConversationType.story:
         return msgModel.storyText;
-
-      default:
-        return '';
     }
   }
 
@@ -222,9 +219,6 @@ class Conversation {
         if(cfgModel.repetitionPenaltyKeepOriginalPrompt)
           return null;
         return msgModel.repetitionPenaltyTextForStory;
-
-      default:
-        return null;
     }
   }
 
@@ -490,7 +484,7 @@ class ConversationsModel extends ChangeNotifier {
       rethrow;
     }
   }
-  
+
   static Future<ImportData> export(BuildContext ctx, List<String> conversationIds) async {
     var convModel = Provider.of<ConversationsModel>(ctx, listen: false);
     var conversations = convModel.conversations.where((c) => conversationIds.contains(c.id)).toList();
