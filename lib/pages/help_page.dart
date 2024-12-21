@@ -479,6 +479,7 @@ void showHelpPage(BuildContext context) {
       },
       license: HelpPageLicense.gpl3,
       showGooglePlayLink: true,
+      showGitHubReleasesLink: true,
       changelogFilename: 'CHANGELOG.md',
       author: 'Алексей Парфёнов (Alexey Parfenov) aka ZXED',
       authorWebsite: 'https://alkatrazstudio.net/',
