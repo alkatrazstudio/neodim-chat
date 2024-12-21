@@ -416,6 +416,22 @@ class MessagesModel extends ChangeNotifier {
     return copyList;
   }
 
+  static int _usedMessagesBinSearch(int length, int Function(int pos) f) {
+    if(length == 0)
+      return -1;
+    var minIndex = 0;
+    var maxIndex = length - 1;
+    while(minIndex < maxIndex) {
+      var mid = minIndex + ((maxIndex - minIndex) / 2).round();
+      var result = f(mid);
+      if(result >= 0)
+        minIndex = mid;
+      else
+        maxIndex = mid - 1;
+    }
+    return minIndex;
+  }
+
   List<Message> getUsedMessages(
     String usedPrompt,
     Participant promptedParticipant,
@@ -425,11 +441,10 @@ class MessagesModel extends ChangeNotifier {
     String addedPromptSuffix,
     bool continueLastMsg
   ) {
-    var startIndex = inputMessages.length - 1;
-    var usedMessages = <Message>[];
     var testPromptLength = usedPrompt.trimLeft().length;
-
-    while(startIndex >= 0) {
+    if(testPromptLength == 0)
+      return [];
+    var pos = _usedMessagesBinSearch(inputMessages.length, (startIndex) {
       var testMessages = inputMessages.sublist(startIndex);
       String testText;
       switch(chatType) {
@@ -450,15 +465,11 @@ class MessagesModel extends ChangeNotifier {
           break;
       }
       testText += addedPromptSuffix;
-      if(testText.length >= testPromptLength) {
-        usedMessages.addAll(testMessages);
-        return usedMessages;
-      }
-      startIndex--;
-    }
-
-    usedMessages.clear();
-    usedMessages.addAll(inputMessages);
+      return testText.length - testPromptLength;
+    });
+    if(pos == -1)
+      return [];
+    var usedMessages = inputMessages.sublist(pos);
     return usedMessages;
   }
 
