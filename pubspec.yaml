@@ -3,8 +3,8 @@ description: Neodim chat
 version: 0.12.0+17
 
 environment:
-  sdk: ^3.5.4
-  flutter: ^3.24.5
+  sdk: ^3.6.0
+  flutter: ^3.27.1
 
 dependencies:
   flutter:
@@ -14,28 +14,28 @@ dependencies:
   provider: 6.1.2
   uuid: 4.5.1
   bubble: 1.2.1
-  collection: 1.18.0
+  collection: 1.19.0
   json_annotation: 4.9.0
   path_provider: 2.1.5
   intl: 0.19.0
   json_view: 0.4.2
   change_case: 2.1.0
-  flutter_form_builder: 9.5.0
-  form_builder_validators: 11.0.0
-  form_builder_extra_fields: 11.0.0
-  wakelock_plus: 1.2.8
+  flutter_form_builder: 9.6.0
+  form_builder_validators: 11.1.1
+  form_builder_extra_fields: 11.1.0
+  wakelock_plus: 1.2.9
   dio: 5.7.0
 
   help_page:
     git:
       url: https://github.com/z80maniac/flutter_help_page.git
-      ref: 0f3f3d75b16c3928c92ac3e3c3cd2d8cf17d2f44
+      ref: 3464f5acadba56d49f7e38b5684acffdf19b2fad
 
 dev_dependencies:
-  analyzer: 6.7.0
+  analyzer: 7.1.0
   flutter_lints: 5.0.0
-  build_runner: 2.4.13
-  json_serializable: 6.9.0
+  build_runner: 2.4.14
+  json_serializable: 6.9.2
 
 flutter:
   uses-material-design: true
