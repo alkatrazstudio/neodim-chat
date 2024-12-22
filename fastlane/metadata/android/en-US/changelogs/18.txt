@@ -1,0 +1,9 @@
+WARNING! The app will be removed from Google Play soon!
+Read more: https://github.com/alkatrazstudio/neodim-chat#warning-the-app-will-soon-be-removed-from-google-play
+
+Changelog:
+- Added: Import/Export
+- Fixed: freezing on long contexts after generating a message
+- Fixed: words blacklist no banning all possible combinations
+
+Full changelog: https://github.com/alkatrazstudio/neodim-chat/blob/master/CHANGELOG.md

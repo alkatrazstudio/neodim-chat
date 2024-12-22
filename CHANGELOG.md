@@ -1,6 +1,13 @@
 # Neodim Chat - CHANGELOG
 
 
+# v0.13.0 (December 22, 2024)
+
+- Added: Import/Export
+- Fixed: freezing on long contexts after generating a message
+- Fixed: words blacklist no banning all possible combinations
+
+
 ## v0.12.0 (November 24, 2024)
 
 - Removed: TFS support for llama.cpp (it was removed from the server)
