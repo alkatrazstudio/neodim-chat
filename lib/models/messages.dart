@@ -80,7 +80,7 @@ class Message {
       text += '.';
     }
 
-    text = text.replaceAllMapped(RegExp(r'\b(can|won|don|doesn|haven|hasn|couldn|shouldn|wouldn|mustn|didn|aren|isn|wasn)(t)\b', caseSensitive: false), (m) => "${m[1]}'${m[2]}");
+    text = text.replaceAllMapped(RegExp(r'\b(can|won|don|doesn|haven|hasn|couldn|shouldn|wouldn|mustn|didn|aren|isn|wasn|weren)(t)\b', caseSensitive: false), (m) => "${m[1]}'${m[2]}");
     text = text.replaceAllMapped(RegExp(r'\b(you|they|that|this)(ll)\b', caseSensitive: false), (m) => "${m[1]}'${m[2]}");
     text = text.replaceAllMapped(RegExp(r'\b(you|he|they|i|that|who)(d)\b', caseSensitive: false), (m) => "${m[1]}'${m[2]}");
     text = text.replaceAllMapped(RegExp(r'\b(he|she|that|what|where|who|there)(s)\b', caseSensitive: false), (m) => "${m[1]}'${m[2]}");
