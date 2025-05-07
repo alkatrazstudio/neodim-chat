@@ -511,8 +511,7 @@ void showHelpPage(BuildContext context) {
         HelpPagePackage.flutter('wakelock_plus', HelpPageLicense.bsd3),
         HelpPagePackage.flutter('dio', HelpPageLicense.mit),
         HelpPagePackage.flutter('json_view', HelpPageLicense.mit),
-        HelpPagePackage.flutter('change_case', HelpPageLicense.mit),
-        HelpPagePackage.flutter('url_launcher', HelpPageLicense.bsd3)
+        HelpPagePackage.flutter('change_case', HelpPageLicense.mit)
       ],
       assets: const []
     ))
