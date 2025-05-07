@@ -309,28 +309,28 @@ class _SettingsPageState extends State<SettingsPage> {
           label: 'Temperature',
           name: 'temperature',
           initialValue: cfgModel.temperature,
-          allowZero: true
+          minInclusive: true
         ),
       if(temperatureMode == TemperatureMode.dynamic && apiType == ApiType.llamaCpp)
         FieldFloat(
           label: 'Min. temperature',
           name: 'temperature',
           initialValue: cfgModel.temperature,
-          allowZero: true
+          minInclusive: true
         ),
       if(temperatureMode == TemperatureMode.dynamic && apiType == ApiType.llamaCpp)
         FieldFloat(
           label: 'Max. temperature',
           name: 'dynaTempHigh',
           initialValue: cfgModel.dynaTempHigh,
-          allowZero: true
+          minInclusive: true
         ),
       if(temperatureMode == TemperatureMode.dynamic && apiType == ApiType.llamaCpp)
         FieldFloat(
           label: 'Dynamic temperature exponent',
           name: 'dynaTempExponent',
           initialValue: cfgModel.dynaTempExponent,
-          allowZero: false
+          minInclusive: false
         ),
       FieldInt(
         label: 'Top K',
@@ -393,7 +393,7 @@ class _SettingsPageState extends State<SettingsPage> {
           label: 'Mirostat Tau',
           name: 'mirostatTau',
           initialValue: cfgModel.mirostatTau,
-          allowZero: false,
+          minInclusive: false,
         ),
       if(apiType == ApiType.llamaCpp && mirostat != MirostatVersion.none)
         FieldFloat(
@@ -439,6 +439,14 @@ class _SettingsPageState extends State<SettingsPage> {
           label: 'DRY penalty range\n(0 - unlimited)',
           name: 'dryRange',
           initialValue: cfgModel.dryRange
+        ),
+      if(apiType == ApiType.llamaCpp)
+        FieldFloat(
+          label: 'Top N Sigma',
+          name: 'topNSigma',
+          initialValue: cfgModel.topNSigma,
+          minValue: -1,
+          minInclusive: true
         ),
       FieldWarpers(
         supportedWarpers: supportedWarpers,
@@ -767,14 +775,16 @@ class FieldFloat extends StatelessWidget {
     required this.label,
     required this.name,
     required this.initialValue,
-    this.allowZero = true,
-    this.maxValue
+    this.minValue = 0,
+    this.maxValue,
+    this.minInclusive = true
   });
 
   final String label;
   final String name;
   final double initialValue;
-  final bool allowZero;
+  final bool minInclusive;
+  final double? minValue;
   final double? maxValue;
 
   @override
@@ -789,11 +799,12 @@ class FieldFloat extends StatelessWidget {
         validator: FormBuilderValidators.compose([
           SettingsPage.required(),
           FormBuilderValidators.numeric(errorText: 'Must be a number'),
-          FormBuilderValidators.min(
-            0,
-            inclusive: allowZero,
-            errorText: allowZero ? 'Must not be negative' : 'Must be positive'
-          ),
+          if(minValue != null)
+            FormBuilderValidators.min(
+              minValue!,
+              inclusive: minInclusive,
+              errorText: minInclusive ? 'Must be $minValue or bigger' : 'Must be bigger than $minValue'
+            ),
           if(maxValue != null)
             FormBuilderValidators.max(maxValue!, inclusive: true, errorText: 'Must be between 0 and $maxValue')
         ]),

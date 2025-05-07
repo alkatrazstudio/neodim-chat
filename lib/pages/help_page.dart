@@ -224,6 +224,15 @@ const _manualHtml = '''
     A value of 0 considers the entire context.
   </li>
   <li>
+    <strong>Top N Sigma</strong> -
+    applies Top N Sigma sampling. Helps to maintain coherence at high temperatures.
+    A higher value will take more noisy tokens into consideration,
+    while a lower value will focus on the more informative region of the sampling space.
+    Negative values disable it.
+    Only compatible with Top K and Temperature. Disable other samplers and penalties when using Top N Sigma.
+    Recommended value: 1.
+  </li>
+  <li>
     <strong>Warpers order</strong> - the order in which the filters/samplers/warpers are applied.
   </li>
 </ul>

@@ -35,6 +35,7 @@ class LlamaCppRequest {
     required this.dryAllowedLength,
     required this.dryRange,
     required this.drySequenceBreakers,
+    required this.topNSigma,
     required this.repeatPenalty,
     required this.frequencyPenalty,
     required this.presencePenalty,
@@ -67,6 +68,7 @@ class LlamaCppRequest {
   final double dryBase;
   final int dryAllowedLength;
   final int dryRange;
+  final double topNSigma;
   final List<String> drySequenceBreakers;
   final double repeatPenalty;
   final double frequencyPenalty;
@@ -86,7 +88,8 @@ class LlamaCppRequest {
     Warper.topP: 'top_p',
     Warper.minP: 'min_p',
     Warper.xtc: 'xtc',
-    Warper.temperature: 'temperature'
+    Warper.temperature: 'temperature',
+    Warper.topNSigma: 'top_n_sigma',
   };
   static List<Warper> get supportedWarpers => ApiRequest.supportedWarpers(warpersMap);
   static List<String> warpersToJson(List<Warper> warpers) => ApiRequest.warpersToJson(warpersMap, warpers)!;
@@ -114,6 +117,7 @@ class LlamaCppRequest {
       'dry_allowed_length': dryAllowedLength,
       'dry_penalty_last_n': dryRange,
       'dry_sequence_breakers': drySequenceBreakers,
+      'top_n_sigma': topNSigma,
       'repeat_penalty': repeatPenalty,
       'frequency_penalty': frequencyPenalty,
       'presence_penalty': presencePenalty,
@@ -408,6 +412,7 @@ class ApiRequestLlamaCpp {
       dryAllowedLength: params.cfgModel.dryAllowedLength,
       dryRange: params.cfgModel.dryRange == 0 ? -1 : params.cfgModel.dryRange,
       drySequenceBreakers: ['\n', ':', '"', '*', '>'],
+      topNSigma: params.cfgModel.topNSigma,
       repeatPenalty: params.cfgModel.repetitionPenalty != 0 ? params.cfgModel.repetitionPenalty : 1,
       frequencyPenalty: params.cfgModel.frequencyPenalty,
       presencePenalty: params.cfgModel.presencePenalty,

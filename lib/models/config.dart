@@ -44,7 +44,8 @@ enum Warper {
   minP,
   xtc,
   topA,
-  temperature
+  temperature,
+  topNSigma
 }
 
 List<Warper> warpersListFromJson(dynamic json) {
@@ -136,6 +137,9 @@ class ConfigModel extends ChangeNotifier {
 
   @JsonKey(defaultValue: 0)
   int dryRange = 0;
+
+  @JsonKey(defaultValue: -1.0)
+  double topNSigma = -1.0;
 
   @JsonKey(fromJson: warpersListFromJson)
   List<Warper> warpersOrder = Warper.values;
@@ -247,6 +251,7 @@ class ConfigModel extends ChangeNotifier {
     dryBase = other.dryBase;
     dryAllowedLength = other.dryAllowedLength;
     dryRange = other.dryRange;
+    topNSigma = other.topNSigma;
     warpersOrder = other.warpersOrder.toList();
     repetitionPenalty = other.repetitionPenalty;
     frequencyPenalty = other.frequencyPenalty;
