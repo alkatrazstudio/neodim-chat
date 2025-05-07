@@ -13,3 +13,5 @@ BUILD_PARAMS=(
 )
 
 flutter build apk "${BUILD_PARAMS[@]}" --split-debug-info=build/debug_info
+
+echo "APK dir: $(pwd)/build/app/outputs/flutter-apk"
