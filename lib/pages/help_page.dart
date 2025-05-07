@@ -489,7 +489,6 @@ void showHelpPage(BuildContext context) {
         'sendContinuous': const Icon(Icons.fast_forward)
       },
       license: HelpPageLicense.gpl3,
-      showGooglePlayLink: true,
       showGitHubReleasesLink: true,
       changelogFilename: 'CHANGELOG.md',
       author: 'Алексей Парфёнов (Alexey Parfenov) aka ZXED',
