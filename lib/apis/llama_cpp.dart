@@ -90,6 +90,7 @@ class LlamaCppRequest {
     Warper.xtc: 'xtc',
     Warper.temperature: 'temperature',
     Warper.topNSigma: 'top_n_sigma',
+    Warper.repetitionPenalty: 'penalties'
   };
   static List<Warper> get supportedWarpers => ApiRequest.supportedWarpers(warpersMap);
   static List<String> warpersToJson(List<Warper> warpers) => ApiRequest.warpersToJson(warpersMap, warpers)!;

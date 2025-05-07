@@ -234,6 +234,8 @@ const _manualHtml = '''
   </li>
   <li>
     <strong>Warpers order</strong> - the order in which the filters/samplers/warpers are applied.
+    The recommended order is the following:
+    top k -> repetition penalty -> temperature -> top n sigma -> everything else
   </li>
 </ul>
 
