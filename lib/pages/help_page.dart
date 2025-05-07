@@ -211,7 +211,7 @@ const _manualHtml = '''
     <strong>DRY base</strong> -
     sets the base value for the exponential penalty calculation in DRY sampling.
     Higher values lead to more aggressive penalization of repetitions.
-    Recommended value: 1.75
+    Recommended value: 1.75.
   </li>
   <li>
     <strong>DRY allowed length</strong> -
@@ -219,7 +219,7 @@ const _manualHtml = '''
     Repetitions shorter than or equal to this length are not penalized.
   </li>
   <li>
-    <strong>DRY range</strong> -
+    <strong>DRY penalty range</strong> -
     how many recent tokens to consider when applying the DRY penalty.
     A value of 0 considers the entire context.
   </li>
