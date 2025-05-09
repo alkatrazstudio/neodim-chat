@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:help_page/help_page.dart';
 
 const _serverBaseUrl = 'https://github.com/alkatrazstudio/neodim-server';
-const _llamaCppBaseUrl = 'https://github.com/ggerganov/llama.cpp';
+const _llamaCppBaseUrl = 'https://github.com/ggml-org/llama.cpp';
 
 const _manualHtml = '''
 <p>

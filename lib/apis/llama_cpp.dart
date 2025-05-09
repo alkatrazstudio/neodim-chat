@@ -379,7 +379,7 @@ class ApiRequestLlamaCpp {
     switch(params.cfgModel.temperatureMode) {
       case TemperatureMode.dynamic:
         // llama.cpp DynaTemp range is actually only half the range
-        // https://github.com/ggerganov/llama.cpp/blob/cd9aea63b577a83def84dbd6dcd90a6fa02af745/common/sampling.cpp#L151-L152
+        // https://github.com/ggml-org/llama.cpp/blob/cd9aea63b577a83def84dbd6dcd90a6fa02af745/common/sampling.cpp#L151-L152
         dynaTempRange = max(0, params.cfgModel.dynaTempHigh - params.cfgModel.temperature) / 2;
         temperature = params.cfgModel.temperature + dynaTempRange; // the middle temperature
         break;

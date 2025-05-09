@@ -2,11 +2,11 @@
 
 A mobile application that allows you to chat with AI via
 [Neodim Server](https://github.com/alkatrazstudio/neodim-server)
-or [llama.cpp](https://github.com/ggerganov/llama.cpp).
+or [llama.cpp](https://github.com/ggml-org/llama.cpp).
 
 **NOTE:** Before installing this application make sure that you can run
 either [Neodim Server](https://github.com/alkatrazstudio/neodim-server)
-or [llama.cpp](https://github.com/ggerganov/llama.cpp)
+or [llama.cpp](https://github.com/ggml-org/llama.cpp)
 and that you understand how these servers works.
 Neodim Chat fully relies on these external servers and does not work without them.
 
@@ -42,7 +42,7 @@ The main purpose of Neodim Chat is to allow you to have a conversation
 with a chat bot that is powered by a language model.
 The list of supported models depends on the chosen server:
 * [Models supported by Neodim Server](https://github.com/alkatrazstudio/neodim-server#supported-models)
-* [Models supported by llama.cpp](https://github.com/ggerganov/llama.cpp#description)
+* [Models supported by llama.cpp](https://github.com/ggml-org/llama.cpp?tab=readme-ov-file#description)
 
 **An example of the chat mode**
 
