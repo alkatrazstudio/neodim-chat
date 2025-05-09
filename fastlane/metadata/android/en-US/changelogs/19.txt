@@ -1,0 +1,5 @@
+- Added: Top N Sigma sampler for llama.cpp
+- Added: ability to change the position of repetition penalty sampler for llama.cpp
+- Improved: auto-corrections
+
+Full changelog: https://github.com/alkatrazstudio/neodim-chat/blob/master/CHANGELOG.md

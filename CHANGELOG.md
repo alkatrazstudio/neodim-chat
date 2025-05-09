@@ -1,6 +1,13 @@
 # Neodim Chat - CHANGELOG
 
 
+# v0.14.0 (May 9, 2025)
+
+- Added: Top N Sigma sampler for llama.cpp
+- Added: ability to change the position of repetition penalty sampler for llama.cpp
+- Improved: auto-corrections
+
+
 # v0.13.0 (December 22, 2024)
 
 - Added: Import/Export
