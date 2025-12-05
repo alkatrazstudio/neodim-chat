@@ -2,6 +2,7 @@
 !.gitignore
 
 /build/
+/android/build/
 /vendor/
 
 *.g.dart
