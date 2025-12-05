@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 
 import 'package:collection/collection.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:provider/provider.dart';
 
 import '../models/api_model.dart';
@@ -15,7 +16,6 @@ import '../pages/help_page.dart';
 import '../pages/import_page.dart';
 import '../pages/settings_page.dart';
 import '../util/popups.dart';
-import '../util/storage.dart';
 
 class DrawerColumn extends StatefulWidget {
   @override
@@ -124,7 +124,13 @@ class DrawerColumnState extends State<DrawerColumn> {
                 return ElevatedButton(
                   onPressed: apiModel.isApiRunning ? null : () async {
                     try {
-                      var bytes = await Storage.loadFile('application/json');
+                      var result = await FilePicker.platform.pickFiles(
+                        allowMultiple: true,
+                        type: FileType.custom,
+                        allowedExtensions: ['json'],
+                        withData: true,
+                      );
+                      var bytes = result?.files.single.bytes;
                       if(bytes == null)
                         return;
                       var json = utf8.decode(bytes);

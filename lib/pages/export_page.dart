@@ -5,13 +5,13 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 
+import 'package:file_picker/file_picker.dart';
 import 'package:provider/provider.dart';
 
 import '../models/conversations.dart';
 import '../widgets/conversations_selector.dart';
 import '../widgets/pad.dart';
 import '../util/popups.dart';
-import '../util/storage.dart';
 
 class ExportPage extends StatefulWidget {
   const ExportPage();
@@ -24,7 +24,7 @@ class _ExportPageState extends State<ExportPage> {
   var selectedConversations = <String>[];
   var allConversations = <Conversation>[];
   Future<void>? exportFuture;
-  
+
   @override
   void initState() {
     super.initState();
@@ -37,8 +37,13 @@ class _ExportPageState extends State<ExportPage> {
       var importData = await ConversationsModel.export(context, convIds);
       var json = jsonEncode(importData);
       var bytes = utf8.encode(json);
-      var uri = await Storage.saveFile('neodim.json', 'application/json', bytes);
-      if(uri == null)
+      var result = await FilePicker.platform.saveFile(
+        fileName: 'neodim.json',
+        type: FileType.any,
+        allowedExtensions: ['json'],
+        bytes: bytes,
+      );
+      if(result == null)
         return;
       Navigator.pop(context);
       showPopupMsg(context, 'Export done!');
