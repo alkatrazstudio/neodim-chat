@@ -161,9 +161,13 @@ class ApiRequestLlamaCpp {
   static Random rnd = Random();
 
   static raiseErrorIfNeeded(Map<String, dynamic> response) {
-    if(!response.containsKey('error'))
+    Map<String, dynamic> error;
+    if(response.containsKey('error'))
+      error = response['error'] as Map<String, dynamic>;
+    else if(response.containsKey('message') && !response.containsKey('content'))
+      error = response;
+    else
       return;
-    var error = response['error'] as Map<String, dynamic>;
     var code = (error['code'] as int?) ?? 0;
     var msg = (error['message'] as String?) ?? '';
     var type = (error['type'] as String?) ?? '';
