@@ -160,7 +160,7 @@ class LlamaCppResponse {
 class ApiRequestLlamaCpp {
   static Random rnd = Random();
 
-  static raiseErrorIfNeeded(Map<String, dynamic> response) {
+  static void raiseErrorIfNeeded(Map<String, dynamic> response) {
     Map<String, dynamic> error;
     if(response.containsKey('error'))
       error = response['error'] as Map<String, dynamic>;

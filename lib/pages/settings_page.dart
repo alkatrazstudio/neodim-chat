@@ -25,7 +25,7 @@ class SettingsPage extends StatefulWidget {
   @override
   State<SettingsPage> createState() => _SettingsPageState();
 
-  static required<T>() => FormBuilderValidators.required<T>(errorText: 'Required');
+  static FormFieldValidator<T> required<T>() => FormBuilderValidators.required<T>(errorText: 'Required');
 }
 
 class _SettingsPageState extends State<SettingsPage> {

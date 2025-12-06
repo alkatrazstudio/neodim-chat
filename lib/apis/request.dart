@@ -124,7 +124,7 @@ class ApiRequest {
     return stopStrings;
   }
 
-  static normalizeEndpoint(String endpoint, int port, String path) {
+  static String normalizeEndpoint(String endpoint, int port, String path) {
     Uri url;
     try {
       url = Uri.parse(endpoint);
