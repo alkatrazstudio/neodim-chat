@@ -211,8 +211,8 @@ class ConfigModel extends ChangeNotifier {
   @JsonKey(defaultValue: ParticipantOnRetry.any, unknownEnumValue: ParticipantOnRetry.any)
   ParticipantOnRetry participantOnRetry = ParticipantOnRetry.any;
 
-  @JsonKey(defaultValue: false)
-  bool streamResponse = false;
+  @JsonKey(defaultValue: true)
+  bool streamResponse = true;
 
   String get inputPreamble {
     var s = preamble.trim();
