@@ -1,14 +1,12 @@
 # Neodim Chat
 
 A mobile application that allows you to chat with AI via
-[Neodim Server](https://github.com/alkatrazstudio/neodim-server)
-or [llama.cpp](https://github.com/ggml-org/llama.cpp).
+[llama.cpp](https://github.com/ggml-org/llama.cpp).
 
 **NOTE:** Before installing this application make sure that you can run
-either [Neodim Server](https://github.com/alkatrazstudio/neodim-server)
-or [llama.cpp](https://github.com/ggml-org/llama.cpp)
-and that you understand how these servers works.
-Neodim Chat fully relies on these external servers and does not work without them.
+[llama.cpp](https://github.com/ggml-org/llama.cpp) server
+and that you understand how that server works.
+Neodim Chat fully relies on this external server and does not work without it.
 
 You can read the detailed help in the app itself.
 
@@ -26,7 +24,6 @@ You can read the detailed help in the app itself.
 * Continuous generation (AI chats with itself or generates a story until manually stopped)
 * Advanced repetition penalty settings
 * Force the use of new words when retrying to generate the message, i.e. no same message on retry
-* Generate several messages upfront for quick retries (no loss of speed, but requires more VRAM, also only available when using Neodim Server)
 * Auto-correcting some English grammar and punctuation, e.g. `i dont know, mr anderson` => `I don't know, Mr. Anderson.`
 * View/copy the chat/story content as plain text
 * Undo the text by sentence
@@ -40,9 +37,7 @@ You can read the detailed help in the app itself.
 
 The main purpose of Neodim Chat is to allow you to have a conversation
 with a chat bot that is powered by a language model.
-The list of supported models depends on the chosen server:
-* [Models supported by Neodim Server](https://github.com/alkatrazstudio/neodim-server#supported-models)
-* [Models supported by llama.cpp](https://github.com/ggml-org/llama.cpp?tab=readme-ov-file#description)
+[Models supported by llama.cpp](https://github.com/ggml-org/llama.cpp?tab=readme-ov-file#description)
 
 **An example of the chat mode**
 

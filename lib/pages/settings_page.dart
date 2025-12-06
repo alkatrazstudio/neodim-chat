@@ -12,8 +12,6 @@ import 'package:form_builder_validators/form_builder_validators.dart';
 import 'package:provider/provider.dart';
 
 import '../apis/llama_cpp.dart';
-import '../apis/neodim.dart';
-import '../apis/request.dart';
 import '../models/config.dart';
 import '../models/conversations.dart';
 import '../models/messages.dart';
@@ -34,7 +32,6 @@ class _SettingsPageState extends State<SettingsPage> {
   var formKey = GlobalKey<FormBuilderState>();
 
   ConversationType? convType;
-  ApiType? apiType;
   TemperatureMode? temperatureMode;
   MirostatVersion? mirostat;
 
@@ -46,7 +43,6 @@ class _SettingsPageState extends State<SettingsPage> {
 
     convType ??= curConv.type;
     var cfgModel = Provider.of<ConfigModel>(context, listen: false);
-    apiType ??= cfgModel.apiType;
     temperatureMode ??= cfgModel.temperatureMode;
     mirostat ??= cfgModel.mirostat;
     var msgModel = Provider.of<MessagesModel>(context, listen: false);
@@ -237,16 +233,6 @@ class _SettingsPageState extends State<SettingsPage> {
     return [
       const SettingsHeader('Server'),
       SettingContainer(
-        label: 'API type',
-        child: FormBuilderDropdown(
-          name: 'apiType',
-          initialValue: cfgModel.apiType,
-          items: enumToDropdown(ApiType.values),
-          valueTransformer: (v) => v?.name,
-          onChanged: (type) => setState(() => apiType = type)
-        ),
-      ),
-      SettingContainer(
         label: 'Endpoint',
         child: FormBuilderTextField(
           name: 'apiEndpoint',
@@ -258,24 +244,19 @@ class _SettingsPageState extends State<SettingsPage> {
           ]),
         )
       ),
-      if(apiType == ApiType.llamaCpp)
-        SettingContainer(
-          label: 'Stream the response',
-          child: FormBuilderCheckbox(
-            name: 'streamResponse',
-            initialValue: cfgModel.streamResponse,
-            title: const SizedBox.shrink()
-          )
+      SettingContainer(
+        label: 'Stream the response',
+        child: FormBuilderCheckbox(
+          name: 'streamResponse',
+          initialValue: cfgModel.streamResponse,
+          title: const SizedBox.shrink()
         )
+      )
     ];
   }
 
   List<Widget> samplingSection(ConfigModel cfgModel) {
-    var supportedWarpers = switch(apiType) {
-      ApiType.neodim => NeodimRequest.supportedWarpers,
-      ApiType.llamaCpp => LlamaCppRequest.supportedWarpers,
-      _ => <Warper>[]
-    };
+    var supportedWarpers = LlamaCppRequest.supportedWarpers;
 
     return [
       const SettingsHeader('Sampling'),
@@ -286,46 +267,38 @@ class _SettingsPageState extends State<SettingsPage> {
         initialValue: cfgModel.generatedTokensCount,
         allowZero: false
       ),
-      if(apiType == ApiType.neodim)
-        FieldInt(
-          label: 'Max total tokens',
-          name: 'maxTotalTokens',
-          initialValue: cfgModel.maxTotalTokens,
-          allowZero: false
+      SettingContainer(
+        label: 'Temperature mode',
+        child: FormBuilderDropdown(
+          name: 'temperatureMode',
+          initialValue: cfgModel.temperatureMode,
+          items: enumToDropdown(TemperatureMode.values),
+          valueTransformer: (v) => v?.name,
+          onChanged: (mode) => setState(() => temperatureMode = mode)
         ),
-      if(apiType == ApiType.llamaCpp)
-        SettingContainer(
-          label: 'Temperature mode',
-          child: FormBuilderDropdown(
-            name: 'temperatureMode',
-            initialValue: cfgModel.temperatureMode,
-            items: enumToDropdown(TemperatureMode.values),
-            valueTransformer: (v) => v?.name,
-            onChanged: (mode) => setState(() => temperatureMode = mode)
-          ),
-        ),
-      if(temperatureMode == TemperatureMode.static || apiType != ApiType.llamaCpp)
+      ),
+      if(temperatureMode == TemperatureMode.static)
         FieldFloat(
           label: 'Temperature',
           name: 'temperature',
           initialValue: cfgModel.temperature,
           minInclusive: true
         ),
-      if(temperatureMode == TemperatureMode.dynamic && apiType == ApiType.llamaCpp)
+      if(temperatureMode == TemperatureMode.dynamic)
         FieldFloat(
           label: 'Min. temperature',
           name: 'temperature',
           initialValue: cfgModel.temperature,
           minInclusive: true
         ),
-      if(temperatureMode == TemperatureMode.dynamic && apiType == ApiType.llamaCpp)
+      if(temperatureMode == TemperatureMode.dynamic)
         FieldFloat(
           label: 'Max. temperature',
           name: 'dynaTempHigh',
           initialValue: cfgModel.dynaTempHigh,
           minInclusive: true
         ),
-      if(temperatureMode == TemperatureMode.dynamic && apiType == ApiType.llamaCpp)
+      if(temperatureMode == TemperatureMode.dynamic)
         FieldFloat(
           label: 'Dynamic temperature exponent',
           name: 'dynaTempExponent',
@@ -343,111 +316,81 @@ class _SettingsPageState extends State<SettingsPage> {
         initialValue: cfgModel.topP,
         maxValue: 1
       ),
-      if(apiType == ApiType.llamaCpp)
-        FieldFloat(
-          label: 'Min P',
-          name: 'minP',
-          initialValue: cfgModel.minP,
-          maxValue: 1
-        ),
-      if(apiType == ApiType.neodim)
-        FieldFloat(
-          label: 'Tail-free sampling',
-          name: 'tfs',
-          initialValue: cfgModel.tfs,
-          maxValue: 1
-        ),
+      FieldFloat(
+        label: 'Min P',
+        name: 'minP',
+        initialValue: cfgModel.minP,
+        maxValue: 1
+      ),
       FieldFloat(
         label: 'Typical sampling',
         name: 'typical',
         initialValue: cfgModel.typical,
         maxValue: 1
       ),
-      if(apiType == ApiType.neodim)
-        FieldFloat(
-          label: 'Top A',
-          name: 'topA',
-          initialValue: cfgModel.topA,
-          maxValue: 1
+      SettingContainer(
+        label: 'Mirostat',
+        child: FormBuilderDropdown(
+          name: 'mirostat',
+          initialValue: cfgModel.mirostat,
+          items: enumToDropdown(MirostatVersion.values),
+          valueTransformer: (v) => v?.name,
+          onChanged: (version) => setState(() => mirostat = version)
         ),
-      if(apiType == ApiType.neodim)
-        FieldFloat(
-          label: 'Penalty Alpha',
-          name: 'penaltyAlpha',
-          initialValue: cfgModel.penaltyAlpha,
-          maxValue: 1
-        ),
-      if(apiType == ApiType.llamaCpp)
-        SettingContainer(
-          label: 'Mirostat',
-          child: FormBuilderDropdown(
-            name: 'mirostat',
-            initialValue: cfgModel.mirostat,
-            items: enumToDropdown(MirostatVersion.values),
-            valueTransformer: (v) => v?.name,
-            onChanged: (version) => setState(() => mirostat = version)
-          ),
-        ),
-      if(apiType == ApiType.llamaCpp && mirostat != MirostatVersion.none)
+      ),
+      if(mirostat != MirostatVersion.none)
         FieldFloat(
           label: 'Mirostat Tau',
           name: 'mirostatTau',
           initialValue: cfgModel.mirostatTau,
           minInclusive: false,
         ),
-      if(apiType == ApiType.llamaCpp && mirostat != MirostatVersion.none)
+      if(mirostat != MirostatVersion.none)
         FieldFloat(
           label: 'Mirostat Eta',
           name: 'mirostatEta',
           initialValue: cfgModel.mirostatEta,
           maxValue: 1
         ),
-      if(apiType == ApiType.llamaCpp)
-        FieldFloat(
-          label: 'XTC probability',
-          name: 'xtcProbability',
-          initialValue: cfgModel.xtcProbability,
-          maxValue: 1
-        ),
-      if(apiType == ApiType.llamaCpp)
-        FieldFloat(
-          label: 'XTC threshold',
-          name: 'xtcThreshold',
-          initialValue: cfgModel.xtcThreshold,
-          maxValue: 0.5
-        ),
-      if(apiType == ApiType.llamaCpp)
-        FieldFloat(
-          label: 'DRY multiplier',
-          name: 'dryMultiplier',
-          initialValue: cfgModel.dryMultiplier
-        ),
-      if(apiType == ApiType.llamaCpp)
-        FieldFloat(
-          label: 'DRY base',
-          name: 'dryBase',
-          initialValue: cfgModel.dryBase
-        ),
-      if(apiType == ApiType.llamaCpp)
-        FieldInt(
-          label: 'DRY allowed length',
-          name: 'dryAllowedLength',
-          initialValue: cfgModel.dryAllowedLength
-        ),
-      if(apiType == ApiType.llamaCpp)
-        FieldInt(
-          label: 'DRY penalty range\n(0 - unlimited)',
-          name: 'dryRange',
-          initialValue: cfgModel.dryRange
-        ),
-      if(apiType == ApiType.llamaCpp)
-        FieldFloat(
-          label: 'Top N Sigma',
-          name: 'topNSigma',
-          initialValue: cfgModel.topNSigma,
-          minValue: -1,
-          minInclusive: true
-        ),
+      FieldFloat(
+        label: 'XTC probability',
+        name: 'xtcProbability',
+        initialValue: cfgModel.xtcProbability,
+        maxValue: 1
+      ),
+      FieldFloat(
+        label: 'XTC threshold',
+        name: 'xtcThreshold',
+        initialValue: cfgModel.xtcThreshold,
+        maxValue: 0.5
+      ),
+      FieldFloat(
+        label: 'DRY multiplier',
+        name: 'dryMultiplier',
+        initialValue: cfgModel.dryMultiplier
+      ),
+      FieldFloat(
+        label: 'DRY base',
+        name: 'dryBase',
+        initialValue: cfgModel.dryBase
+      ),
+      FieldInt(
+        label: 'DRY allowed length',
+        name: 'dryAllowedLength',
+        initialValue: cfgModel.dryAllowedLength
+      ),
+      FieldInt(
+        label: 'DRY penalty range\n(0 - unlimited)',
+        name: 'dryRange',
+        initialValue: cfgModel.dryRange
+      ),
+      FieldFloat(
+        label: 'Top N Sigma',
+        name: 'topNSigma',
+        initialValue: cfgModel.topNSigma,
+        minValue: -1,
+        minInclusive: true
+      ),
       FieldWarpers(
         supportedWarpers: supportedWarpers,
         initialValue: cfgModel.warpersOrder,
@@ -464,29 +407,21 @@ class _SettingsPageState extends State<SettingsPage> {
         name: 'repetitionPenalty',
         initialValue: cfgModel.repetitionPenalty
       ),
-      if(apiType == ApiType.llamaCpp)
-        FieldFloat(
-          label: 'Frequency penalty',
-          name: 'frequencyPenalty',
-          initialValue: cfgModel.frequencyPenalty
-        ),
-      if(apiType == ApiType.llamaCpp)
-        FieldFloat(
-          label: 'Presence penalty',
-          name: 'presencePenalty',
-          initialValue: cfgModel.presencePenalty
-        ),
+      FieldFloat(
+        label: 'Frequency penalty',
+        name: 'frequencyPenalty',
+        initialValue: cfgModel.frequencyPenalty
+      ),
+      FieldFloat(
+        label: 'Presence penalty',
+        name: 'presencePenalty',
+        initialValue: cfgModel.presencePenalty
+      ),
       FieldInt(
         label: 'Penalty range',
         name: 'repetitionPenaltyRange',
         initialValue: cfgModel.repetitionPenaltyRange
       ),
-      if(apiType == ApiType.neodim)
-        FieldFloat(
-          label: 'Penalty slope',
-          name: 'repetitionPenaltySlope',
-          initialValue: cfgModel.repetitionPenaltySlope,
-        ),
       SettingContainer(
         label: 'Include preamble in the penalty range',
         child: FormBuilderCheckbox(
@@ -495,55 +430,6 @@ class _SettingsPageState extends State<SettingsPage> {
           title: const SizedBox.shrink()
         )
       ),
-      if(apiType == ApiType.neodim)
-        SettingContainer(
-          label: 'Include generated text in the penalty range',
-          child: FormBuilderDropdown(
-            name: 'repetitionPenaltyIncludeGenerated',
-            initialValue: cfgModel.repetitionPenaltyIncludeGenerated,
-            items: enumToDropdown(RepPenGenerated.values),
-            valueTransformer: (v) => v?.name
-          )
-        ),
-      if(apiType == ApiType.neodim)
-        SettingContainer(
-          label: 'Truncate the penalty range to the input',
-          child: FormBuilderCheckbox(
-            name: 'repetitionPenaltyTruncateToInput',
-            initialValue: cfgModel.repetitionPenaltyTruncateToInput,
-            title: const SizedBox.shrink()
-          )
-        ),
-      if(apiType == ApiType.neodim)
-        FieldInt(
-          label: 'Penalty lines without extra symbols',
-          name: 'repetitionPenaltyLinesWithNoExtraSymbols',
-          initialValue: cfgModel.repetitionPenaltyLinesWithNoExtraSymbols
-        ),
-      if(apiType == ApiType.neodim)
-        SettingContainer(
-          label: 'Keep the original penalty text',
-          child: FormBuilderCheckbox(
-            name: 'repetitionPenaltyKeepOriginalPrompt',
-            initialValue: cfgModel.repetitionPenaltyKeepOriginalPrompt,
-            title: const SizedBox.shrink()
-          )
-        ),
-      if(apiType == ApiType.neodim)
-        SettingContainer(
-          label: 'Remove participant names from the penalty text',
-          child: FormBuilderCheckbox(
-            name: 'repetitionPenaltyRemoveParticipantNames',
-            initialValue: cfgModel.repetitionPenaltyRemoveParticipantNames,
-            title: const SizedBox.shrink()
-          )
-        ),
-      if(apiType == ApiType.neodim)
-        FieldInt(
-          label: 'No repeat N-gram size',
-          name: 'noRepeatNGramSize',
-          initialValue: cfgModel.noRepeatNGramSize
-        ),
       FieldStringList(
         label: 'Blacklist (one word or phrase per line)',
         name: 'initialBlacklist',
@@ -574,12 +460,6 @@ class _SettingsPageState extends State<SettingsPage> {
     return [
       const SettingsHeader('Control'),
 
-      if(apiType == ApiType.neodim)
-        FieldInt(
-          label: 'Generate extra sequences for quick retries',
-          name: 'extraRetries',
-          initialValue: cfgModel.extraRetries
-        ),
       SettingContainer(
         label: 'Stop the generation on ".", "!", "?"',
         child: FormBuilderCheckbox(

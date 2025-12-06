@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 
 import 'package:provider/provider.dart';
 
-import '../apis/neodim.dart';
 import '../apis/llama_cpp.dart';
 import '../apis/response.dart';
 import '../models/api_model.dart';
@@ -22,11 +21,6 @@ enum RepPenGenerated {
 enum StopStringsType {
   string,
   regex
-}
-
-enum ApiType {
-  neodim,
-  llamaCpp
 }
 
 class ApiRequestParams {
@@ -87,17 +81,7 @@ class ApiRequest {
       onNewStreamText: onNewStreamText
     );
 
-    ApiResponse? result;
-    switch(cfgModel.apiType)
-    {
-      case ApiType.neodim:
-        result = await ApiRequestNeodim.run(params);
-        break;
-
-      case ApiType.llamaCpp:
-        result = await ApiRequestLlamaCpp.run(params);
-        break;
-    }
+    var result = await ApiRequestLlamaCpp.run(params);
     return result;
   }
 

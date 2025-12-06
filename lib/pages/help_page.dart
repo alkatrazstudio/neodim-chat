@@ -4,15 +4,13 @@
 import 'package:flutter/material.dart';
 import 'package:help_page/help_page.dart';
 
-const _serverBaseUrl = 'https://github.com/alkatrazstudio/neodim-server';
 const _llamaCppBaseUrl = 'https://github.com/ggml-org/llama.cpp';
 
 const _manualHtml = '''
 <p>
   Neodim Chat is a client application that can be used together with
-  <a href="$_serverBaseUrl">Neodim Server</a>
-  or with <a href="$_llamaCppBaseUrl">llama.cpp</a>.
-  Before using Neodim Chat, make sure that either of these servers is up and running,
+  <a href="$_llamaCppBaseUrl">llama.cpp</a>.
+  Before using Neodim Chat, make sure that that server is up and running,
   and accessible (e.g. via LAN IP, for example: 192.168.1.123).
 </p>
 
@@ -26,11 +24,10 @@ const _manualHtml = '''
 <p>
   Below are explanations for the settings for a conversation.
   Some parameters represent parameters for
-  <a href="$_serverBaseUrl">Neodim Server</a> or <a href="$_llamaCppBaseUrl">llama.cpp</a>,
-  so you can find an additional information about them on the corresponding websites</a>.
+  <a href="$_llamaCppBaseUrl">llama.cpp</a>,
+  so you can find an additional information about them on the corresponding website</a>.
   It is advisable to read all the documentation about the server you use before using Neodim Chat.
-  Some parameters are only available for a certain type of a server
-  or only when other certain parameters are set.
+  Some parameters are only available only when other certain parameters are set.
   If the parameter is not supported for any reason it will not be shown on the settings page.
 </p>
 
@@ -54,9 +51,7 @@ const _manualHtml = '''
     One exception: you can convert a chat to a group chat.
   </li>
   <li>
-    <strong>Preamble</strong> - the text that will sent to the server
-    alongside with the chat text.
-    <a href="$_serverBaseUrl#prompt-and-preamble">more info</a>
+    <strong>Preamble</strong> - the text that will be prepended to the prompt.
   </li>
 </ul>
 
@@ -73,25 +68,9 @@ const _manualHtml = '''
 <h3>Server</h3>
 <ul>
   <li>
-    <strong>API type</strong> - the type of server-side API to connect to.
-    Neodim Chat is designed to work with Neodim Server or llama.cpp server.
-    Different APIs may support different sets of config parameters, features
-    and can behave differently.
-    Currently supported APIs:
-    <ul>
-      <li>neodim - <a href="$_serverBaseUrl">Neodim Server</a></li>
-      <li>llama.cpp - <a href="$_llamaCppBaseUrl">llama.cpp</a></li>
-    </ul>
-    The documentation below may link to the Neodim Server documentation
-    even if the parameter can be used by other APIs.
-  </li>
-  <li>
-    <strong>API endpoint</strong> - the URL that points to the API server.
-    For Neodim Server may contain the protocol, the port and the "/generate" part,
-    e.g. "http://192.168.1.123:8787/generate".
-    For llama.cpp server it may contain the protocol and the port,
-    e.g. "http://192.168.1.123:8080".
-    However, for both servers, you can just specify only IP or the hostname, e.g. "192.168.1.123".
+    <strong>API endpoint</strong> - the URL that points to the llama.cpp server.
+    It may contain the protocol and the port, e.g. "http://192.168.1.123:8080".
+    Or you can just specify only IP or the hostname, e.g. "192.168.1.123".
     In this case the rest parts (protocol, port, path) will be chosen automatically.
   </li>
   <li>
@@ -105,12 +84,6 @@ const _manualHtml = '''
 <ul>
   <li>
     <strong>Generated tokens</strong> - how many tokens to generate for a reply.
-    <a href="$_serverBaseUrl#generated_tokens_count-int-required">more info</a>
-  </li>
-  <li>
-    <strong>Max total tokens</strong> - total amount of tokens that should be processed
-    by the server when generating a reply.
-    <a href="$_serverBaseUrl#max_total_tokens-int-required">more info</a>
   </li>
   <li>
     <strong>Temperature mode</strong> -
@@ -126,7 +99,8 @@ const _manualHtml = '''
   </li>
   <li>
     <strong>Temperature</strong> - the randomness of the output.
-    <a href="$_serverBaseUrl#temperature-float-optional">more info</a>
+    Can be any non-negative value.
+    Recommended values are 0.5 - 1.
   </li>
   <li>
     <strong>Min. temperature</strong> - the lower bound of the temperature value.
@@ -142,11 +116,20 @@ const _manualHtml = '''
   </li>
   <li>
     <strong>Top K</strong> - limiting the amount of chosen tokens.
-    <a href="$_serverBaseUrl#top_k-int-optional">more info</a>
+    Only consider this amount of top-probability results.
+    For example, if top_k = 2 the algorithm will only choose between two top results for a next token.
+    It's not really recommended using this sampler alone by itself.
+    However, it can be used in combination with other sampler.
+    The value of 40 is considered to be adequate.
   </li>
   <li>
     <strong>Top P (nucleus sampling)</strong> - limiting the amount of chosen tokens.
-    <a href="$_serverBaseUrl#top_p-float-optional">more info</a>
+    Top-p sampling (sometimes called "nucleus sampling")
+    chooses from the smallest possible set of tokens
+    whose cumulative probability exceeds the given probability.
+    Higher values will include more tokens, which will make the text more random.
+    Allowed range: 0 < x < 1. Recommended values: 0.6 - 0.95.
+    By default, this sampler is off.
   </li>
   <li>
     <strong>Min P</strong> - limiting the amount of chosen tokens.
@@ -155,20 +138,17 @@ const _manualHtml = '''
     Not recommended to use with Top P or Top K.
   </li>
   <li>
-    <strong>Tail-free sampling</strong> - limiting the amount of chosen tokens.
-    <a href="$_serverBaseUrl#tfs-float-optional">more info</a>
-  </li>
-  <li>
     <strong>Typical sampling</strong> - limiting the amount of chosen tokens.
-    <a href="$_serverBaseUrl#typical-float-optional">more info</a>
-  </li>
-  <li>
-    <strong>Top A</strong> - limiting the amount of chosen tokens.
-    <a href="$_serverBaseUrl#top_a-float-optional">more info</a>
-  </li>
-  <li>
-    <strong>Penalty alpha</strong> - enables contrastive search.
-    <a href="$_serverBaseUrl#penalty_alpha-float-optional">more info</a>.
+    Typical sampling will pick samples based not on appearance probability,
+    but on expected amount of information produced.
+    It can make the resulting text more interesting by excluding the most likely words
+    if there's a big pool of words to choose from for the next token.
+    Lower values will make the generated text to maintain the same "rhythm" as the prompt.
+    Higher values will include more choices for the next token, and the text will be more random.
+    Allowed range: 0 < x < 1.
+    Recommended values: 0.2 is assumed to be a good choice for a generic story-writing;
+    however, higher values may also produce good results, depending on the expected result.
+    By default, this filter is off.
   </li>
   <li>
     <strong>Mirostat</strong> - enables Mirostat sampling.
@@ -243,7 +223,11 @@ const _manualHtml = '''
 <ul>
   <li>
     <strong>Repetition penalty</strong> - make generated text more different than the already existing text.
-    <a href="$_serverBaseUrl#repetition_penalty-float-optional">more info</a>
+    Change the probability of the tokens that are already included in the input text (preamble and/or prompt).
+    Values higher than 1 will decrease the probability that tokens in the input text will appear in the generated text.
+    Higher values will apply more penalty, which means that new generated tokens will more likely be different from input tokens.
+    The value of 1 will disable this penalty. Recommended values: 1 - 1.3.
+    By default, the repetition penalty is off (i.e. the same as specifying 1).
   </li>
   <li>
     <strong>Frequency penalty</strong> -
@@ -260,25 +244,10 @@ const _manualHtml = '''
   <li>
     <strong>Penalty range</strong> - how much of the latest text to use for the penalty calculation.
     Setting it to zero will include the entire chat.
-    <a href="$_serverBaseUrl#repetition_penalty_range-int-optional-default0">more info</a>
   </li>
   <li>
-    <strong>Penalty slope</strong> -
-    <a href="$_serverBaseUrl#repetition_penalty_slope-float-optional">more info</a>
-  </li>
-  <li>
-    <strong>Include preamble in the penalty range</strong> - self-explanatory.
-    <a href="$_serverBaseUrl#repetition_penalty_include_preamble-bool-optional-defaultfalse">more info</a>
-  </li>
-  <li>
-    <strong>Include generated text in the penalty range</strong> -
-    how to include the generated text in the penalty range.
-    <a href="$_serverBaseUrl#repetition_penalty_include_generated-enumignoreallowexpandslide-optionaldefaultslide">more info</a>
-  </li>
-  <li>
-    <strong>Truncate the penalty range to the input</strong> -
-    limit the range to the input tokens.
-    <a href="$_serverBaseUrl#repetition_penalty_truncate_to_input-bool-optional-defaultfalse">more info</a>
+    <strong>Include preamble in the penalty range</strong> -
+    if not set then repetition penalty will only be applied to the tokens in the prompt.
   </li>
   <li>
     <strong>Penalty lines without extra symbols</strong> -
@@ -296,10 +265,6 @@ const _manualHtml = '''
   <li>
     <strong>Remove participant names from the penalty text</strong> -
     if set then the penalty won't be applied to the tokens that represent participant's names.
-  </li>
-  <li>
-    <strong>No repeat N-gram size</strong> -
-    <a href="$_serverBaseUrl#no_repeat_ngram_size-int-optional">more info</a>
   </li>
   <li>
   <strong>Blacklist</strong> -
@@ -445,9 +410,6 @@ Here's the list of secondary actions for each button:</p>
 <ul>
   <li>Tap the message to edit it. It will open an editing dialog.
   You can long press the OK button in it to save the message without formatting (without needing to uncheck the "Auto-format" checkbox).</li>
-  <li>The red line(s) at the bottom represents the GPU usage (supported only for Neodim Server).</li>
-  <li>If the message is dimmed it means it wasn't part of the prompt (context) that was passed to the AI.
-    Increase the "Max total tokens" parameter (supported only for Neodim Server) to pass more text to the AI.</li>
   <li>If a message has a slight red border around it,
     then it means that it was generated by AI and never modified by you.</li>
   <li>Try not to move away from the main screen while server generates a new message.

@@ -38,12 +38,10 @@ enum Warper {
   repetitionPenalty,
   dry,
   topK,
-  tfs,
   typical,
   topP,
   minP,
   xtc,
-  topA,
   temperature,
   topNSigma
 }
@@ -66,9 +64,6 @@ List<Warper> warpersListFromJson(dynamic json) {
 
 @JsonSerializable(explicitToJson: true)
 class ConfigModel extends ChangeNotifier {
-  @JsonKey(defaultValue: ApiType.neodim, unknownEnumValue: ApiType.neodim)
-  ApiType apiType = ApiType.neodim;
-
   @JsonKey(defaultValue: '0.0.0.0')
   String apiEndpoint = '0.0.0.0';
 
@@ -227,7 +222,6 @@ class ConfigModel extends ChangeNotifier {
   }
 
   void load(ConfigModel other) {
-    apiType = other.apiType;
     apiEndpoint = other.apiEndpoint;
     generatedTokensCount = other.generatedTokensCount;
     maxTotalTokens = other.maxTotalTokens;
