@@ -127,7 +127,11 @@ class ApiRequest {
   static String normalizeEndpoint(String endpoint, int port, String path) {
     Uri url;
     try {
-      url = Uri.parse(endpoint);
+      var m = RegExp(r'^(.*):(\d+)$').firstMatch(endpoint);
+      if(m == null)
+        url = Uri.parse(endpoint);
+      else
+        url = Uri(host: m.group(1)!, port: int.parse(m.group(2)!));
     } catch(e) {
       return endpoint;
     }
