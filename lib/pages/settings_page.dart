@@ -251,6 +251,11 @@ class _SettingsPageState extends State<SettingsPage> {
           initialValue: cfgModel.streamResponse,
           title: const SizedBox.shrink()
         )
+      ),
+      FieldInt(
+        label: 'Save the cache after N seconds of processing\n(0 - do not save)',
+        name: 'saveCacheAfterProcessingSecs',
+        initialValue: cfgModel.saveCacheAfterProcessingSecs
       )
     ];
   }

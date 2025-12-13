@@ -214,6 +214,9 @@ class ConfigModel extends ChangeNotifier {
   @JsonKey(defaultValue: true)
   bool streamResponse = true;
 
+  @JsonKey(defaultValue: 0)
+  int saveCacheAfterProcessingSecs = 0;
+
   String get inputPreamble {
     var s = preamble.trim();
     if(s.isEmpty)
@@ -271,6 +274,7 @@ class ConfigModel extends ChangeNotifier {
     colonStartIsPreviousName = other.colonStartIsPreviousName;
     participantOnRetry = other.participantOnRetry;
     streamResponse = other.streamResponse;
+    saveCacheAfterProcessingSecs = other.saveCacheAfterProcessingSecs;
 
     notifyListeners();
   }

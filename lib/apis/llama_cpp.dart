@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // 🄯 2023, Alexey Parfenov <zxed@alkatrazstudio.net>
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
@@ -10,6 +11,7 @@ import '../apis/request.dart';
 import '../apis/response.dart';
 import '../models/api_model.dart';
 import '../models/config.dart';
+import '../models/conversations.dart';
 import '../models/messages.dart';
 
 class LlamaCppRequest {
@@ -45,7 +47,8 @@ class LlamaCppRequest {
     required this.samplers,
     required this.logitBias,
     required this.seed,
-    required this.stream
+    required this.stream,
+    required this.slotId
   });
 
   final double temperature;
@@ -80,6 +83,7 @@ class LlamaCppRequest {
   final List<Warper> samplers;
   final int seed;
   final bool stream;
+  final int slotId;
 
   static Map<Warper, String> get warpersMap => {
     Warper.dry: 'dry',
@@ -129,7 +133,8 @@ class LlamaCppRequest {
       'samplers': warpersToJson(samplers),
       'seed': seed,
       'stream': stream,
-      'cache_prompt': true
+      'cache_prompt': true,
+      'id_slot': slotId
     };
   }
 }
@@ -139,20 +144,30 @@ class LlamaCppResponse {
     required this.content,
     required this.stoppingWord,
     required this.tokensEvaluated,
-    required this.tokensPredicted
+    required this.tokensPredicted,
+    required this.slotId,
+    required this.promptProcessingMilliSecs,
+    required this.predictionMilliSecs
   });
 
   final String content;
   final String stoppingWord;
   final int tokensEvaluated;
   final int tokensPredicted;
+  final int slotId;
+  final num promptProcessingMilliSecs;
+  final num predictionMilliSecs;
 
   static LlamaCppResponse fromApiResponseMap(Map<String, dynamic> data) {
+    var timings = data['timings'] as Map<String, dynamic>;
     return LlamaCppResponse(
       content: data['content'] as String,
       stoppingWord: data['stopping_word'] as String,
       tokensEvaluated: data['tokens_evaluated'] as int,
-      tokensPredicted: data['tokens_predicted'] as int
+      tokensPredicted: data['tokens_predicted'] as int,
+      slotId: data['id_slot'] as int,
+      promptProcessingMilliSecs: timings['prompt_ms'] as num,
+      predictionMilliSecs: timings['predicted_ms'] as num
     );
   }
 }
@@ -160,7 +175,14 @@ class LlamaCppResponse {
 class ApiRequestLlamaCpp {
   static Random rnd = Random();
 
-  static void raiseErrorIfNeeded(Map<String, dynamic> response) {
+  static var attemptedCacheRestoreForConvIds = <String>{};
+  static var processingMilliSecsWithoutCacheSave = <String, int>{};
+  static var isSavingCache = <String, bool>{};
+  static var lastServerTokenCount = 0;
+
+  static void raiseErrorIfNeeded(dynamic response) {
+    if(response is! Map<String, dynamic>)
+      return;
     Map<String, dynamic> error;
     if(response.containsKey('error'))
       error = response['error'] as Map<String, dynamic>;
@@ -175,9 +197,10 @@ class ApiRequestLlamaCpp {
     throw Exception(fullErr);
   }
 
-  static Future<Map<String, dynamic>> httpPostRaw(String endpoint, Map<String, dynamic> data, CancelToken cancelToken) async {
+  static Future<Map<String, dynamic>> httpPostRaw(String endpoint, Map<String, dynamic> data, CancelToken cancelToken, {Map<String, dynamic>? queryParams}) async {
     var dio = Dio();
     var response = await dio.post<Map<String, dynamic>>(endpoint,
+      queryParameters: queryParams,
       options: Options(
         headers: {
           'Content-Type': 'application/json'
@@ -256,9 +279,9 @@ class ApiRequestLlamaCpp {
     return lastMsgObj;
   }
 
-  static Future<Map<String, dynamic>> httpGetRaw(String endpoint, CancelToken cancelToken) async {
+  static Future<T> httpGetRaw<T>(String endpoint, CancelToken cancelToken) async {
     var dio = Dio();
-    var response = await dio.get<Map<String, dynamic>>(endpoint,
+    var response = await dio.get<T>(endpoint,
       options: Options(
         responseType: ResponseType.json
       ),
@@ -283,6 +306,105 @@ class ApiRequestLlamaCpp {
     return content;
   }
 
+  static String getCacheFilename(Conversation conv) {
+    var filename = '${conv.id}.neodim.cache';
+    return filename;
+  }
+
+  static Future<void> updateTotalServerTokens(String endpoint, ApiCancelModel apiCancelModel) async {
+    var serverTokensCount = await getTotalServerTokens(endpoint, apiCancelModel);
+    if(serverTokensCount >= 0) {
+      if(serverTokensCount < lastServerTokenCount)
+        attemptedCacheRestoreForConvIds.clear(); // this is the only way for now to test that the server was restarted
+      lastServerTokenCount = serverTokensCount;
+    }
+  }
+
+  static Future<int> restoreCacheIntoAvailableSlotIfNeeded(String endpoint, Conversation conv, ApiCancelModel apiCancelModel) async {
+    if(attemptedCacheRestoreForConvIds.contains(conv.id))
+      return -1;
+    attemptedCacheRestoreForConvIds.add(conv.id);
+    try {
+      var slots = await runWithCancelToken<List<dynamic>>(apiCancelModel, (cancelToken) => httpGetRaw('$endpoint/slots', cancelToken));
+      var candidateIds = <int>[];
+      int? finalCandidateId;
+      for(var slotItem in slots) {
+        var slot = slotItem as Map<String, dynamic>;
+        if(slot['is_processing'] == false) {
+          var slotId = slot['id'] as int;
+          if(!slotItem.containsKey('params')) {
+            finalCandidateId = slotId;
+            break;
+          }
+          candidateIds.add(slotId);
+        }
+      }
+      finalCandidateId ??= candidateIds.firstOrNull;
+      if(finalCandidateId == null)
+        return -1;
+      var filename = getCacheFilename(conv);
+      await runWithCancelToken(apiCancelModel, (cancelToken) => httpPostRaw(
+        '$endpoint/slots/$finalCandidateId',
+        {'filename': filename},
+        cancelToken,
+        queryParams: {'action': 'restore'}
+      ));
+      return finalCandidateId;
+    } catch(e) {
+      if(e is DioException && e.type == DioExceptionType.cancel)
+        rethrow;
+      return -1;
+    }
+  }
+
+  static Future<void> saveCacheIfNeeded(String endpoint, ApiRequestParams params, LlamaCppResponse response) async {
+    if(params.cfgModel.saveCacheAfterProcessingSecs <= 0)
+      return;
+    var processingMilliSecs = processingMilliSecsWithoutCacheSave[params.conversation.id] ?? 0;
+    processingMilliSecs += response.promptProcessingMilliSecs.round() + response.predictionMilliSecs.round();
+    var maxProcessingMilliSecs = params.cfgModel.saveCacheAfterProcessingSecs * 1000;
+    processingMilliSecsWithoutCacheSave[params.conversation.id] = processingMilliSecs;
+    if(processingMilliSecs <= maxProcessingMilliSecs)
+      return;
+    if(isSavingCache[params.conversation.id] ?? false)
+      return;
+    isSavingCache[params.conversation.id] = true;
+
+    try {
+      var filename = getCacheFilename(params.conversation);
+      await runWithCancelToken(params.apiCancelModel, (cancelToken) => httpPostRaw(
+          '$endpoint/slots/${response.slotId}',
+          {'filename': filename},
+          cancelToken,
+          queryParams: {'action': 'save'}
+      ));
+      processingMilliSecsWithoutCacheSave[params.conversation.id] = 0;
+    } catch(e) {
+      if(e is DioException && e.type == DioExceptionType.cancel)
+        rethrow;
+    } finally {
+      isSavingCache[params.conversation.id] = false;
+    }
+  }
+
+  static Future<int> getTotalServerTokens(String endpoint, ApiCancelModel apiCancelModel) async {
+    try {
+      var lines = await runWithCancelToken(apiCancelModel, (cancelToken) async {
+        var response = await Dio().get('$endpoint/metrics', cancelToken: cancelToken);
+        var text = response.toString();
+        return text;
+      });
+      var rx = RegExp(r'^llamacpp:prompt_tokens_total (\d+)', multiLine: true);
+      var m = rx.firstMatch(lines);
+      if(m == null)
+        return -1;
+      var tokensCounts = int.parse(m.group(1)!);
+      return tokensCounts;
+    } catch(e) {
+      return -1;
+    }
+  }
+
   static Future<T> runWithCancelToken<T>(ApiCancelModel apiCancelModel, Future<T> Function(CancelToken) f) async {
     try {
       var cancelToken = CancelToken();
@@ -302,7 +424,6 @@ class ApiRequestLlamaCpp {
     var endpoint = ApiRequest.normalizeEndpoint(params.cfgModel.apiEndpoint, 8080, '');
 
     var infoResponse = await runWithCancelToken(params.apiCancelModel, (cancelToken) => httpGetRaw('$endpoint/props', cancelToken));
-    raiseErrorIfNeeded(infoResponse);
     var contextSize = infoResponse['default_generation_settings']['n_ctx'] as int;
 
     int preambleTokensCount;
@@ -395,6 +516,9 @@ class ApiRequestLlamaCpp {
 
     var seed = 0x100000000 * rnd.nextInt(0x7FFFFFFF) + rnd.nextInt(0x100000000);
 
+    await updateTotalServerTokens(endpoint, params.apiCancelModel);
+    var slotId = await restoreCacheIntoAvailableSlotIfNeeded(endpoint, params.conversation, params.apiCancelModel);
+
     var request = LlamaCppRequest(
       temperature: temperature,
       dynaTempRange: dynaTempRange,
@@ -427,7 +551,8 @@ class ApiRequestLlamaCpp {
       logitBias: logitBias,
       samplers: params.cfgModel.warpersOrder,
       seed: seed,
-      stream: params.cfgModel.streamResponse
+      stream: params.cfgModel.streamResponse,
+      slotId: slotId
     );
 
     var requestMap = request.toApiRequestMap();
@@ -440,6 +565,8 @@ class ApiRequestLlamaCpp {
     );
     var response = LlamaCppResponse.fromApiResponseMap(responseMap);
     params.apiModel.endRawRequest(responseMap, response.tokensPredicted);
+
+    saveCacheIfNeeded(endpoint, params, response); // do not wait
 
     var usedPromptTokensCount = response.tokensEvaluated - preambleTokensCount;
     var usedTokens = allInputTokens.sublist(max(0, allInputTokens.length - usedPromptTokensCount));

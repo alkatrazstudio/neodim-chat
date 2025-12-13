@@ -78,6 +78,26 @@ const _manualHtml = '''
     as soon as the next word/token is generated - it will appear right away.
     If not set - the generated text will only appear at the end, when all the response from the server is completed.
   </li>
+  <li>
+    <strong>Save the cache after N seconds of processing</strong> -
+    save the prompt processing cache on disk after the server spends at least N seconds of processing the request.
+    If the cache is saved it will be loaded if you restart the server and Neodim Chat.
+    By default, if you just restart the server, but not Neodim Chat, the cache won't be restored.
+    However, you may pass --metrics to the server,
+    in this case Neodim Chat will attempt to detect whether the server was restarted,
+    and reload the cache if needed.
+    You need to pass --slot-save-path to the server for the saving feature to work.
+    And you must not pass --no-slots.
+    The value of 0 will disable the saving.
+    However, if the cache is found, it will still be loaded, even if this parameter is zero.
+    The unquantized cache will be approximately 1-1.5 GB per 10K tokens.
+    You can quantize the cache by passing --cache-type-k and/or --cache-type-v to the server,
+    but it may lower the quality of the generated text.
+    The cache files are stored in the folder specified in --slot-save-path,
+    and they will have filenames like "&lt;uuid&gt;.neodim.cache", e.g. "20fda557-91bb-40d4-9a11-7d795cc78b58.neodim.cache".
+    A cache can only be loaded if it was created with the same combination of
+    --model, --cache-type-k and --cache-type-v server parameters.
+  </li>
 </ul>
 
 <h3>Sampling</h3>
