@@ -211,8 +211,12 @@ class ChatState extends State<Chat> {
           break;
         nTries--;
       } catch(e) {
+        var text = e.toString().replaceAll('\n', '');
+        var streamText = Provider.of<StreamMessageModel>(context, listen: false).text;
+        if(streamText.isNotEmpty)
+          text = '$streamText $text';
         results = [GeneratedResult(
-          text: e.toString().replaceAll('\n', ''),
+          text: text,
           type: e is ApiCancelException ? GeneratedResultType.cancel : GeneratedResultType.response
         )];
         break;
