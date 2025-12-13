@@ -603,6 +603,31 @@ class MessagesModel extends ChangeNotifier {
     return names;
   }
 
+  static String getAiInput(
+    Conversation c,
+    MessagesModel msgModel,
+    ConfigModel cfgModel,
+    Participant nextParticipant,
+    int nextParticipantIndex,
+    bool continueLastMsg
+  ) {
+    var combineLines = c.type != ConversationType.chat ? CombineChatLinesType.no : cfgModel.combineChatLines;
+    switch(c.type) {
+      case ConversationType.chat:
+        return msgModel.getAiInputForChat(msgModel.messages, nextParticipant, combineLines, false, continueLastMsg);
+
+      case ConversationType.groupChat:
+        var inputText = msgModel.getAiInputForChat(msgModel.messages, nextParticipant, combineLines, true, continueLastMsg);
+        return inputText;
+
+      case ConversationType.adventure:
+        return msgModel.getAiInputForAdventure(msgModel.messages, nextParticipantIndex);
+
+      case ConversationType.story:
+        return msgModel.aiInputForStory;
+    }
+  }
+
   static MessagesModel fromJson(Map<String, dynamic> json) {
     var participants = (json['participants'] as List<dynamic>?) ?? <dynamic>[];
     while(participants.length < 2)

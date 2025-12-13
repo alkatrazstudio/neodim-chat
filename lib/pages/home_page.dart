@@ -10,6 +10,7 @@ import '../models/api_model.dart';
 import '../models/config.dart';
 import '../models/conversations.dart';
 import '../models/messages.dart';
+import '../util/popups.dart';
 import '../widgets/chat.dart';
 import '../widgets/drawer_column.dart';
 import '../widgets/main_menu.dart';
@@ -23,7 +24,8 @@ class HomePage extends StatelessWidget {
     required String? promptedParticipantName,
     required Set<String> blacklistWordsForRetry,
     required bool continueLastMsg,
-    required Message? undoMessage
+    required Message? undoMessage,
+    bool onlySaveCache = false
   }) async {
     var apiModel = Provider.of<ApiModel>(context, listen: false);
     if(apiModel.isApiRunning)
@@ -42,7 +44,7 @@ class HomePage extends StatelessWidget {
     var inputMessages = msgModel.getMessagesSnapshot();
     try {
       var addedPromptSuffix = '';
-      if(conv.type == ConversationType.groupChat && promptedParticipantIndex != Message.youIndex && !continueLastMsg) {
+      if(!onlySaveCache && conv.type == ConversationType.groupChat && promptedParticipantIndex != Message.youIndex && !continueLastMsg) {
         if(promptedParticipantName == null)
           (_, promptedParticipantName) = await Conversation.getNextParticipantNameFromServer(context, false, undoMessage);
         addedPromptSuffix = '$promptedParticipantName${MessagesModel.chatPromptSeparator}';
@@ -52,12 +54,15 @@ class HomePage extends StatelessWidget {
       }
       apiModel.setApiRunning(true);
       var response = await ApiRequest.run(
-        context,
-        inputText,
-        repPenText,
-        null,
-        blacklistWordsForRetry,
-        (newText) => streamMsgModel.addText(newText),
+        context: context,
+        inputText: inputText,
+        repPenText: repPenText,
+        blacklistWordsForRetry: blacklistWordsForRetry,
+        onlySaveCache: onlySaveCache,
+        onNewStreamText: (newText) {
+          if(!onlySaveCache)
+            streamMsgModel.addText(newText);
+        },
       );
       streamMsgModel.hide();
       if(response == null)
@@ -83,7 +88,41 @@ class HomePage extends StatelessWidget {
           title: Consumer<ConversationsModel>(builder: (context, value, child) {
             return Text(value.current?.name ?? 'Neodim Chat');
           }),
-          actions: [MainMenu()]
+          actions: [
+            Consumer<ApiModel>(builder: (context, apiModel, child) {
+              return MainMenu(
+                onSaveCache: apiModel.isApiRunning ? null : () async {
+                  if(apiModel.isApiRunning)
+                    return;
+                  var convModel = Provider.of<ConversationsModel>(context, listen: false);
+                  var curConv = convModel.current;
+                  if(curConv == null)
+                    return;
+                  var msgModel = Provider.of<MessagesModel>(context, listen: false);
+                  var cfgModel = Provider.of<ConfigModel>(context, listen: false);
+                  var participantIndex = msgModel.nextParticipantIndex;
+                  var promptedParticipant = msgModel.participants[participantIndex];
+                  var inputText = MessagesModel.getAiInput(curConv, msgModel, cfgModel, promptedParticipant, participantIndex, false);
+                  var repPenText = Conversation.getRepPenInput(context);
+                  try {
+                    await generate(
+                      context: context,
+                      inputText: inputText,
+                      repPenText: repPenText,
+                      promptedParticipant: promptedParticipant,
+                      promptedParticipantName: promptedParticipant.name,
+                      blacklistWordsForRetry: {},
+                      continueLastMsg: false,
+                      undoMessage: null,
+                      onlySaveCache: true
+                    );
+                  } catch(e) {
+                    showPopupMsg(context, e.toString());
+                  }
+                }
+              );
+            })
+          ]
         ),
 
         drawer: Drawer(

@@ -18,11 +18,16 @@ class MainMenuItem {
 
   final String title;
   final IconData icon;
-  final void Function(BuildContext context) onSelected;
+  final void Function(BuildContext context)? onSelected;
 }
 
 class MainMenu extends StatelessWidget {
-  final List<MainMenuItem> items = [
+  MainMenu({
+    required this.onSaveCache
+  });
+  final void Function()? onSaveCache;
+
+  late final List<MainMenuItem> items = [
     MainMenuItem('Settings', Icons.settings, (context) {
       Navigator.push<void>(
         context,
@@ -35,6 +40,10 @@ class MainMenu extends StatelessWidget {
         context,
         MaterialPageRoute(builder: (context) => const TextualViewPage())
       );
+    }),
+
+    MainMenuItem('Save cache', Icons.save_alt, onSaveCache == null ? null : (context) {
+      onSaveCache!();
     }),
 
     MainMenuItem('Duplicate', Icons.content_copy, (context) async {
@@ -116,11 +125,13 @@ class MainMenu extends StatelessWidget {
     return PopupMenuButton<MainMenuItem>(
       enabled: convModel.current != null,
       onSelected: (item) {
-        item.onSelected(context);
+        if(item.onSelected != null)
+          item.onSelected!(context);
       },
       itemBuilder: (context) {
         return items.map((item) => PopupMenuItem<MainMenuItem>(
           value: item,
+          enabled: item.onSelected != null,
           child: ListTile(
             leading: Icon(item.icon),
             title: Text(item.title)

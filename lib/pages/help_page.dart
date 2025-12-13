@@ -97,6 +97,7 @@ const _manualHtml = '''
     and they will have filenames like "&lt;uuid&gt;.neodim.cache", e.g. "20fda557-91bb-40d4-9a11-7d795cc78b58.neodim.cache".
     A cache can only be loaded if it was created with the same combination of
     --model, --cache-type-k and --cache-type-v server parameters.
+    You can also manually save the cache from the main menu.
   </li>
 </ul>
 

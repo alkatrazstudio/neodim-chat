@@ -357,30 +357,37 @@ class ApiRequestLlamaCpp {
     }
   }
 
-  static Future<void> saveCacheIfNeeded(String endpoint, ApiRequestParams params, LlamaCppResponse response) async {
-    if(params.cfgModel.saveCacheAfterProcessingSecs <= 0)
-      return;
-    var processingMilliSecs = processingMilliSecsWithoutCacheSave[params.conversation.id] ?? 0;
-    processingMilliSecs += response.promptProcessingMilliSecs.round() + response.predictionMilliSecs.round();
-    var maxProcessingMilliSecs = params.cfgModel.saveCacheAfterProcessingSecs * 1000;
-    processingMilliSecsWithoutCacheSave[params.conversation.id] = processingMilliSecs;
-    if(processingMilliSecs <= maxProcessingMilliSecs)
-      return;
-    if(isSavingCache[params.conversation.id] ?? false)
-      return;
-    isSavingCache[params.conversation.id] = true;
+  static Future<void> saveCacheIfNeeded(String endpoint, ApiRequestParams params, LlamaCppResponse response, bool forceSave) async {
+    if(!forceSave) {
+      if(params.cfgModel.saveCacheAfterProcessingSecs <= 0)
+        return;
+      var processingMilliSecs = processingMilliSecsWithoutCacheSave[params.conversation.id] ?? 0;
+      processingMilliSecs += response.promptProcessingMilliSecs.round() + response.predictionMilliSecs.round();
+      var maxProcessingMilliSecs = params.cfgModel.saveCacheAfterProcessingSecs * 1000;
+      processingMilliSecsWithoutCacheSave[params.conversation.id] = processingMilliSecs;
+      if(processingMilliSecs <= maxProcessingMilliSecs)
+        return;
+      if(isSavingCache[params.conversation.id] ?? false)
+        return;
+    }
 
+    var filename = getCacheFilename(params.conversation);
+    Future<Map<String, dynamic>> f(cancelToken) => httpPostRaw(
+      '$endpoint/slots/${response.slotId}',
+      {'filename': filename},
+      cancelToken,
+      queryParams: {'action': 'save'}
+    );
+
+    isSavingCache[params.conversation.id] = true;
     try {
-      var filename = getCacheFilename(params.conversation);
-      await runWithCancelToken(params.apiCancelModel, (cancelToken) => httpPostRaw(
-          '$endpoint/slots/${response.slotId}',
-          {'filename': filename},
-          cancelToken,
-          queryParams: {'action': 'save'}
-      ));
+      if(forceSave)
+        await runWithCancelToken(params.apiCancelModel, f);
+      else
+        await f(CancelToken());
       processingMilliSecsWithoutCacheSave[params.conversation.id] = 0;
     } catch(e) {
-      if(e is DioException && e.type == DioExceptionType.cancel)
+      if(forceSave || (e is DioException && e.type == DioExceptionType.cancel))
         rethrow;
     } finally {
       isSavingCache[params.conversation.id] = false;
@@ -526,7 +533,7 @@ class ApiRequestLlamaCpp {
       topK: params.cfgModel.topK,
       topP: params.cfgModel.topP != 0 ? params.cfgModel.topP : 1,
       minP: params.cfgModel.minP,
-      nPredict: params.cfgModel.generatedTokensCount,
+      nPredict: params.onlySaveCache ? 0 : params.cfgModel.generatedTokensCount,
       nKeep: preambleTokensCount,
       prompt: allInput,
       stop: stopStrings,
@@ -566,7 +573,9 @@ class ApiRequestLlamaCpp {
     var response = LlamaCppResponse.fromApiResponseMap(responseMap);
     params.apiModel.endRawRequest(responseMap, response.tokensPredicted);
 
-    saveCacheIfNeeded(endpoint, params, response); // do not wait
+    var saveCacheFuture = saveCacheIfNeeded(endpoint, params, response, params.onlySaveCache);
+    if(params.onlySaveCache)
+      await saveCacheFuture;
 
     var usedPromptTokensCount = response.tokensEvaluated - preambleTokensCount;
     var usedTokens = allInputTokens.sublist(max(0, allInputTokens.length - usedPromptTokensCount));
@@ -576,8 +585,8 @@ class ApiRequestLlamaCpp {
 
     var result = ApiResponse(
       sequences: [ApiResponseSequence(
-        generatedText: response.content,
-        stopStringMatch: response.stoppingWord,
+        generatedText: params.onlySaveCache ? '' : response.content,
+        stopStringMatch: params.onlySaveCache ? '' : response.stoppingWord,
         stopStringMatchIsSentenceEnd: false
       )],
       usedPrompt: usedPrompt,

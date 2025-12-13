@@ -151,31 +151,6 @@ class ChatState extends State<Chat> {
     await ConversationsModel.saveCurrentData(context);
   }
 
-  String getAiInput(
-    Conversation c,
-    MessagesModel msgModel,
-    ConfigModel cfgModel,
-    Participant nextParticipant,
-    int nextParticipantIndex,
-    bool continueLastMsg
-  ) {
-    var combineLines = c.type != ConversationType.chat ? CombineChatLinesType.no : cfgModel.combineChatLines;
-    switch(c.type) {
-      case ConversationType.chat:
-        return msgModel.getAiInputForChat(msgModel.messages, nextParticipant, combineLines, false, continueLastMsg);
-
-      case ConversationType.groupChat:
-        var inputText = msgModel.getAiInputForChat(msgModel.messages, nextParticipant, combineLines, true, continueLastMsg);
-        return inputText;
-
-      case ConversationType.adventure:
-        return msgModel.getAiInputForAdventure(msgModel.messages, nextParticipantIndex);
-
-      case ConversationType.story:
-        return msgModel.aiInputForStory;
-    }
-  }
-
   Future<GeneratedResult> getGenerated(
     BuildContext context,
     int participantIndex, {
@@ -193,7 +168,7 @@ class ChatState extends State<Chat> {
     var cfgModel = Provider.of<ConfigModel>(context, listen: false);
 
     var promptedParticipant = msgModel.participants[participantIndex];
-    var aiInput = getAiInput(curConv, msgModel, cfgModel, promptedParticipant, participantIndex, continueLastMsg);
+    var aiInput = MessagesModel.getAiInput(curConv, msgModel, cfgModel, promptedParticipant, participantIndex, continueLastMsg);
 
     if(aiInput == aiInputForRetryCache && retryCache.isNotEmpty) {
       var result = retryCache.removeAt(0);

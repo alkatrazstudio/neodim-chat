@@ -34,6 +34,7 @@ class ApiRequestParams {
     required this.msgModel,
     required this.apiModel,
     required this.apiCancelModel,
+    required this.onlySaveCache,
     required this.onNewStreamText
   });
 
@@ -46,18 +47,20 @@ class ApiRequestParams {
   final MessagesModel msgModel;
   final ApiModel apiModel;
   final ApiCancelModel apiCancelModel;
+  final bool onlySaveCache;
   final void Function(String newText)? onNewStreamText;
 }
 
 class ApiRequest {
-  static Future<ApiResponse?> run(
-    BuildContext context,
-    String inputText,
+  static Future<ApiResponse?> run({
+    required BuildContext context,
+    required String inputText,
     String? repPenText,
     List<String>? participantNames,
     Set<String>? blacklistWordsForRetry,
+    bool onlySaveCache = false,
     void Function(String newText)? onNewStreamText
-  ) async {
+  }) async {
     var convModel = Provider.of<ConversationsModel>(context, listen: false);
     var conversation = convModel.current;
     if(conversation == null)
@@ -78,6 +81,7 @@ class ApiRequest {
       msgModel: msgModel,
       apiModel: apiModel,
       apiCancelModel: apiCancelModel,
+      onlySaveCache: onlySaveCache,
       onNewStreamText: onNewStreamText
     );
 

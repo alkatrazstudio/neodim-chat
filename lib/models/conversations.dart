@@ -235,12 +235,10 @@ class Conversation {
     try {
       apiModel.setApiRunning(true);
       var response = await ApiRequest.run(
-        context,
-        inputText,
-        repPenInput,
-        participantNames,
-        null,
-        null
+        context: context,
+        inputText: inputText,
+        repPenText: repPenInput,
+        participantNames: participantNames
       );
       if(response == null)
         return null;
