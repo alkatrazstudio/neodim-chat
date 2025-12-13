@@ -202,6 +202,7 @@ class ApiRequestLlamaCpp {
     var response = await dio.post<Map<String, dynamic>>(endpoint,
       queryParameters: queryParams,
       options: Options(
+        validateStatus: (_) => true,
         headers: {
           'Content-Type': 'application/json'
         },
@@ -226,6 +227,7 @@ class ApiRequestLlamaCpp {
     var dio = Dio();
     var response = await dio.post<ResponseBody>(endpoint,
       options: Options(
+        validateStatus: (_) => true,
         headers: {
           'Content-Type': 'application/json'
         },
@@ -242,12 +244,27 @@ class ApiRequestLlamaCpp {
     var allContent = '';
     var nl = '\n'.codeUnits.first;
     var prefixes = ['data: ', 'error: '];
+    var gotResponse = false;
     await for (var bytes in stream) {
       msgBuf.addAll(bytes);
       while(true) {
         var nlPos = msgBuf.indexOf(nl);
-        if(nlPos == -1)
+        if(nlPos == -1) {
+          if(!gotResponse) {
+            // sometimes the error breaks the streaming conventions
+            // and it will be output as just a regular JSON
+            Map<String, dynamic>? err;
+            try {
+              var errMsg = utf8.decode(msgBuf);
+              err = jsonDecode(errMsg) as Map<String, dynamic>;
+            } catch(_) {
+            }
+            if(err != null)
+              raiseErrorIfNeeded(err);
+          }
           break;
+        }
+        gotResponse = true;
         var msgBytes = msgBuf.sublist(0, nlPos);
         msgBuf = msgBuf.sublist(nlPos + 1);
         var msg = utf8.decode(msgBytes);
@@ -260,8 +277,12 @@ class ApiRequestLlamaCpp {
             break;
           }
         }
-        if(usedPrefix == null)
-          throw Exception('Invalid stream part prefix.');
+        if(usedPrefix == null) {
+          if(msg.startsWith('{'))
+            usedPrefix = '';
+          else
+            throw Exception('Invalid stream part prefix.');
+        }
         var lastMsgJson = msg.substring(usedPrefix.length);
         lastMsgObj = jsonDecode(lastMsgJson) as Map<String, dynamic>;
         raiseErrorIfNeeded(lastMsgObj);
@@ -283,6 +304,7 @@ class ApiRequestLlamaCpp {
     var dio = Dio();
     var response = await dio.get<T>(endpoint,
       options: Options(
+        validateStatus: (_) => true,
         responseType: ResponseType.json
       ),
       cancelToken: cancelToken
