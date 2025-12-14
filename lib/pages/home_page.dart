@@ -94,10 +94,9 @@ class HomePage extends StatelessWidget {
                   if(curConv == null)
                     return;
                   var msgModel = Provider.of<MessagesModel>(context, listen: false);
-                  var cfgModel = Provider.of<ConfigModel>(context, listen: false);
                   var participantIndex = msgModel.nextParticipantIndex;
                   var promptedParticipant = msgModel.participants[participantIndex];
-                  var inputText = msgModel.getAiInput(curConv, cfgModel, promptedParticipant, participantIndex, false);
+                  var inputText = Conversation.getCurrentMessagesText(context);
                   var repPenText = Conversation.getRepPenInput(context);
                   try {
                     await generate(
