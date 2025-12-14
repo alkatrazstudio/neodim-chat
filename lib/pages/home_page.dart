@@ -32,7 +32,6 @@ class HomePage extends StatelessWidget {
       return [];
 
     var msgModel = Provider.of<MessagesModel>(context, listen: false);
-    var cfgModel = Provider.of<ConfigModel>(context, listen: false);
     var convModel = Provider.of<ConversationsModel>(context, listen: false);
     var conv = convModel.current;
     if(conv == null)
@@ -41,7 +40,6 @@ class HomePage extends StatelessWidget {
     var streamMsgModel = Provider.of<StreamMessageModel>(context, listen: false);
     var promptedParticipantIndex = msgModel.participants.indexOf(promptedParticipant);
     streamMsgModel.reset(promptedParticipantIndex);
-    var inputMessages = msgModel.getMessagesSnapshot();
     try {
       var addedPromptSuffix = '';
       if(!onlySaveCache && conv.type == ConversationType.groupChat && promptedParticipantIndex != Message.youIndex && !continueLastMsg) {
@@ -68,9 +66,6 @@ class HomePage extends StatelessWidget {
       if(response == null)
         return [];
       apiModel.setResponse(response);
-      var combineLines = conv.type == ConversationType.chat ? CombineChatLinesType.no : cfgModel.combineChatLines;
-      convModel.updateUsedMessagesCount(
-        response.usedPrompt, promptedParticipant, msgModel, inputMessages, combineLines, addedPromptSuffix, continueLastMsg);
       var lines = response.sequences.map((seq) => seq.outputText).toList();
       lines = lines.map((line) => addedPromptSuffix + line).toList();
       return lines;
@@ -102,7 +97,7 @@ class HomePage extends StatelessWidget {
                   var cfgModel = Provider.of<ConfigModel>(context, listen: false);
                   var participantIndex = msgModel.nextParticipantIndex;
                   var promptedParticipant = msgModel.participants[participantIndex];
-                  var inputText = MessagesModel.getAiInput(curConv, msgModel, cfgModel, promptedParticipant, participantIndex, false);
+                  var inputText = msgModel.getAiInput(curConv, cfgModel, promptedParticipant, participantIndex, false);
                   var repPenText = Conversation.getRepPenInput(context);
                   try {
                     await generate(

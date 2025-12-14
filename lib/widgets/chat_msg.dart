@@ -48,10 +48,9 @@ class ChatMsg extends StatelessWidget {
           var result = await showMessageDialog(
             context,
             '${author.name}:',
-            msg.text,
+            msg,
             chatFormat,
-            participants,
-            msg.authorIndex
+            participants
           );
           if(result == null)
             return;

@@ -18,7 +18,7 @@ class TextualViewPage extends StatelessWidget {
     var curConv = Provider.of<ConversationsModel>(context).current;
     var cfgModel = Provider.of<ConfigModel>(context);
 
-    var prompt = Conversation.getCurrentPrompt(context);
+    var prompt = Conversation.getCurrentMessagesText(context, allMessages: true);
     var text = cfgModel.inputPreamble + prompt;
 
     return Scaffold(

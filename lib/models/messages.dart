@@ -133,6 +133,9 @@ class MessagesModel extends ChangeNotifier {
   @JsonKey(defaultValue: <Message>[])
   List<Message> messages = [];
 
+  @JsonKey(defaultValue: 0)
+  int contextStartIndex = 0;
+
   List<Participant> participants = [
     const Participant(name: 'You', color: Colors.blueGrey),
     const Participant(name: 'Bot', color: Colors.indigoAccent)
@@ -144,13 +147,13 @@ class MessagesModel extends ChangeNotifier {
   bool get isLastGenerated => messages.lastOrNull?.isGenerated ?? false;
   Message? get generatedAtEnd => isLastGenerated ? messages.lastOrNull : null;
 
-  String get chatText => getTextForChat(messages, CombineChatLinesType.no, false, false);
-  String get groupChatText => getTextForChat(messages, CombineChatLinesType.no, true, false);
-  String get adventureText => getTextForAdventure(messages);
-  String get storyText => getTextForStory(messages);
+  String get chatText => getTextForChat(contextMessages, CombineChatLinesType.no, false, false);
+  String get groupChatText => getTextForChat(contextMessages, CombineChatLinesType.no, true, false);
+  String get adventureText => getTextForAdventure(contextMessages);
+  String get storyText => getTextForStory(contextMessages);
   String get aiInputForStory => storyText;
-  String get repetitionPenaltyTextForAdventure => getRepetitionPenaltyTextForAdventure(messages);
-  String get repetitionPenaltyTextForStory => getRepetitionPenaltyTextForStory(messages);
+  String get repetitionPenaltyTextForAdventure => getRepetitionPenaltyTextForAdventure();
+  String get repetitionPenaltyTextForStory => getRepetitionPenaltyTextForStory();
 
   int get nextParticipantIndex {
     var nextIndex = lastParticipantIndex + 1;
@@ -158,6 +161,8 @@ class MessagesModel extends ChangeNotifier {
       return nextIndex;
     return Message.youIndex;
   }
+
+  List<Message> get contextMessages => messages.sublist(min(contextStartIndex, messages.length));
 
   String getPromptForChat(Participant p) => '${p.name}$chatPromptSeparator';
 
@@ -329,13 +334,12 @@ class MessagesModel extends ChangeNotifier {
   }
 
   String getAiInputForChat(
-    List<Message> msgs,
     Participant promptedParticipant,
     CombineChatLinesType combineLines,
     bool groupChat,
     bool continueLastMsg
   ) {
-    var text = getTextForChat(msgs, combineLines, groupChat, continueLastMsg);
+    var text = getTextForChat(contextMessages, combineLines, groupChat, continueLastMsg);
     var aiInput = text;
     var participantIndex = participants.indexOf(promptedParticipant);
     if(combineLines != CombineChatLinesType.onlyForServer && !continueLastMsg) {
@@ -345,8 +349,8 @@ class MessagesModel extends ChangeNotifier {
     return aiInput;
   }
 
-  String getAiInputForAdventure(List<Message> msgs, int participantIndex) {
-     var text = getTextForAdventure(msgs);
+  String getAiInputForAdventure(int participantIndex) {
+     var text = getTextForAdventure(contextMessages);
      if(participantIndex == Message.youIndex)
        text = text + actionSeparator + actionPrompt;
      return text;
@@ -397,80 +401,16 @@ class MessagesModel extends ChangeNotifier {
     return s;
   }
 
-  String getRepetitionPenaltyTextForAdventure(List<Message> msgs) {
-    var text = getTextForAdventure(msgs);
+  String getRepetitionPenaltyTextForAdventure() {
+    var text = getTextForAdventure(messages);
     text = text
       .replaceAll(RegExp(r'[^\p{Letter}\p{Number}]', unicode: true), ' ')
       .replaceAll(RegExp(r'\s+'), ' ');
-
     return text.trim();
   }
 
-  String getRepetitionPenaltyTextForStory(List<Message> msgs) {
-    return getRepetitionPenaltyTextForAdventure(msgs);
-  }
-
-  List<Message> getMessagesSnapshot() {
-    var copyList = <Message>[];
-    copyList.addAll(messages);
-    return copyList;
-  }
-
-  static int _usedMessagesBinSearch(int length, int Function(int pos) f) {
-    if(length == 0)
-      return -1;
-    var minIndex = 0;
-    var maxIndex = length - 1;
-    while(minIndex < maxIndex) {
-      var mid = minIndex + ((maxIndex - minIndex) / 2).round();
-      var result = f(mid);
-      if(result >= 0)
-        minIndex = mid;
-      else
-        maxIndex = mid - 1;
-    }
-    return minIndex;
-  }
-
-  List<Message> getUsedMessages(
-    String usedPrompt,
-    Participant promptedParticipant,
-    List<Message> inputMessages,
-    ConversationType chatType,
-    CombineChatLinesType combineLines,
-    String addedPromptSuffix,
-    bool continueLastMsg
-  ) {
-    var testPromptLength = usedPrompt.trimLeft().length;
-    if(testPromptLength == 0)
-      return [];
-    var pos = _usedMessagesBinSearch(inputMessages.length, (startIndex) {
-      var testMessages = inputMessages.sublist(startIndex);
-      String testText;
-      switch(chatType) {
-        case ConversationType.chat:
-          testText = getAiInputForChat(testMessages, promptedParticipant, combineLines, false, continueLastMsg);
-          break;
-
-        case ConversationType.adventure:
-          testText = getTextForAdventure(testMessages);
-          break;
-
-        case ConversationType.story:
-          testText = getTextForStory(testMessages);
-          break;
-
-        case ConversationType.groupChat:
-          testText = getAiInputForChat(testMessages, promptedParticipant, combineLines, true, continueLastMsg);
-          break;
-      }
-      testText += addedPromptSuffix;
-      return testText.length - testPromptLength;
-    });
-    if(pos == -1)
-      return [];
-    var usedMessages = inputMessages.sublist(pos);
-    return usedMessages;
+  String getRepetitionPenaltyTextForStory() {
+    return getRepetitionPenaltyTextForAdventure();
   }
 
   void add(Message msg) {
@@ -563,12 +503,29 @@ class MessagesModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setContextStart(Message msg) {
+    var msgIndex = messages.indexOf(msg);
+    if(msgIndex < 0)
+      return;
+    contextStartIndex = msgIndex;
+    notifyListeners();
+  }
+
+  bool isContextStart(Message msg) {
+    var msgIndex = messages.indexOf(msg);
+    if(msgIndex < 0)
+      return false;
+    return msgIndex == contextStartIndex;
+  }
+
   void load(MessagesModel other) {
     messages.clear();
     messages.addAll(other.messages);
 
     participants.clear();
     participants.addAll(other.participants);
+
+    contextStartIndex = other.contextStartIndex;
 
     notifyListeners();
   }
@@ -603,9 +560,8 @@ class MessagesModel extends ChangeNotifier {
     return names;
   }
 
-  static String getAiInput(
+  String getAiInput(
     Conversation c,
-    MessagesModel msgModel,
     ConfigModel cfgModel,
     Participant nextParticipant,
     int nextParticipantIndex,
@@ -614,17 +570,17 @@ class MessagesModel extends ChangeNotifier {
     var combineLines = c.type != ConversationType.chat ? CombineChatLinesType.no : cfgModel.combineChatLines;
     switch(c.type) {
       case ConversationType.chat:
-        return msgModel.getAiInputForChat(msgModel.messages, nextParticipant, combineLines, false, continueLastMsg);
+        return getAiInputForChat(nextParticipant, combineLines, false, continueLastMsg);
 
       case ConversationType.groupChat:
-        var inputText = msgModel.getAiInputForChat(msgModel.messages, nextParticipant, combineLines, true, continueLastMsg);
+        var inputText = getAiInputForChat(nextParticipant, combineLines, true, continueLastMsg);
         return inputText;
 
       case ConversationType.adventure:
-        return msgModel.getAiInputForAdventure(msgModel.messages, nextParticipantIndex);
+        return getAiInputForAdventure(nextParticipantIndex);
 
       case ConversationType.story:
-        return msgModel.aiInputForStory;
+        return aiInputForStory;
     }
   }
 

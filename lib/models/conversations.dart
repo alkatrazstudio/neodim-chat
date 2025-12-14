@@ -127,26 +127,27 @@ class Conversation {
     await f.delete();
   }
 
-  static String getCurrentPrompt(BuildContext context) {
+  static String getCurrentMessagesText(BuildContext context, {bool allMessages = false}) {
     var curConv = Provider.of<ConversationsModel>(context, listen: false).current;
     if(curConv == null)
       return '';
 
     var msgModel = Provider.of<MessagesModel>(context, listen: false);
+    var msgs = allMessages ? msgModel.messages : msgModel.contextMessages;
 
     switch(curConv.type)
     {
       case ConversationType.chat:
-        return msgModel.chatText;
+        return msgModel.getTextForChat(msgs, CombineChatLinesType.no, false, false);
 
       case ConversationType.groupChat:
-        return msgModel.groupChatText;
+        return msgModel.getTextForChat(msgs, CombineChatLinesType.no, true, false);
 
       case ConversationType.adventure:
-        return msgModel.adventureText;
+        return msgModel.getTextForAdventure(msgs);
 
       case ConversationType.story:
-        return msgModel.storyText;
+        return msgModel.getTextForStory(msgs);
     }
   }
 
@@ -293,7 +294,7 @@ class Conversation {
     if(participantNames.length == 1) {
       nextName = participantNames.first;
     } else {
-      var inputText = Conversation.getCurrentPrompt(context);
+      var inputText = Conversation.getCurrentMessagesText(context);
       nextName = await getNextGroupParticipantName(context, inputText, participantNames);
       if(nextName == null) {
         var nextNameIndex = Random().nextInt(participantNames.length);
@@ -371,9 +372,6 @@ class ConversationsModel extends ChangeNotifier {
   @JsonKey(includeFromJson: false, includeToJson: false)
   Conversation? current;
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  int notUsedMessagesCount = 0;
-
   Future<void> load() async {
     var rootDir = await getApplicationDocumentsDirectory();
     var f = File('${rootDir.path}/conversations.json');
@@ -425,7 +423,6 @@ class ConversationsModel extends ChangeNotifier {
     await saveList(ctx);
     if(wasCurrent)
       self.current = null;
-    self.notUsedMessagesCount = 0;
 
     self.notifyListeners();
 
@@ -435,34 +432,10 @@ class ConversationsModel extends ChangeNotifier {
 
   Future<void> setCurrent(BuildContext ctx, Conversation? conversation) async {
     current = conversation;
-    notUsedMessagesCount = 0;
     if(conversation != null)
       conversation.lastSetAsCurrentAt = DateTime.now();
     notifyListeners();
     await saveList(ctx);
-  }
-
-  void updateUsedMessagesCount(
-    String usedPrompt,
-    Participant promptedParticipant,
-    MessagesModel msgModel,
-    List<Message> inputMessages,
-    CombineChatLinesType combineLines,
-    String addedPromptSuffix,
-    bool continueLastMsg
-  ) {
-    var c = current;
-    if(c == null) {
-      notUsedMessagesCount = 0;
-      notifyListeners();
-      return;
-    }
-
-    var usedMessages = msgModel.getUsedMessages(
-        usedPrompt, promptedParticipant, inputMessages, c.type, combineLines, addedPromptSuffix, continueLastMsg);
-    var usedMessagesCount = usedMessages.length;
-    notUsedMessagesCount = inputMessages.length - usedMessagesCount;
-    notifyListeners();
   }
 
   static Future<void> saveCurrentData(BuildContext ctx) async {

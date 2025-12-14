@@ -6,7 +6,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import 'package:collection/collection.dart';
+import 'package:provider/provider.dart';
 
+import '../models/conversations.dart';
 import '../models/messages.dart';
 
 enum MessageDialogAction {
@@ -30,19 +32,18 @@ class MessageDialogResult {
 Future<MessageDialogResult?> showMessageDialog(
   BuildContext context,
   String title,
-  String initialText,
+  Message msg,
   bool chatFormat,
-  List<Participant> participants,
-  int participantIndex
+  List<Participant> participants
 ) async {
   var doFormat = true;
-  var newParticipantIndex = participantIndex;
+  var newParticipantIndex = msg.authorIndex;
 
   void submitMsg(BuildContext ctx, String text, bool forceNoFormat) {
     text = text.trim();
     if(doFormat && !forceNoFormat)
       text = Message.format(text, chatFormat, false);
-    if(text.isEmpty || (text == initialText && newParticipantIndex == participantIndex))
+    if(text.isEmpty || (text == msg.text && newParticipantIndex == msg.authorIndex))
       Navigator.of(context).pop();
     else
       Navigator.of(context).pop(MessageDialogResult(
@@ -64,7 +65,7 @@ Future<MessageDialogResult?> showMessageDialog(
     context: context,
     builder: (BuildContext context) {
       final inputController = TextEditingController();
-      inputController.text = initialText;
+      inputController.text = msg.text;
 
       var rowKey = GlobalKey();
       var widthFuture = Completer<double>();
@@ -118,18 +119,25 @@ Future<MessageDialogResult?> showMessageDialog(
                   submitMsg(context, text, false);
                 }
               ),
-              Row(
-                children: [
-                  Expanded(
-                    child: CheckboxListTile(
-                      title: const Text('Auto-format'),
-                      value: doFormat,
-                      onChanged: (newVal) => setState((){doFormat = newVal ?? false;}),
-                      controlAffinity: ListTileControlAffinity.leading
-                    )
-                  )
-                ]
+              CheckboxListTile(
+                title: const Text('Auto-format'),
+                value: doFormat,
+                onChanged: (newVal) => setState((){doFormat = newVal ?? false;}),
+                controlAffinity: ListTileControlAffinity.leading
               ),
+              Center(
+                child: Consumer<MessagesModel>(builder: (context, msgModel, child) {
+                  var isStart = msgModel.isContextStart(msg);
+                  return ElevatedButton(
+                    onPressed: isStart ? null : () async {
+                      msgModel.setContextStart(msg);
+                      await ConversationsModel.saveCurrentData(context);
+                    },
+                    child: Text(isStart ? 'context start' : 'set as context start')
+                  );
+                })
+              ),
+
               Padding(
                 padding: const EdgeInsets.only(top: 35),
                 child: Row(

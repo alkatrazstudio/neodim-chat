@@ -23,7 +23,6 @@ class LlamaCppRequest {
     required this.topP,
     required this.minP,
     required this.nPredict,
-    required this.nKeep,
     required this.prompt,
     required this.stop,
     required this.typicalP,
@@ -58,7 +57,6 @@ class LlamaCppRequest {
   final double topP;
   final double minP;
   final int nPredict;
-  final int nKeep;
   final String prompt;
   final List<String> stop;
   final double typicalP;
@@ -108,7 +106,6 @@ class LlamaCppRequest {
       'top_p': topP,
       'min_p': minP,
       'n_predict': nPredict,
-      'n_keep': nKeep,
       'prompt': prompt,
       'stop': stop,
       'typical_p': typicalP,
@@ -457,10 +454,6 @@ class ApiRequestLlamaCpp {
 
     int preambleTokensCount;
 
-    // llama.cpp truncates the input prompt automatically depending on n_predict and n_keep params
-    // and then caches all inference results needed to predict the next token.
-    // Manually truncating the prompt will result in a cache miss.
-    // That's why we need to pass all the preamble and prompt unmodified.
     var allInput = params.inputText;
     var preamble = params.cfgModel.inputPreamble;
     if(preamble.isNotEmpty) {
@@ -556,7 +549,6 @@ class ApiRequestLlamaCpp {
       topP: params.cfgModel.topP != 0 ? params.cfgModel.topP : 1,
       minP: params.cfgModel.minP,
       nPredict: params.onlySaveCache ? 0 : params.cfgModel.generatedTokensCount,
-      nKeep: preambleTokensCount,
       prompt: allInput,
       stop: stopStrings,
       typicalP: params.cfgModel.typical != 0 ? params.cfgModel.typical : 1,
@@ -599,22 +591,14 @@ class ApiRequestLlamaCpp {
     if(params.onlySaveCache)
       await saveCacheFuture;
 
-    var usedPromptTokensCount = response.tokensEvaluated - preambleTokensCount;
-    var usedTokens = allInputTokens.sublist(max(0, allInputTokens.length - usedPromptTokensCount));
-    var usedPrompt = await detokenize(endpoint, usedTokens, params.apiCancelModel);
-    if(usedPrompt.startsWith(' '))
-      usedPrompt = usedPrompt.substring(1);
-
     var result = ApiResponse(
       sequences: [ApiResponseSequence(
         generatedText: params.onlySaveCache ? '' : response.content,
         stopStringMatch: params.onlySaveCache ? '' : response.stoppingWord,
         stopStringMatchIsSentenceEnd: false
       )],
-      usedPrompt: usedPrompt,
       gpus: []
     );
-
     return result;
   }
 }

@@ -4,12 +4,10 @@
 class ApiResponse {
   const ApiResponse({
     required this.sequences,
-    required this.usedPrompt,
     required this.gpus
   });
 
   final List<ApiResponseSequence> sequences;
-  final String usedPrompt;
   final List<ApiResponseGpu> gpus;
 }
 

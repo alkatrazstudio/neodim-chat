@@ -168,7 +168,7 @@ class ChatState extends State<Chat> {
     var cfgModel = Provider.of<ConfigModel>(context, listen: false);
 
     var promptedParticipant = msgModel.participants[participantIndex];
-    var aiInput = MessagesModel.getAiInput(curConv, msgModel, cfgModel, promptedParticipant, participantIndex, continueLastMsg);
+    var aiInput = msgModel.getAiInput(curConv, cfgModel, promptedParticipant, participantIndex, continueLastMsg);
 
     if(aiInput == aiInputForRetryCache && retryCache.isNotEmpty) {
       var result = retryCache.removeAt(0);
@@ -481,7 +481,7 @@ class ChatState extends State<Chat> {
 
                 var msgIndex = msgModel.messages.length - i;
                 var msg = msgModel.messages[msgIndex];
-                var isUsed = msgIndex >= convModel.notUsedMessagesCount;
+                var isUsed = msgIndex >= msgModel.contextStartIndex;
                 return ChatMsg(
                   msg: msg,
                   author: msgModel.participants[msg.authorIndex],
