@@ -447,7 +447,9 @@ Here's the list of secondary actions for each button:</p>
     This behavior can be changed via the "Colon at the start..." setting.</li>
   <li>If supported by the API server, you can stop the generation
     by pressing the <widget name="stop"></widget> button</li>
-  <li>If the context is getting too big for the model, you can truncate it.
+  <li>The line at the top shows the currently used context size relative to the max available content size.
+    If this line fills to 100%, it means that the model context is full and no new messages can be generated.</li>
+  <li>If the context is getting too big, you can truncate it.
     Tap the message you want to be the start of the context, then press "set as context start".
     Messages that won't be passed to the server will be displayed as dimmed.</li>
 </ul>

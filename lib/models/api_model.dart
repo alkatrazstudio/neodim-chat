@@ -7,7 +7,9 @@ import '../apis/response.dart';
 
 class ApiModel extends ChangeNotifier {
   ApiResponse? lastResponse;
-  bool isApiRunning = false;
+  var isApiRunning = false;
+  var maxContextLength = 0;
+  var currentContextLength = 0;
 
   Map<String, dynamic>? rawRequest;
   Map<String, dynamic>? rawResponse;
@@ -39,6 +41,12 @@ class ApiModel extends ChangeNotifier {
     requestSecs = (DateTime.now().millisecondsSinceEpoch - requestStartMsecs) / 1000;
     if(requestSecs > 0 && generatedTokensCount > 0)
       tokensPerSecond = generatedTokensCount / requestSecs;
+    notifyListeners();
+  }
+
+  void setContextStats(int maxLength, int currentLength) {
+    maxContextLength = maxLength;
+    currentContextLength = currentLength;
     notifyListeners();
   }
 }

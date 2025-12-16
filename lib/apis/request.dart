@@ -89,6 +89,18 @@ class ApiRequest {
     return result;
   }
 
+  static Future<void> updateStats(BuildContext context) async {
+    var cfgModel = Provider.of<ConfigModel>(context, listen: false);
+    var apiModel = Provider.of<ApiModel>(context, listen: false);
+    var prompt = Conversation.getCurrentMessagesText(context);
+    var preamble = cfgModel.inputPreamble;
+    var inputText = preamble + prompt;
+    try {
+      await ApiRequestLlamaCpp.updateStats(inputText, cfgModel, apiModel);
+    } catch(_) {
+    }
+  }
+
   static List<String> getParticipantNameStopStrings(MessagesModel msgModel, Conversation conv) {
     List<String> participantNames;
     switch(conv.type) {

@@ -7,7 +7,6 @@ import 'package:provider/provider.dart';
 
 import '../apis/request.dart';
 import '../models/api_model.dart';
-import '../models/config.dart';
 import '../models/conversations.dart';
 import '../models/messages.dart';
 import '../util/popups.dart';

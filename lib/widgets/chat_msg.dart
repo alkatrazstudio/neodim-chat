@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:bubble/bubble.dart';
 import 'package:provider/provider.dart';
 
+import '../apis/request.dart';
 import '../models/conversations.dart';
 import '../models/messages.dart';
 import '../widgets/dialogs.dart';
@@ -54,21 +55,26 @@ class ChatMsg extends StatelessWidget {
           );
           if(result == null)
             return;
-          var messages = Provider.of<MessagesModel>(context, listen: false);
+          var msgModel = Provider.of<MessagesModel>(context, listen: false);
           switch(result.action) {
             case MessageDialogAction.edit:
-              messages.setTextAndAuthorIndex(msg, result.text, result.participantIndex, true);
+              msgModel.setTextAndAuthorIndex(msg, result.text, result.participantIndex, true);
               break;
 
             case MessageDialogAction.deleteCurrent:
-              messages.remove(msg);
+              msgModel.remove(msg);
               break;
 
             case MessageDialogAction.deleteCurrentAndAfter:
-              messages.removeToLast(msg);
+              msgModel.removeToLast(msg);
+              break;
+
+            case MessageDialogAction.setAsContextStart:
+              msgModel.setContextStart(msg);
               break;
           }
           await ConversationsModel.saveCurrentData(context);
+          await ApiRequest.updateStats(context);
         }
       )
     );

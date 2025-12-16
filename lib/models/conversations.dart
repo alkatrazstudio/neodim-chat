@@ -100,8 +100,8 @@ class Conversation {
 
   Future<void> setAsCurrent(BuildContext ctx, ConversationData data) async {
     Provider.of<MessagesModel>(ctx, listen: false).load(data.msgModel);
-    await Provider.of<ConversationsModel>(ctx, listen: false).setCurrent(ctx, this);
     Provider.of<ConfigModel>(ctx, listen: false).load(data.config);
+    await Provider.of<ConversationsModel>(ctx, listen: false).setCurrent(ctx, this);
   }
 
   ConversationData getCurrentData(BuildContext ctx) {
@@ -435,6 +435,9 @@ class ConversationsModel extends ChangeNotifier {
     if(conversation != null)
       conversation.lastSetAsCurrentAt = DateTime.now();
     notifyListeners();
+    var apiModel = Provider.of<ApiModel>(ctx, listen: false);
+    apiModel.setContextStats(0, 0);
+    ApiRequest.updateStats(ctx);
     await saveList(ctx);
   }
 

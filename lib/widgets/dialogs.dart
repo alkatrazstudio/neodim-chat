@@ -8,13 +8,13 @@ import 'package:flutter/material.dart';
 import 'package:collection/collection.dart';
 import 'package:provider/provider.dart';
 
-import '../models/conversations.dart';
 import '../models/messages.dart';
 
 enum MessageDialogAction {
   edit,
   deleteCurrent,
-  deleteCurrentAndAfter
+  deleteCurrentAndAfter,
+  setAsContextStart
 }
 
 class MessageDialogResult {
@@ -130,8 +130,7 @@ Future<MessageDialogResult?> showMessageDialog(
                   var isStart = msgModel.isContextStart(msg);
                   return ElevatedButton(
                     onPressed: isStart ? null : () async {
-                      msgModel.setContextStart(msg);
-                      await ConversationsModel.saveCurrentData(context);
+                      nonEditAction(context, MessageDialogAction.setAsContextStart);
                     },
                     child: Text(isStart ? 'context start' : 'set as context start')
                   );

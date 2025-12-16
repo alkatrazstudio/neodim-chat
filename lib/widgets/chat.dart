@@ -10,6 +10,7 @@ import 'package:collection/collection.dart';
 import 'package:provider/provider.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
+import '../apis/request.dart';
 import '../models/api_model.dart';
 import '../models/config.dart';
 import '../models/conversations.dart';
@@ -442,14 +443,28 @@ class ChatState extends State<Chat> {
 
   @override
   Widget build(BuildContext context) {
+    var convModel = Provider.of<ConversationsModel>(context);
+    var curConv = convModel.current;
+    if(curConv == null)
+      return const SizedBox.shrink();
+
     return Column(
       mainAxisSize: MainAxisSize.max,
       children: [
+        Consumer<ApiModel>(builder: (context, apiModel, child) {
+          double progress;
+          if(apiModel.maxContextLength == 0)
+            progress = 0;
+          else if(apiModel.currentContextLength >= apiModel.maxContextLength)
+            progress = 1;
+          else
+            progress = apiModel.currentContextLength / apiModel.maxContextLength;
+          return LinearProgressIndicator(
+            value: progress
+          );
+        }),
         Expanded(
-          child: Consumer2<MessagesModel, ConversationsModel>(builder: (context, msgModel, convModel, child) {
-            var curConv = convModel.current;
-            if(curConv == null)
-              return const SizedBox.shrink();
+          child: Consumer<MessagesModel>(builder: (context, msgModel, child) {
             return ListView.builder(
               padding: const EdgeInsets.only(bottom: 10),
               itemCount: msgModel.messages.length + 1,
@@ -496,16 +511,12 @@ class ChatState extends State<Chat> {
         Consumer<ApiModel>(
           builder: (context, value, child) {
             if (value.isApiRunning)
-              return const LinearProgressIndicator(minHeight: 3);
+              return const LinearProgressIndicator();
             return const SizedBox.shrink();
           }
         ),
 
-        Consumer2<MessagesModel, ConversationsModel>(builder: (context, msgModel, convModel, child) {
-          var curConv = convModel.current;
-          if(curConv == null)
-            return const SizedBox.shrink();
-
+        Consumer<MessagesModel>(builder: (context, msgModel, child) {
           return ChatInput(
             addGenerated: (authorIndex) => generateAndAdd(context, authorIndex),
             submit: (authorIndex) => submit(context, authorIndex, true),
@@ -764,6 +775,7 @@ class _ChatButtonsState extends State<ChatButtons> {
           return;
         var undoBySentence = !isLong && cfgModel.undoBySentence && lastMsg.text.isNotEmpty;
         await undo(msgModel, cfgModel, curConv, undoBySentence);
+        await ApiRequest.updateStats(context);
       },
       isEnabled: msgModel.messages.isNotEmpty,
       icon: Icons.undo
@@ -788,6 +800,7 @@ class _ChatButtonsState extends State<ChatButtons> {
           }
         });
         await ConversationsModel.saveCurrentData(context);
+        await ApiRequest.updateStats(context);
       },
       isEnabled: undoQueue.isNotEmpty,
       icon: Icons.redo
@@ -822,6 +835,7 @@ class _ChatButtonsState extends State<ChatButtons> {
         } else {
           var undoItem = await undo(msgModel, cfgModel, curConv, false);
           var msg = undoItem?.message;
+          ApiRequest.updateStats(context);
           if(msg == null)
             return;
           widget.addGenerated(msg.authorIndex, undoMessage: msg, useBlacklist: !isLong);

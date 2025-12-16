@@ -156,17 +156,19 @@ class LlamaCppResponse {
   final num predictionMilliSecs;
 
   static LlamaCppResponse fromApiResponseMap(Map<String, dynamic> data) {
-    var timings = data['timings'] as Map<String, dynamic>;
+    var timings = data['timings'] as Map<String, dynamic>?;
     return LlamaCppResponse(
       content: data['content'] as String,
-      stoppingWord: data['stopping_word'] as String,
+      stoppingWord: (data['stopping_word'] as String?) ?? '',
       tokensEvaluated: data['tokens_evaluated'] as int,
       tokensPredicted: data['tokens_predicted'] as int,
       slotId: data['id_slot'] as int,
-      promptProcessingMilliSecs: timings['prompt_ms'] as num,
-      predictionMilliSecs: timings['predicted_ms'] as num
+      promptProcessingMilliSecs: timings?['prompt_ms'] as num? ?? 0,
+      predictionMilliSecs: timings?['predicted_ms'] as num? ?? 0
     );
   }
+
+  int get usedContextLength => tokensEvaluated + tokensPredicted;
 }
 
 class ApiRequestLlamaCpp {
@@ -194,7 +196,7 @@ class ApiRequestLlamaCpp {
     throw Exception(fullErr);
   }
 
-  static Future<Map<String, dynamic>> httpPostRaw(String endpoint, Map<String, dynamic> data, CancelToken cancelToken, {Map<String, dynamic>? queryParams}) async {
+  static Future<Map<String, dynamic>> httpPostRaw(String endpoint, Map<String, dynamic> data, CancelToken? cancelToken, {Map<String, dynamic>? queryParams}) async {
     var dio = Dio();
     var response = await dio.post<Map<String, dynamic>>(endpoint,
       queryParameters: queryParams,
@@ -219,7 +221,9 @@ class ApiRequestLlamaCpp {
     String endpoint,
     Map<String, dynamic> data,
     void Function(String newText)? onNewStreamText,
-    CancelToken cancelToken
+    CancelToken? cancelToken,
+    int maxContextLength,
+    ApiModel apiModel
   ) async {
     var dio = Dio();
     var response = await dio.post<ResponseBody>(endpoint,
@@ -283,12 +287,17 @@ class ApiRequestLlamaCpp {
         var lastMsgJson = msg.substring(usedPrefix.length);
         lastMsgObj = jsonDecode(lastMsgJson) as Map<String, dynamic>;
         raiseErrorIfNeeded(lastMsgObj);
-        var content = lastMsgObj['content'] as String;
-        if(content.isEmpty)
-          continue;
-        allContent += content;
-        if(onNewStreamText != null)
-          onNewStreamText(content);
+        try {
+          var response = LlamaCppResponse.fromApiResponseMap(lastMsgObj);
+          var content = response.content;
+          if(content.isEmpty)
+            continue;
+          allContent += content;
+          if(onNewStreamText != null)
+            onNewStreamText(content);
+          apiModel.setContextStats(maxContextLength, response.usedContextLength);
+        } catch(_) {
+        }
       }
     }
     if(lastMsgObj == null)
@@ -297,7 +306,7 @@ class ApiRequestLlamaCpp {
     return lastMsgObj;
   }
 
-  static Future<T> httpGetRaw<T>(String endpoint, CancelToken cancelToken) async {
+  static Future<T> httpGetRaw<T>(String endpoint, CancelToken? cancelToken) async {
     var dio = Dio();
     var response = await dio.get<T>(endpoint,
       options: Options(
@@ -313,7 +322,7 @@ class ApiRequestLlamaCpp {
     return resp;
   }
 
-  static Future<List<int>> tokenize(String endpoint, String content, ApiCancelModel apiCancelModel) async {
+  static Future<List<int>> tokenize(String endpoint, String content, ApiCancelModel? apiCancelModel) async {
     var response = await runWithCancelToken(apiCancelModel, (cancelToken) => httpPostRaw('$endpoint/tokenize', {'content': content}, cancelToken));
     var tokens = (response['tokens'] as List<dynamic>).map((token) => token as int).toList();
     return tokens;
@@ -400,10 +409,7 @@ class ApiRequestLlamaCpp {
 
     isSavingCache[params.conversation.id] = true;
     try {
-      if(forceSave)
-        await runWithCancelToken(params.apiCancelModel, f);
-      else
-        await f(CancelToken());
+      await runWithCancelToken(forceSave ? params.apiCancelModel : null, f);
       processingMilliSecsWithoutCacheSave[params.conversation.id] = 0;
     } catch(e) {
       if(forceSave || (e is DioException && e.type == DioExceptionType.cancel))
@@ -431,7 +437,9 @@ class ApiRequestLlamaCpp {
     }
   }
 
-  static Future<T> runWithCancelToken<T>(ApiCancelModel apiCancelModel, Future<T> Function(CancelToken) f) async {
+  static Future<T> runWithCancelToken<T>(ApiCancelModel? apiCancelModel, Future<T> Function(CancelToken?) f) async {
+    if(apiCancelModel == null)
+      return await f(null);
     try {
       var cancelToken = CancelToken();
       apiCancelModel.setCancelFunc(() => cancelToken.cancel());
@@ -446,11 +454,20 @@ class ApiRequestLlamaCpp {
     }
   }
 
-  static Future<ApiResponse?> run(ApiRequestParams params) async {
-    var endpoint = ApiRequest.normalizeEndpoint(params.cfgModel.apiEndpoint, 8080, '');
+  static String getEndpoint(ConfigModel cfgModel) {
+    var endpoint = ApiRequest.normalizeEndpoint(cfgModel.apiEndpoint, 8080, '');
+    return endpoint;
+  }
 
-    var infoResponse = await runWithCancelToken(params.apiCancelModel, (cancelToken) => httpGetRaw('$endpoint/props', cancelToken));
-    var contextSize = infoResponse['default_generation_settings']['n_ctx'] as int;
+  static Future<int> getMaxContextLength(String endpoint, ApiCancelModel? apiCancelModel) async {
+    var infoResponse = await runWithCancelToken(apiCancelModel, (cancelToken) => httpGetRaw('$endpoint/props', cancelToken));
+    var contextLength = infoResponse['default_generation_settings']['n_ctx'] as int;
+    return contextLength;
+  }
+
+  static Future<ApiResponse?> run(ApiRequestParams params) async {
+    var endpoint = getEndpoint(params.cfgModel);
+    var contextLength = await getMaxContextLength(endpoint, params.apiCancelModel);
 
     int preambleTokensCount;
 
@@ -469,7 +486,7 @@ class ApiRequestLlamaCpp {
     if(params.inputText.isEmpty) {
       maxRepeatLastN = 0;
     } else {
-      var allowedPromptTokensCount = contextSize - preambleTokensCount - params.cfgModel.generatedTokensCount - 1;
+      var allowedPromptTokensCount = contextLength - preambleTokensCount - params.cfgModel.generatedTokensCount - 1;
       if(allowedPromptTokensCount <= 0)
         throw Exception('No tokens left for prompt.');
       allowedPromptTokensCount = min(allowedPromptTokensCount, allInputTokens.length);
@@ -581,11 +598,12 @@ class ApiRequestLlamaCpp {
     var responseMap = await runWithCancelToken(
       params.apiCancelModel,
       (cancelToken) => request.stream
-        ? httpPostRawStream('$endpoint/completion', requestMap, params.onNewStreamText, cancelToken)
+        ? httpPostRawStream('$endpoint/completion', requestMap, params.onNewStreamText, cancelToken, contextLength, params.apiModel)
         : httpPostRaw('$endpoint/completion', requestMap, cancelToken)
     );
     var response = LlamaCppResponse.fromApiResponseMap(responseMap);
     params.apiModel.endRawRequest(responseMap, response.tokensPredicted);
+    params.apiModel.setContextStats(contextLength, response.usedContextLength);
 
     var saveCacheFuture = saveCacheIfNeeded(endpoint, params, response, params.onlySaveCache);
     if(params.onlySaveCache)
@@ -600,5 +618,12 @@ class ApiRequestLlamaCpp {
       gpus: []
     );
     return result;
+  }
+
+  static Future<void> updateStats(String inputText, ConfigModel cfgModel, ApiModel apiModel) async {
+    var endpoint = getEndpoint(cfgModel);
+    var maxLength = await getMaxContextLength(endpoint, null);
+    var currentLength = (await tokenize(endpoint, inputText, null)).length;
+    apiModel.setContextStats(maxLength, currentLength);
   }
 }
