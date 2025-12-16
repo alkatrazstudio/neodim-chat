@@ -127,26 +127,33 @@ class HomePage extends StatelessWidget {
             mainAxisSize: MainAxisSize.max,
             children: [
               Expanded(
-                child: Chat(
-                  generate: (
-                    text,
-                    repPenText,
-                    promptedParticipant,
-                    promptedParticipantName,
-                    blacklistWordsForRetry,
-                    continueLastMsg,
-                    undoMessage
-                  ) async => await generate(
-                    context: context,
-                    inputText: text,
-                    repPenText: repPenText,
-                    promptedParticipant: promptedParticipant,
-                    promptedParticipantName: promptedParticipantName,
-                    blacklistWordsForRetry: blacklistWordsForRetry,
-                    continueLastMsg: continueLastMsg,
-                    undoMessage: undoMessage
-                  )
-                )
+                child: Consumer<ConversationsModel>(builder: (context, convModel, child) {
+                  var convModel = Provider.of<ConversationsModel>(context);
+                  var curConv = convModel.current;
+                  if(curConv == null)
+                    return const SizedBox.shrink();
+                  return Chat(
+                    generate: (
+                      text,
+                      repPenText,
+                      promptedParticipant,
+                      promptedParticipantName,
+                      blacklistWordsForRetry,
+                      continueLastMsg,
+                      undoMessage
+                    ) async => await generate(
+                      context: context,
+                      inputText: text,
+                      repPenText: repPenText,
+                      promptedParticipant: promptedParticipant,
+                      promptedParticipantName: promptedParticipantName,
+                      blacklistWordsForRetry: blacklistWordsForRetry,
+                      continueLastMsg: continueLastMsg,
+                      undoMessage: undoMessage
+                    ),
+                    curConv: curConv
+                  );
+                })
               )
             ]
           )
