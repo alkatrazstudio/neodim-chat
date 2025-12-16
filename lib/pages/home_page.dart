@@ -130,8 +130,16 @@ class HomePage extends StatelessWidget {
                 child: Consumer<ConversationsModel>(builder: (context, convModel, child) {
                   var convModel = Provider.of<ConversationsModel>(context);
                   var curConv = convModel.current;
-                  if(curConv == null)
-                    return const SizedBox.shrink();
+                  if(curConv == null) {
+                    return Center(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Scaffold.of(context).openDrawer();
+                        },
+                        child: Text('Open a conversation')
+                      )
+                    );
+                  }
                   return Chat(
                     generate: (
                       text,
