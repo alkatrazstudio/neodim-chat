@@ -3,12 +3,10 @@
 
 class ApiResponse {
   const ApiResponse({
-    required this.sequences,
-    required this.gpus
+    required this.sequences
   });
 
   final List<ApiResponseSequence> sequences;
-  final List<ApiResponseGpu> gpus;
 }
 
 class ApiResponseSequence {
@@ -28,14 +26,4 @@ class ApiResponseSequence {
       text = text + stopStringMatch;
     return text.trimRight();
   }
-}
-
-class ApiResponseGpu {
-  const ApiResponseGpu({
-    required this.memoryFreeMin,
-    required this.memoryTotal
-  });
-
-  final int memoryFreeMin;
-  final int memoryTotal;
 }

@@ -536,22 +536,7 @@ class ChatState extends State<Chat> {
           continueMsg: continueMsg,
           continueText: continueText,
           curConv: widget.curConv
-        ),
-
-        Consumer<ApiModel>(builder: (context, neodimModel, child) {
-          var gpus = neodimModel.lastResponse?.gpus;
-          if(gpus == null)
-            return const SizedBox.shrink();
-
-          return Column(
-            children: gpus.map((gpu) => LinearProgressIndicator(
-              backgroundColor: Colors.grey,
-              valueColor: const AlwaysStoppedAnimation<Color>(Colors.red),
-              minHeight: 1,
-              value: 1 - gpu.memoryFreeMin / gpu.memoryTotal
-            )).toList()
-          );
-        })
+        )
       ]
     );
   }

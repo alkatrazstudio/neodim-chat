@@ -614,8 +614,7 @@ class ApiRequestLlamaCpp {
         generatedText: params.onlySaveCache ? '' : response.content,
         stopStringMatch: params.onlySaveCache ? '' : response.stoppingWord,
         stopStringMatchIsSentenceEnd: false
-      )],
-      gpus: []
+      )]
     );
     return result;
   }
