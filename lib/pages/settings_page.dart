@@ -12,6 +12,7 @@ import 'package:form_builder_validators/form_builder_validators.dart';
 import 'package:provider/provider.dart';
 
 import '../apis/llama_cpp.dart';
+import '../apis/request.dart';
 import '../models/config.dart';
 import '../models/conversations.dart';
 import '../models/messages.dart';
@@ -123,6 +124,7 @@ class _SettingsPageState extends State<SettingsPage> {
       config: config
     ));
 
+    ApiRequest.ping(context);
     return true;
   }
 

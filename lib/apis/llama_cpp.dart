@@ -201,7 +201,7 @@ class ApiRequestLlamaCpp {
     var msg = (error['message'] as String?) ?? '';
     var type = (error['type'] as String?) ?? '';
     var fullErr = '[$code - $type]: $msg';
-    throw Exception(fullErr);
+    throw ApiException(fullErr);
   }
 
   static Future<Map<String, dynamic>> httpPostRaw(String endpoint, Map<String, dynamic> data, CancelToken? cancelToken, {Map<String, dynamic>? queryParams}) async {
@@ -479,6 +479,7 @@ class ApiRequestLlamaCpp {
     params.apiModel.setPromptProgress(0, 0);
     var endpoint = getEndpoint(params.cfgModel);
     var contextLength = await getMaxContextLength(endpoint, params.apiCancelModel);
+    params.apiModel.setAvailability(ApiAvailabilityMode.available);
 
     int preambleTokensCount;
 
@@ -635,5 +636,15 @@ class ApiRequestLlamaCpp {
     var maxLength = await getMaxContextLength(endpoint, null);
     var currentLength = (await tokenize(endpoint, inputText, null)).length;
     apiModel.setContextStats(maxLength, currentLength);
+  }
+
+  static Future<bool> ping(ConfigModel cfgModel) async {
+    var endpoint = getEndpoint(cfgModel);
+    try {
+      await httpGetRaw('$endpoint/health', null);
+      return true;
+    } on ApiException catch(_) {
+      return false;
+    }
   }
 }

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // 🄯 2022, Alexey Parfenov <zxed@alkatrazstudio.net>
 
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -82,14 +83,15 @@ class GeneratedResult {
 }
 
 class ChatState extends State<Chat> {
+  static const timerIntervalSecs = 5;
   final inputController = TextEditingController();
-
   List<GeneratedResult> retryCache = [];
   String aiInputForRetryCache = '';
   Conversation? generatingForConv;
   Set<String> blacklistWordsForRetry = {};
   Message? continueMsg;
   String continueText = '';
+  Timer? timer;
 
   Future<void> submit(BuildContext context, int authorIndex, bool format) async {
     var msgModel = Provider.of<MessagesModel>(context, listen: false);
@@ -429,12 +431,48 @@ class ChatState extends State<Chat> {
     return current / total;
   }
 
+  void onTimer() {
+    if(Provider.of<ConversationsModel>(context, listen: false).current == null)
+      return;
+    var apiModel = Provider.of<ApiModel>(context, listen: false);
+    if(apiModel.isApiRunning)
+      return;
+    ApiRequest.ping(context);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    timer ??= Timer.periodic(Duration(seconds: timerIntervalSecs), (_) => onTimer());
+  }
+
+  @override
+  void dispose() {
+    timer?.cancel();
+    timer = null;
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
       mainAxisSize: MainAxisSize.max,
       children: [
         Consumer<ApiModel>(builder: (context, apiModel, child) {
+          if(!apiModel.isApiRunning) {
+            switch(apiModel.availability) {
+              case ApiAvailabilityMode.notAvailable:
+                return LinearProgressIndicator(
+                  value: 1,
+                  color: Theme.of(context).colorScheme.errorContainer,
+                );
+
+              case ApiAvailabilityMode.loading:
+                return LinearProgressIndicator();
+
+              default:
+            }
+          }
           var progress = calcProgress(apiModel.maxContextLength, apiModel.currentContextLength);
           return LinearProgressIndicator(
             value: progress

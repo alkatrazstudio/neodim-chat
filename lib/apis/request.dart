@@ -97,7 +97,19 @@ class ApiRequest {
     var inputText = preamble + prompt;
     try {
       await ApiRequestLlamaCpp.updateStats(inputText, cfgModel, apiModel);
+      apiModel.setAvailability(ApiAvailabilityMode.available);
     } catch(_) {
+    }
+  }
+
+  static Future<void> ping(BuildContext context) async {
+    var cfgModel = Provider.of<ConfigModel>(context, listen: false);
+    var apiModel = Provider.of<ApiModel>(context, listen: false);
+    try {
+      var isAvailable = await ApiRequestLlamaCpp.ping(cfgModel);
+      apiModel.setAvailability(isAvailable ? ApiAvailabilityMode.available : ApiAvailabilityMode.loading);
+    } catch(_) {
+      apiModel.setAvailability(ApiAvailabilityMode.notAvailable);
     }
   }
 

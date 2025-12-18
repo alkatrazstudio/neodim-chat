@@ -5,6 +5,12 @@ import 'package:flutter/foundation.dart';
 
 import '../apis/response.dart';
 
+enum ApiAvailabilityMode {
+  notAvailable,
+  loading,
+  available
+}
+
 class ApiModel extends ChangeNotifier {
   ApiResponse? lastResponse;
   var isApiRunning = false;
@@ -12,6 +18,7 @@ class ApiModel extends ChangeNotifier {
   var currentContextLength = 0;
   var promptProgressTotal = 0;
   var promptProgressProcessed = 0;
+  var availability = ApiAvailabilityMode.notAvailable;
 
   Map<String, dynamic>? rawRequest;
   Map<String, dynamic>? rawResponse;
@@ -62,6 +69,11 @@ class ApiModel extends ChangeNotifier {
     setContextStats(0, 0);
     setPromptProgress(0, 0);
   }
+
+  void setAvailability(ApiAvailabilityMode newAvailability) {
+    availability = newAvailability;
+    notifyListeners();
+  }
 }
 
 class ApiCancelModel extends ChangeNotifier {
@@ -71,6 +83,14 @@ class ApiCancelModel extends ChangeNotifier {
     cancelFunc = newCancelFunc;
     notifyListeners();
   }
+}
+
+class ApiException implements Exception {
+  final String message;
+  const ApiException(this.message);
+
+  @override
+  String toString() => 'ApiException: $message';
 }
 
 class ApiCancelException implements Exception {

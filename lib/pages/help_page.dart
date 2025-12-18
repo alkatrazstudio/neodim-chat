@@ -449,6 +449,9 @@ Here's the list of secondary actions for each button:</p>
     by pressing the <widget name="stop"></widget> button</li>
   <li>The line at the top shows the currently used context size relative to the max available content size.
     If this line fills to 100%, it means that the model context is full and no new messages can be generated.</li>
+  <li>If the server is not accessible, then the context length indicator will change to a red line.
+    If the server is accessible, but the model is currently being loaded or prepared,
+    this indicator will show a spinner.</li>
   <li>If the context is getting too big, you can truncate it.
     Tap the message you want to be the start of the context, then press "set as context start".
     Messages that won't be passed to the server will be displayed as dimmed.</li>
