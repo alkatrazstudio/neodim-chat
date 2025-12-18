@@ -436,7 +436,7 @@ class ConversationsModel extends ChangeNotifier {
       conversation.lastSetAsCurrentAt = DateTime.now();
     notifyListeners();
     var apiModel = Provider.of<ApiModel>(ctx, listen: false);
-    apiModel.setContextStats(0, 0);
+    apiModel.resetStats();
     ApiRequest.updateStats(ctx);
     await saveList(ctx);
   }

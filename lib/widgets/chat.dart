@@ -421,19 +421,21 @@ class ChatState extends State<Chat> {
     await generateAndAdd(context, nextAuthorIndex, authorName: nextAuthorName);
   }
 
+  double calcProgress(int total, int current) {
+    if(total == 0)
+      return 0;
+    if(current >= total)
+      return 1;
+    return current / total;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
       mainAxisSize: MainAxisSize.max,
       children: [
         Consumer<ApiModel>(builder: (context, apiModel, child) {
-          double progress;
-          if(apiModel.maxContextLength == 0)
-            progress = 0;
-          else if(apiModel.currentContextLength >= apiModel.maxContextLength)
-            progress = 1;
-          else
-            progress = apiModel.currentContextLength / apiModel.maxContextLength;
+          var progress = calcProgress(apiModel.maxContextLength, apiModel.currentContextLength);
           return LinearProgressIndicator(
             value: progress
           );
@@ -481,10 +483,23 @@ class ChatState extends State<Chat> {
         ),
 
         Consumer<ApiModel>(
-          builder: (context, value, child) {
-            if (value.isApiRunning)
-              return const LinearProgressIndicator();
-            return const SizedBox.shrink();
+          builder: (context, apiModel, child) {
+            if(!apiModel.isApiRunning)
+              return const SizedBox.shrink();
+            var progress = calcProgress(apiModel.promptProgressTotal, apiModel.promptProgressProcessed);
+            if(progress == 0 || progress == 1)
+              return LinearProgressIndicator();
+            return Stack(
+              children: [
+                LinearProgressIndicator(
+                  color: Theme.of(context).colorScheme.inversePrimary,
+                ),
+                LinearProgressIndicator(
+                  value: progress,
+                  backgroundColor: Colors.transparent,
+                ),
+              ],
+            );
           }
         ),
 

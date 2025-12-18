@@ -130,8 +130,9 @@ class LlamaCppRequest {
       'samplers': warpersToJson(samplers),
       'seed': seed,
       'stream': stream,
+      'id_slot': slotId,
       'cache_prompt': true,
-      'id_slot': slotId
+      'return_progress': true
     };
   }
 }
@@ -144,7 +145,9 @@ class LlamaCppResponse {
     required this.tokensPredicted,
     required this.slotId,
     required this.promptProcessingMilliSecs,
-    required this.predictionMilliSecs
+    required this.predictionMilliSecs,
+    required this.promptProgressTotal,
+    required this.promptProgressProcessed
   });
 
   final String content;
@@ -154,9 +157,12 @@ class LlamaCppResponse {
   final int slotId;
   final num promptProcessingMilliSecs;
   final num predictionMilliSecs;
+  final int promptProgressTotal;
+  final int promptProgressProcessed;
 
   static LlamaCppResponse fromApiResponseMap(Map<String, dynamic> data) {
     var timings = data['timings'] as Map<String, dynamic>?;
+    var promptProgress = data['prompt_progress'] as Map<String, dynamic>?;
     return LlamaCppResponse(
       content: data['content'] as String,
       stoppingWord: (data['stopping_word'] as String?) ?? '',
@@ -164,7 +170,9 @@ class LlamaCppResponse {
       tokensPredicted: data['tokens_predicted'] as int,
       slotId: data['id_slot'] as int,
       promptProcessingMilliSecs: timings?['prompt_ms'] as num? ?? 0,
-      predictionMilliSecs: timings?['predicted_ms'] as num? ?? 0
+      predictionMilliSecs: timings?['predicted_ms'] as num? ?? 0,
+      promptProgressTotal: promptProgress?['total'] as int? ?? 0,
+      promptProgressProcessed: promptProgress?['processed'] as int? ?? 0
     );
   }
 
@@ -289,6 +297,8 @@ class ApiRequestLlamaCpp {
         raiseErrorIfNeeded(lastMsgObj);
         try {
           var response = LlamaCppResponse.fromApiResponseMap(lastMsgObj);
+          if(response.promptProgressTotal > 0)
+            apiModel.setPromptProgress(response.promptProgressTotal, response.promptProgressProcessed);
           var content = response.content;
           if(content.isEmpty)
             continue;
@@ -466,6 +476,7 @@ class ApiRequestLlamaCpp {
   }
 
   static Future<ApiResponse?> run(ApiRequestParams params) async {
+    params.apiModel.setPromptProgress(0, 0);
     var endpoint = getEndpoint(params.cfgModel);
     var contextLength = await getMaxContextLength(endpoint, params.apiCancelModel);
 

@@ -452,6 +452,9 @@ Here's the list of secondary actions for each button:</p>
   <li>If the context is getting too big, you can truncate it.
     Tap the message you want to be the start of the context, then press "set as context start".
     Messages that won't be passed to the server will be displayed as dimmed.</li>
+  <li>The bottom progress indicator may show the prompt processing progress if it's available.
+    This text generation will begin when this progress reaches 100%.
+    If the prompt processing progress is not available, the bottom indicator will just show a generic spinner.</li>
 </ul>
 ''';
 

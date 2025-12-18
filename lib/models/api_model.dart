@@ -10,6 +10,8 @@ class ApiModel extends ChangeNotifier {
   var isApiRunning = false;
   var maxContextLength = 0;
   var currentContextLength = 0;
+  var promptProgressTotal = 0;
+  var promptProgressProcessed = 0;
 
   Map<String, dynamic>? rawRequest;
   Map<String, dynamic>? rawResponse;
@@ -48,6 +50,17 @@ class ApiModel extends ChangeNotifier {
     maxContextLength = maxLength;
     currentContextLength = currentLength;
     notifyListeners();
+  }
+
+  void setPromptProgress(int total, int processed) {
+    promptProgressTotal = total;
+    promptProgressProcessed = processed;
+    notifyListeners();
+  }
+
+  void resetStats() {
+    setContextStats(0, 0);
+    setPromptProgress(0, 0);
   }
 }
 
