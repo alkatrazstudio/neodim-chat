@@ -64,8 +64,13 @@ class HomePage extends StatelessWidget {
         return [];
       apiModel.setResponse(response);
       var lines = response.sequences.map((seq) => seq.outputText).toList();
-      lines = lines.map((line) => addedPromptSuffix + line).toList();
-      return lines;
+      var uniqLines = <String>[];
+      for(var line in lines) {
+        if(!uniqLines.contains(line))
+          uniqLines.add(line);
+      }
+      uniqLines = uniqLines.map((line) => addedPromptSuffix + line).toList();
+      return uniqLines;
     } finally {
       apiModel.setApiRunning(false);
     }

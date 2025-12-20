@@ -21,7 +21,7 @@ class ApiModel extends ChangeNotifier {
   var availability = ApiAvailabilityMode.notAvailable;
 
   Map<String, dynamic>? rawRequest;
-  Map<String, dynamic>? rawResponse;
+  dynamic rawResponse;
   int requestStartMsecs = 0;
   double requestSecs = 0;
   double tokensPerSecond = 0;
@@ -45,7 +45,7 @@ class ApiModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void endRawRequest(Map<String, dynamic>? resp, int generatedTokensCount) {
+  void endRawRequest(dynamic resp, int generatedTokensCount) {
     rawResponse = resp;
     requestSecs = (DateTime.now().millisecondsSinceEpoch - requestStartMsecs) / 1000;
     if(requestSecs > 0 && generatedTokensCount > 0)

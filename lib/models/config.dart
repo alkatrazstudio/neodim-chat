@@ -180,6 +180,9 @@ class ConfigModel extends ChangeNotifier {
   @JsonKey(defaultValue: 0)
   int saveCacheAfterProcessingSecs = 0;
 
+  @JsonKey(defaultValue: 0)
+  int extraRetries = 0;
+
   String get inputPreamble {
     var s = preamble.trim();
     if(s.isEmpty)
@@ -226,6 +229,7 @@ class ConfigModel extends ChangeNotifier {
     participantOnRetry = other.participantOnRetry;
     streamResponse = other.streamResponse;
     saveCacheAfterProcessingSecs = other.saveCacheAfterProcessingSecs;
+    extraRetries = other.extraRetries;
 
     notifyListeners();
   }

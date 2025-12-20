@@ -354,6 +354,11 @@ const _manualHtml = '''
       <li>different - choose a different participant than the one in the original message</li>
     </ul>
   </li>
+  <li>
+    <strong>Generate extra sequences for quick retries</strong> -
+    generate multiple replies at once and then use those replies
+    when pressing the "retry" button without making additional requests to the server.
+  </li>
 </ul>
 
 <h2>Controls</h2>

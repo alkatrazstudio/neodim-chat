@@ -187,9 +187,9 @@ class Conversation {
         inputText: inputText,
         participantNames: participantNames
       );
-      if(response == null)
+      var responseText = response?.sequences.firstOrNull?.outputText ?? '';
+      if(responseText.isEmpty)
         return null;
-      var responseText = response.sequences.first.outputText;
       if(participantNames.contains(responseText))
         return responseText;
     } finally {

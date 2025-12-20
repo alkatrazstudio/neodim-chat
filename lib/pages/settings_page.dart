@@ -521,6 +521,11 @@ class _SettingsPageState extends State<SettingsPage> {
             valueTransformer: (v) => v?.name
           )
         ),
+      FieldInt(
+        label: 'Generate extra sequences for quick retries',
+        name: 'extraRetries',
+        initialValue: cfgModel.extraRetries
+      )
     ];
   }
 

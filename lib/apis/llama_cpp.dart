@@ -5,6 +5,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
 
 import '../apis/request.dart';
@@ -47,7 +48,8 @@ class LlamaCppRequest {
     required this.logitBias,
     required this.seed,
     required this.stream,
-    required this.slotId
+    required this.slotId,
+    required this.nCompletions
   });
 
   final double temperature;
@@ -82,6 +84,7 @@ class LlamaCppRequest {
   final int seed;
   final bool stream;
   final int slotId;
+  final int nCompletions;
 
   static Map<Warper, String> get warpersMap => {
     Warper.dry: 'dry',
@@ -131,6 +134,7 @@ class LlamaCppRequest {
       'seed': seed,
       'stream': stream,
       'id_slot': slotId,
+      'n_cmpl': nCompletions,
       'cache_prompt': true,
       'return_progress': true
     };
@@ -204,9 +208,9 @@ class ApiRequestLlamaCpp {
     throw ApiException(fullErr);
   }
 
-  static Future<Map<String, dynamic>> httpPostRaw(String endpoint, Map<String, dynamic> data, CancelToken? cancelToken, {Map<String, dynamic>? queryParams}) async {
+  static Future<T> httpPostRaw<T>(String endpoint, Map<String, dynamic> data, CancelToken? cancelToken, {Map<String, dynamic>? queryParams}) async {
     var dio = Dio();
-    var response = await dio.post<Map<String, dynamic>>(endpoint,
+    var response = await dio.post<T>(endpoint,
       queryParameters: queryParams,
       options: Options(
         validateStatus: (_) => true,
@@ -221,11 +225,18 @@ class ApiRequestLlamaCpp {
     var resp = response.data;
     if(resp == null)
       throw Exception('Null response.');
-    raiseErrorIfNeeded(resp);
+    if(resp is List<dynamic>) {
+      for(var subResp in resp) {
+        if(subResp is Map<String, dynamic>)
+          raiseErrorIfNeeded(subResp);
+      }
+    } else {
+      raiseErrorIfNeeded(resp);
+    }
     return resp;
   }
 
-  static Future<Map<String, dynamic>> httpPostRawStream(
+  static Future<List<Map<String, dynamic>>> httpPostRawStream(
     String endpoint,
     Map<String, dynamic> data,
     void Function(String newText)? onNewStreamText,
@@ -249,8 +260,8 @@ class ApiRequestLlamaCpp {
     if(stream == null)
       throw Exception('No response stream.');
     var msgBuf = <int>[];
-    Map<String, dynamic>? lastMsgObj;
-    var allContent = '';
+    var lastMsgObjs = <int, Map<String, dynamic>>{};
+    var contentBufs = <int, String>{};
     var nl = '\n'.codeUnits.first;
     var prefixes = ['data: ', 'error: '];
     var gotResponse = false;
@@ -293,27 +304,37 @@ class ApiRequestLlamaCpp {
             throw Exception('Invalid stream part prefix.');
         }
         var lastMsgJson = msg.substring(usedPrefix.length);
-        lastMsgObj = jsonDecode(lastMsgJson) as Map<String, dynamic>;
+        var lastMsgObj = jsonDecode(lastMsgJson) as Map<String, dynamic>;
         raiseErrorIfNeeded(lastMsgObj);
+        var index = lastMsgObj['index'] as int? ?? 0;
+        lastMsgObjs[index] = lastMsgObj;
         try {
           var response = LlamaCppResponse.fromApiResponseMap(lastMsgObj);
-          if(response.promptProgressTotal > 0)
+          if(response.promptProgressTotal > 0 && index == 0)
             apiModel.setPromptProgress(response.promptProgressTotal, response.promptProgressProcessed);
           var content = response.content;
           if(content.isEmpty)
             continue;
-          allContent += content;
-          if(onNewStreamText != null)
+          var contentBuf = contentBufs[index] ??= '';
+          contentBuf += content;
+          contentBufs[index] = contentBuf;
+          if(onNewStreamText != null && index == 0)
             onNewStreamText(content);
           apiModel.setContextStats(maxContextLength, response.usedContextLength);
         } catch(_) {
         }
       }
     }
-    if(lastMsgObj == null)
+    if(lastMsgObjs.isEmpty)
       throw Exception('No final response from the stream');
-    lastMsgObj['content'] = allContent;
-    return lastMsgObj;
+    var indexes = [...lastMsgObjs.keys]..sort();
+    var resultArr = <Map<String, dynamic>>[];
+    for(var index in indexes) {
+      var lastMsgObj = lastMsgObjs[index]!;
+      lastMsgObj['content'] = contentBufs[index] ?? '';
+      resultArr.add(lastMsgObj);
+    }
+    return resultArr;
   }
 
   static Future<T> httpGetRaw<T>(String endpoint, CancelToken? cancelToken) async {
@@ -602,31 +623,40 @@ class ApiRequestLlamaCpp {
       samplers: params.cfgModel.warpersOrder,
       seed: seed,
       stream: params.cfgModel.streamResponse,
-      slotId: slotId
+      slotId: slotId,
+      nCompletions: params.participantNames == null ? params.cfgModel.extraRetries + 1 : 1
     );
 
     var requestMap = request.toApiRequestMap();
     params.apiModel.startRawRequest(requestMap);
-    var responseMap = await runWithCancelToken(
+    var singleCompletion = request.nCompletions == 1;
+    var responseMaps = await runWithCancelToken(
       params.apiCancelModel,
-      (cancelToken) => request.stream
-        ? httpPostRawStream('$endpoint/completion', requestMap, params.onNewStreamText, cancelToken, contextLength, params.apiModel)
-        : httpPostRaw('$endpoint/completion', requestMap, cancelToken)
+      (cancelToken) async {
+        if(request.stream)
+          return await httpPostRawStream('$endpoint/completion', requestMap, params.onNewStreamText, cancelToken, contextLength, params.apiModel);
+        var response = await httpPostRaw<dynamic>('$endpoint/completion', requestMap, cancelToken);
+        if(!singleCompletion)
+          return (response as List<dynamic>).cast<Map<String, dynamic>>();
+        return [response as Map<String, dynamic>];
+      }
     );
-    var response = LlamaCppResponse.fromApiResponseMap(responseMap);
-    params.apiModel.endRawRequest(responseMap, response.tokensPredicted);
-    params.apiModel.setContextStats(contextLength, response.usedContextLength);
+    var responses = responseMaps.map((resp) => LlamaCppResponse.fromApiResponseMap(resp)).toList();
+    var firstResponse = responses.first;
+    params.apiModel.endRawRequest(singleCompletion ? responseMaps.first : responseMaps, firstResponse.tokensPredicted);
+    params.apiModel.setContextStats(contextLength, firstResponse.usedContextLength);
 
-    var saveCacheFuture = saveCacheIfNeeded(endpoint, params, response, params.onlySaveCache);
-    if(params.onlySaveCache)
+    var saveCacheFuture = saveCacheIfNeeded(endpoint, params, firstResponse, params.onlySaveCache);
+    if(params.onlySaveCache) {
       await saveCacheFuture;
+      return ApiResponse(sequences: []);
+    }
 
-    var result = ApiResponse(
-      sequences: [ApiResponseSequence(
-        generatedText: params.onlySaveCache ? '' : response.content,
-        stopStringMatch: params.onlySaveCache ? '' : response.stoppingWord
-      )]
-    );
+    var sequences = responses.map((resp) => ApiResponseSequence(
+      generatedText: resp.content,
+      stopStringMatch: resp.stoppingWord
+    )).toList();
+    var result = ApiResponse(sequences: sequences);
     return result;
   }
 
