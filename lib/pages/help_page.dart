@@ -453,7 +453,7 @@ Here's the list of secondary actions for each button:</p>
     If the server is accessible, but the model is currently being loaded or prepared,
     this indicator will show a spinner.</li>
   <li>If the context is getting too big, you can truncate it.
-    Tap the message you want to be the start of the context, then press "set as context start".
+    Tap the message you want to be the start of the context, then press "context start".
     Messages that won't be passed to the server will be displayed as dimmed.</li>
   <li>The bottom progress indicator may show the prompt processing progress if it's available.
     This text generation will begin when this progress reaches 100%.

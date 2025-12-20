@@ -38,6 +38,7 @@ Future<MessageDialogResult?> showMessageDialog(
 ) async {
   var doFormat = true;
   var newParticipantIndex = msg.authorIndex;
+  var isContextStart = Provider.of<MessagesModel>(context, listen: false).isContextStart(msg);
 
   void submitMsg(BuildContext ctx, String text, bool forceNoFormat) {
     text = text.trim();
@@ -54,6 +55,8 @@ Future<MessageDialogResult?> showMessageDialog(
   }
 
   void nonEditAction(BuildContext ctx, MessageDialogAction action) {
+    if(!context.mounted)
+      return;
     Navigator.of(context).pop(MessageDialogResult(
       text: '',
       participantIndex: Message.noneIndex,
@@ -125,17 +128,6 @@ Future<MessageDialogResult?> showMessageDialog(
                 onChanged: (newVal) => setState((){doFormat = newVal ?? false;}),
                 controlAffinity: ListTileControlAffinity.leading
               ),
-              Center(
-                child: Consumer<MessagesModel>(builder: (context, msgModel, child) {
-                  var isStart = msgModel.isContextStart(msg);
-                  return ElevatedButton(
-                    onPressed: isStart ? null : () async {
-                      nonEditAction(context, MessageDialogAction.setAsContextStart);
-                    },
-                    child: Text(isStart ? 'context start' : 'set as context start')
-                  );
-                })
-              ),
 
               Padding(
                 padding: const EdgeInsets.only(top: 35),
@@ -171,6 +163,12 @@ Future<MessageDialogResult?> showMessageDialog(
                           icon: const Icon(Icons.delete_forever)
                         );
                       },
+                    ),
+                    ElevatedButton(
+                      onPressed: isContextStart ? null : () async {
+                        nonEditAction(context, MessageDialogAction.setAsContextStart);
+                      },
+                      child: const Text('context start')
                     ),
                     TextButton(
                       child: const Text('OK'),
