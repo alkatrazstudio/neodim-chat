@@ -171,58 +171,6 @@ class Conversation {
     await ConversationsModel.saveList(ctx);
   }
 
-  static String? getRepPenInput(BuildContext context) {
-    var cfgModel = Provider.of<ConfigModel>(context, listen: false);
-    var msgModel = Provider.of<MessagesModel>(context, listen: false);
-    var curConv = Provider.of<ConversationsModel>(context, listen: false).current;
-    if(curConv == null)
-      return null;
-
-    switch(curConv.type) {
-      case ConversationType.chat:
-        if(cfgModel.repetitionPenaltyKeepOriginalPrompt) {
-          return msgModel.getOriginalRepetitionPenaltyTextForChat(
-            msgModel.messages,
-            false,
-            cfgModel.repetitionPenaltyRemoveParticipantNames
-          );
-        } else {
-          return msgModel.getRepetitionPenaltyTextForChat(
-            msgModel.messages,
-            cfgModel.repetitionPenaltyLinesWithNoExtraSymbols,
-            false,
-            cfgModel.repetitionPenaltyRemoveParticipantNames
-          );
-        }
-
-      case ConversationType.groupChat:
-        if(cfgModel.repetitionPenaltyKeepOriginalPrompt) {
-          return msgModel.getOriginalRepetitionPenaltyTextForChat(
-            msgModel.messages,
-            true,
-            cfgModel.repetitionPenaltyRemoveParticipantNames
-          );
-        } else {
-          return msgModel.getRepetitionPenaltyTextForChat(
-            msgModel.messages,
-            cfgModel.repetitionPenaltyLinesWithNoExtraSymbols,
-            true,
-            cfgModel.repetitionPenaltyRemoveParticipantNames
-          );
-        }
-
-      case ConversationType.adventure:
-        if(cfgModel.repetitionPenaltyKeepOriginalPrompt)
-          return null;
-        return msgModel.repetitionPenaltyTextForAdventure;
-
-      case ConversationType.story:
-        if(cfgModel.repetitionPenaltyKeepOriginalPrompt)
-          return null;
-        return msgModel.repetitionPenaltyTextForStory;
-    }
-  }
-
   static Future<String?> getNextGroupParticipantName(
     BuildContext context,
     String inputText,
@@ -231,14 +179,12 @@ class Conversation {
     if(participantNames.length == 1)
       return participantNames[0];
 
-    var repPenInput = getRepPenInput(context);
     var apiModel = Provider.of<ApiModel>(context, listen: false);
     try {
       apiModel.setApiRunning(true);
       var response = await ApiRequest.run(
         context: context,
         inputText: inputText,
-        repPenText: repPenInput,
         participantNames: participantNames
       );
       if(response == null)

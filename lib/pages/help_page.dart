@@ -68,7 +68,7 @@ const _manualHtml = '''
 <h3>Server</h3>
 <ul>
   <li>
-    <strong>API endpoint</strong> - the URL that points to the llama.cpp server.
+    <strong>Endpoint</strong> - the URL that points to the llama.cpp server.
     It may contain the protocol and the port, e.g. "http://192.168.1.123:8080".
     Or you can just specify only IP or the hostname, e.g. "192.168.1.123".
     In this case the rest parts (protocol, port, path) will be chosen automatically.
@@ -271,23 +271,6 @@ const _manualHtml = '''
     if not set then repetition penalty will only be applied to the tokens in the prompt.
   </li>
   <li>
-    <strong>Penalty lines without extra symbols</strong> -
-    this many last lines of chat will have their punctuation and other symbols preserved
-    for the purpose of calculating the penalty.
-    Only applies to the chat mode.
-  </li>
-  <li>
-    <strong>Keep the original penalty text</strong> -
-    do not modify the penalty text in any way
-    (i.e. it will include punctuation, special symbols, newlines, etc).
-    In any case, the penalty text won't include the names of the participants.
-    Enabling this setting will disable the "Penalty lines without extra symbols" setting.
-  </li>
-  <li>
-    <strong>Remove participant names from the penalty text</strong> -
-    if set then the penalty won't be applied to the tokens that represent participant's names.
-  </li>
-  <li>
   <strong>Blacklist</strong> -
   specify words or phrases to exclude.
   One word/phrase per line.
@@ -311,7 +294,7 @@ const _manualHtml = '''
 </li>
 <li>
   <strong>Remove old words from the blacklist on retry</strong> -
-  removes the specified amount of words from blacklist befoire adding new words.
+  removes the specified amount of words from blacklist before adding new words.
   Removed words may be re-added, but only on subsequent retries
   (i.e. the removed words won't be re-added immediately).
 </li>
@@ -319,11 +302,6 @@ const _manualHtml = '''
 
 <h3>Control</h3>
 <ul>
-  <li>
-    <strong>Generate extra sequences for quick retries</strong> -
-    generate multiple replies at once and then use those replies
-    when pressing the "retry" button without making additional requests to the server.
-  </li>
   <li>
     <strong>Stop the generation on ".", "!", "?"</strong> -
     stops generating the text if any of these punctuation symbols are met.

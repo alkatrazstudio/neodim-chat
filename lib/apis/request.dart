@@ -12,12 +12,6 @@ import '../models/config.dart';
 import '../models/conversations.dart';
 import '../models/messages.dart';
 
-enum RepPenGenerated {
-  ignore,
-  expand,
-  slide
-}
-
 enum StopStringsType {
   string,
   regex
@@ -26,7 +20,6 @@ enum StopStringsType {
 class ApiRequestParams {
   const ApiRequestParams({
     required this.inputText,
-    this.repPenText,
     this.participantNames,
     this.blacklistWordsForRetry,
     required this.conversation,
@@ -39,7 +32,6 @@ class ApiRequestParams {
   });
 
   final String inputText;
-  final String? repPenText;
   final List<String>? participantNames;
   final Set<String>? blacklistWordsForRetry;
   final Conversation conversation;
@@ -55,7 +47,6 @@ class ApiRequest {
   static Future<ApiResponse?> run({
     required BuildContext context,
     required String inputText,
-    String? repPenText,
     List<String>? participantNames,
     Set<String>? blacklistWordsForRetry,
     bool onlySaveCache = false,
@@ -73,7 +64,6 @@ class ApiRequest {
 
     var params = ApiRequestParams(
       inputText: inputText,
-      repPenText: repPenText,
       participantNames: participantNames,
       blacklistWordsForRetry: blacklistWordsForRetry,
       conversation: conversation,

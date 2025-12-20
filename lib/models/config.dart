@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:change_case/change_case.dart';
 import 'package:json_annotation/json_annotation.dart';
 
-import '../apis/request.dart';
 import '../util/enums.dart';
 
 part 'config.g.dart';
@@ -70,9 +69,6 @@ class ConfigModel extends ChangeNotifier {
   @JsonKey(defaultValue: 64)
   int generatedTokensCount = 64;
 
-  @JsonKey(defaultValue: 2048)
-  int maxTotalTokens = 2048;
-
   @JsonKey(defaultValue: TemperatureMode.static, unknownEnumValue: TemperatureMode.static)
   TemperatureMode temperatureMode = TemperatureMode.static;
 
@@ -94,17 +90,8 @@ class ConfigModel extends ChangeNotifier {
   @JsonKey(defaultValue: 0)
   double minP = 0;
 
-  @JsonKey(defaultValue: 0.9)
-  double tfs = 0.9;
-
   @JsonKey(defaultValue: 0)
   double typical = 0;
-
-  @JsonKey(defaultValue: 0)
-  double topA = 0;
-
-  @JsonKey(defaultValue: 0)
-  double penaltyAlpha = 0;
 
   @JsonKey(defaultValue: MirostatVersion.none, unknownEnumValue: MirostatVersion.none)
   MirostatVersion mirostat = MirostatVersion.none;
@@ -151,32 +138,11 @@ class ConfigModel extends ChangeNotifier {
   @JsonKey(defaultValue: 0)
   int repetitionPenaltyRange = 2048;
 
-  @JsonKey(defaultValue: 0.75)
-  double repetitionPenaltySlope = 0.75;
-
   @JsonKey(defaultValue: false)
   bool repetitionPenaltyIncludePreamble = false;
 
-  @JsonKey(defaultValue: RepPenGenerated.slide, unknownEnumValue: RepPenGenerated.slide)
-  RepPenGenerated repetitionPenaltyIncludeGenerated = RepPenGenerated.slide;
-
-  @JsonKey(defaultValue: false)
-  bool repetitionPenaltyTruncateToInput = false;
-
   @JsonKey(defaultValue: '')
   String preamble = '';
-
-  @JsonKey(defaultValue: 0)
-  int extraRetries = 0;
-
-  @JsonKey(defaultValue: 5)
-  int repetitionPenaltyLinesWithNoExtraSymbols = 5;
-
-  @JsonKey(defaultValue: true)
-  bool repetitionPenaltyKeepOriginalPrompt = true;
-
-  @JsonKey(defaultValue: true)
-  bool repetitionPenaltyRemoveParticipantNames = true;
 
   @JsonKey(defaultValue: false)
   bool stopOnPunctuation = false;
@@ -189,9 +155,6 @@ class ConfigModel extends ChangeNotifier {
 
   @JsonKey(defaultValue: true)
   bool continuousChatForceAlternateParticipants = true;
-
-  @JsonKey(defaultValue: 10)
-  int noRepeatNGramSize = 10;
 
   @JsonKey(defaultValue: [])
   List<String> initialBlacklist = const [];
@@ -227,7 +190,6 @@ class ConfigModel extends ChangeNotifier {
   void load(ConfigModel other) {
     apiEndpoint = other.apiEndpoint;
     generatedTokensCount = other.generatedTokensCount;
-    maxTotalTokens = other.maxTotalTokens;
     temperatureMode = other.temperatureMode;
     temperature = other.temperature;
     dynaTempHigh = other.dynaTempHigh;
@@ -235,10 +197,7 @@ class ConfigModel extends ChangeNotifier {
     topP = other.topP;
     topK = other.topK;
     minP = other.minP;
-    tfs = other.tfs;
     typical = other.typical;
-    topA = other.topA;
-    penaltyAlpha = other.penaltyAlpha;
     mirostat = other.mirostat;
     mirostatEta = other.mirostatEta;
     mirostatTau = other.mirostatTau;
@@ -254,19 +213,11 @@ class ConfigModel extends ChangeNotifier {
     frequencyPenalty = other.frequencyPenalty;
     presencePenalty = other.presencePenalty;
     repetitionPenaltyRange = other.repetitionPenaltyRange;
-    repetitionPenaltySlope = other.repetitionPenaltySlope;
-    repetitionPenaltyIncludeGenerated = other.repetitionPenaltyIncludeGenerated;
-    repetitionPenaltyTruncateToInput = other.repetitionPenaltyTruncateToInput;
     preamble = other.preamble;
-    extraRetries = other.extraRetries;
-    repetitionPenaltyLinesWithNoExtraSymbols = other.repetitionPenaltyLinesWithNoExtraSymbols;
-    repetitionPenaltyKeepOriginalPrompt = other.repetitionPenaltyKeepOriginalPrompt;
-    repetitionPenaltyRemoveParticipantNames = other.repetitionPenaltyRemoveParticipantNames;
     stopOnPunctuation = other.stopOnPunctuation;
     undoBySentence = other.undoBySentence;
     combineChatLines = other.combineChatLines;
     continuousChatForceAlternateParticipants = other.continuousChatForceAlternateParticipants;
-    noRepeatNGramSize = other.noRepeatNGramSize;
     initialBlacklist = other.initialBlacklist.toList();
     addWordsToBlacklistOnRetry = other.addWordsToBlacklistOnRetry;
     addSpecialSymbolsToBlacklist = other.addSpecialSymbolsToBlacklist;

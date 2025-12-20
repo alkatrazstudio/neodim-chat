@@ -29,7 +29,6 @@ class Chat extends StatefulWidget {
 
   final Future<List<String>> Function(
     String aiInput,
-    String? repPenInput,
     Participant promptedParticipant,
     String? promptedParticipantName,
     Set<String> blacklistWordsForRetry,
@@ -181,8 +180,6 @@ class ChatState extends State<Chat> {
         blacklistWordsForRetry = {};
     }
 
-    var repPenInput = Conversation.getRepPenInput(context);
-
     aiInputForRetryCache = aiInput;
     retryCache.clear();
 
@@ -196,7 +193,7 @@ class ChatState extends State<Chat> {
     continueText = '';
     while(true) {
       try {
-        var texts = await widget.generate(aiInput, repPenInput, promptedParticipant, participantName, blacklistWordsForRetry, continueLastMsg, undoMessage);
+        var texts = await widget.generate(aiInput, promptedParticipant, participantName, blacklistWordsForRetry, continueLastMsg, undoMessage);
         var isSingle = texts.length == 1;
         results = texts
           .map((text) => isSingle

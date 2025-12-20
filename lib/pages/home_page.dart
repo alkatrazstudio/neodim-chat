@@ -18,7 +18,6 @@ class HomePage extends StatelessWidget {
   Future<List<String>> generate({
     required BuildContext context,
     required String inputText,
-    required String? repPenText,
     required Participant promptedParticipant,
     required String? promptedParticipantName,
     required Set<String> blacklistWordsForRetry,
@@ -53,7 +52,6 @@ class HomePage extends StatelessWidget {
       var response = await ApiRequest.run(
         context: context,
         inputText: inputText,
-        repPenText: repPenText,
         blacklistWordsForRetry: blacklistWordsForRetry,
         onlySaveCache: onlySaveCache,
         onNewStreamText: (newText) {
@@ -96,12 +94,10 @@ class HomePage extends StatelessWidget {
                   var participantIndex = msgModel.nextParticipantIndex;
                   var promptedParticipant = msgModel.participants[participantIndex];
                   var inputText = Conversation.getCurrentMessagesText(context);
-                  var repPenText = Conversation.getRepPenInput(context);
                   try {
                     await generate(
                       context: context,
                       inputText: inputText,
-                      repPenText: repPenText,
                       promptedParticipant: promptedParticipant,
                       promptedParticipantName: promptedParticipant.name,
                       blacklistWordsForRetry: {},
@@ -143,7 +139,6 @@ class HomePage extends StatelessWidget {
                   return Chat(
                     generate: (
                       text,
-                      repPenText,
                       promptedParticipant,
                       promptedParticipantName,
                       blacklistWordsForRetry,
@@ -152,7 +147,6 @@ class HomePage extends StatelessWidget {
                     ) async => await generate(
                       context: context,
                       inputText: text,
-                      repPenText: repPenText,
                       promptedParticipant: promptedParticipant,
                       promptedParticipantName: promptedParticipantName,
                       blacklistWordsForRetry: blacklistWordsForRetry,
