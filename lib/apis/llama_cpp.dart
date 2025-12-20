@@ -624,8 +624,7 @@ class ApiRequestLlamaCpp {
     var result = ApiResponse(
       sequences: [ApiResponseSequence(
         generatedText: params.onlySaveCache ? '' : response.content,
-        stopStringMatch: params.onlySaveCache ? '' : response.stoppingWord,
-        stopStringMatchIsSentenceEnd: false
+        stopStringMatch: params.onlySaveCache ? '' : response.stoppingWord
       )]
     );
     return result;

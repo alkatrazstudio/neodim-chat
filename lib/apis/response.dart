@@ -12,18 +12,14 @@ class ApiResponse {
 class ApiResponseSequence {
   const ApiResponseSequence({
     required this.generatedText,
-    required this.stopStringMatch,
-    required this.stopStringMatchIsSentenceEnd
+    required this.stopStringMatch
   });
 
   final String generatedText;
   final String stopStringMatch;
-  final bool stopStringMatchIsSentenceEnd;
 
   String get outputText {
     var text = generatedText;
-    if(stopStringMatchIsSentenceEnd)
-      text = text + stopStringMatch;
     return text.trimRight();
   }
 }
