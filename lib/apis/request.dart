@@ -97,7 +97,11 @@ class ApiRequest {
     var apiModel = Provider.of<ApiModel>(context, listen: false);
     try {
       var isAvailable = await ApiRequestLlamaCpp.ping(cfgModel);
-      apiModel.setAvailability(isAvailable ? ApiAvailabilityMode.available : ApiAvailabilityMode.loading);
+      var oldAvailability = apiModel.availability;
+      var newAvailability = isAvailable ? ApiAvailabilityMode.available : ApiAvailabilityMode.loading;
+      apiModel.setAvailability(newAvailability);
+      if(newAvailability == ApiAvailabilityMode.available && oldAvailability != ApiAvailabilityMode.available)
+        updateStats(context);
     } catch(_) {
       apiModel.setAvailability(ApiAvailabilityMode.notAvailable);
     }
