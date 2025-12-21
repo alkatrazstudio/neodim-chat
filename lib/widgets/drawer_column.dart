@@ -24,6 +24,14 @@ class DrawerColumn extends StatefulWidget {
 
 class DrawerColumnState extends State<DrawerColumn> {
   var search = '';
+  static var _scrollPos = 0.0;
+  var scrollController = ScrollController(initialScrollOffset: _scrollPos);
+
+  @override
+  void initState() {
+    super.initState();
+    scrollController.addListener(() => _scrollPos = scrollController.offset);
+  }
 
   @override
   Widget build(context) {
@@ -86,6 +94,7 @@ class DrawerColumnState extends State<DrawerColumn> {
                 return bDate.compareTo(aDate);
               });
               return ListView.builder(
+                controller: scrollController,
                 itemCount: convList.length,
                 itemBuilder: (context, index) {
                   var c = convList[index];

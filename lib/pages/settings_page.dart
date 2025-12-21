@@ -31,10 +31,18 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   var formKey = GlobalKey<FormBuilderState>();
+  static var _scrollPos = 0.0;
+  var scrollController = ScrollController(initialScrollOffset: _scrollPos);
 
   ConversationType? convType;
   TemperatureMode? temperatureMode;
   MirostatVersion? mirostat;
+
+  @override
+  void initState() {
+    super.initState();
+    scrollController.addListener(() => _scrollPos = scrollController.offset);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -68,6 +76,7 @@ class _SettingsPageState extends State<SettingsPage> {
         }
       ),
       body: SingleChildScrollView(
+        controller: scrollController,
         child: FormBuilder(
           key: formKey,
           autovalidateMode: AutovalidateMode.always,
