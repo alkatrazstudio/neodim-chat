@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'package:expandable_page_view/expandable_page_view.dart';
 import 'package:json_view/json_view.dart';
 import 'package:provider/provider.dart';
 
@@ -23,12 +24,27 @@ class DebugPage extends StatelessWidget {
     var request = apiModel.rawRequest;
     var response = apiModel.rawResponse;
 
-    var responseAdditionalInfoParts = [
-      if(apiModel.requestSecs > 0)
-        '${apiModel.requestSecs.toStringAsFixed(1)}s',
-      if(apiModel.tokensPerSecond > 0)
-        '${apiModel.tokensPerSecond.toStringAsFixed(1)} tokens/s'
-    ];
+    var statLines = <String>[];
+    for(var stats in apiModel.processingStatsArray) {
+      var parts = <String>[];
+      var promptSpeed = stats.promptProcessingSecs > 0 && stats.processedPromptTokensCount > 1
+        ? '${(stats.processedPromptTokensCount / stats.promptProcessingSecs).toStringAsFixed(1)}t/s'
+        : 'N/A';
+      var tokensSpeed = stats.tokenGenerationSecs > 0 && stats.generatedTokensCount > 1
+        ? '${(stats.generatedTokensCount / stats.tokenGenerationSecs).toStringAsFixed(1)}t/s'
+        : 'N/A';
+      if(apiModel.processingStatsArray.length > 1)
+        parts.add('Index: ${stats.index}');
+      parts.add('Total prompt tokens: ${stats.totalPromptTokensCount}');
+      parts.add('Processed prompt tokens: ${stats.processedPromptTokensCount}');
+      parts.add('Prompt processing time: ${stats.promptProcessingSecs.toStringAsFixed(1)}s');
+      parts.add('Prompt processing speed: $promptSpeed');
+      parts.add('Tokens generated: ${stats.generatedTokensCount}');
+      parts.add('Token generation time: ${stats.tokenGenerationSecs.toStringAsFixed(1)}s');
+      parts.add('Token generation speed: $tokensSpeed');
+      var statLine = parts.join('\n');
+      statLines.add(statLine);
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -70,8 +86,6 @@ class DebugPage extends StatelessWidget {
                     'Response',
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)
                   ),
-                  if(responseAdditionalInfoParts.isNotEmpty)
-                    Text(' (${responseAdditionalInfoParts.join('; ')})'),
                   if(response != null)
                     IconButton(
                       onPressed: () async {
@@ -82,6 +96,18 @@ class DebugPage extends StatelessWidget {
                     )
                 ],
               ),
+              if(statLines.isNotEmpty)
+                ExpandablePageView.builder(
+                  itemCount: statLines.length,
+                  itemBuilder: (context, index) {
+                    var statLine = statLines[index];
+                    return Card(
+                      child: ListTile(
+                        title: Text(statLine)
+                      )
+                    );
+                  },
+                ),
               if(response != null)
                 JsonView(
                   json: response,

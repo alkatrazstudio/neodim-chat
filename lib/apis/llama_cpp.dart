@@ -143,9 +143,11 @@ class LlamaCppRequest {
 
 class LlamaCppResponse {
   const LlamaCppResponse({
+    required this.index,
     required this.content,
     required this.stoppingWord,
     required this.tokensEvaluated,
+    required this.promptTokensProcessed,
     required this.tokensPredicted,
     required this.slotId,
     required this.promptProcessingMilliSecs,
@@ -154,9 +156,11 @@ class LlamaCppResponse {
     required this.promptProgressProcessed
   });
 
+  final int index;
   final String content;
   final String stoppingWord;
   final int tokensEvaluated;
+  final int promptTokensProcessed;
   final int tokensPredicted;
   final int slotId;
   final num promptProcessingMilliSecs;
@@ -168,9 +172,11 @@ class LlamaCppResponse {
     var timings = data['timings'] as Map<String, dynamic>?;
     var promptProgress = data['prompt_progress'] as Map<String, dynamic>?;
     return LlamaCppResponse(
+      index: data['index'] as int,
       content: data['content'] as String,
       stoppingWord: (data['stopping_word'] as String?) ?? '',
       tokensEvaluated: data['tokens_evaluated'] as int,
+      promptTokensProcessed: timings?['prompt_n'] as int? ?? 0,
       tokensPredicted: data['tokens_predicted'] as int,
       slotId: data['id_slot'] as int,
       promptProcessingMilliSecs: timings?['prompt_ms'] as num? ?? 0,
@@ -306,19 +312,18 @@ class ApiRequestLlamaCpp {
         var lastMsgJson = msg.substring(usedPrefix.length);
         var lastMsgObj = jsonDecode(lastMsgJson) as Map<String, dynamic>;
         raiseErrorIfNeeded(lastMsgObj);
-        var index = lastMsgObj['index'] as int? ?? 0;
-        lastMsgObjs[index] = lastMsgObj;
         try {
           var response = LlamaCppResponse.fromApiResponseMap(lastMsgObj);
-          if(response.promptProgressTotal > 0 && index == 0)
+          lastMsgObjs[response.index] = lastMsgObj;
+          if(response.promptProgressTotal > 0 && response.index == 0)
             apiModel.setPromptProgress(response.promptProgressTotal, response.promptProgressProcessed);
           var content = response.content;
           if(content.isEmpty)
             continue;
-          var contentBuf = contentBufs[index] ??= '';
+          var contentBuf = contentBufs[response.index] ??= '';
           contentBuf += content;
-          contentBufs[index] = contentBuf;
-          if(onNewStreamText != null && index == 0)
+          contentBufs[response.index] = contentBuf;
+          if(onNewStreamText != null && response.index == 0)
             onNewStreamText(content);
           apiModel.setContextStats(maxContextLength, response.usedContextLength);
         } catch(_) {
@@ -643,7 +648,16 @@ class ApiRequestLlamaCpp {
     );
     var responses = responseMaps.map((resp) => LlamaCppResponse.fromApiResponseMap(resp)).toList();
     var firstResponse = responses.first;
-    params.apiModel.endRawRequest(singleCompletion ? responseMaps.first : responseMaps, firstResponse.tokensPredicted);
+    var processingStatsArray = responses.map((r) => ApiResponseProcessingStats(
+      index: r.index,
+      totalPromptTokensCount: r.tokensEvaluated,
+      processedPromptTokensCount: r.promptTokensProcessed,
+      promptProcessingSecs: r.promptProcessingMilliSecs / 1000,
+      generatedTokensCount: r.tokensPredicted,
+      tokenGenerationSecs: r.predictionMilliSecs / 1000
+    )).toList();
+
+    params.apiModel.endRawRequest(singleCompletion ? responseMaps.first : responseMaps, processingStatsArray);
     params.apiModel.setContextStats(contextLength, firstResponse.usedContextLength);
 
     var saveCacheFuture = saveCacheIfNeeded(endpoint, params, firstResponse, params.onlySaveCache);

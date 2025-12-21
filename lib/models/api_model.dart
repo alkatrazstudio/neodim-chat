@@ -11,6 +11,24 @@ enum ApiAvailabilityMode {
   available
 }
 
+class ApiResponseProcessingStats {
+  const ApiResponseProcessingStats({
+    required this.index,
+    required this.totalPromptTokensCount,
+    required this.processedPromptTokensCount,
+    required this.promptProcessingSecs,
+    required this.generatedTokensCount,
+    required this.tokenGenerationSecs,
+  });
+
+  final int index;
+  final int totalPromptTokensCount;
+  final int processedPromptTokensCount;
+  final double promptProcessingSecs;
+  final int generatedTokensCount;
+  final double tokenGenerationSecs;
+}
+
 class ApiModel extends ChangeNotifier {
   ApiResponse? lastResponse;
   var isApiRunning = false;
@@ -22,9 +40,10 @@ class ApiModel extends ChangeNotifier {
 
   Map<String, dynamic>? rawRequest;
   dynamic rawResponse;
-  int requestStartMsecs = 0;
-  double requestSecs = 0;
-  double tokensPerSecond = 0;
+
+  DateTime? requestStart;
+  DateTime? requestEnd;
+  var processingStatsArray = <ApiResponseProcessingStats>[];
 
   void setResponse(ApiResponse response) {
     lastResponse = response;
@@ -39,17 +58,16 @@ class ApiModel extends ChangeNotifier {
   void startRawRequest(Map<String, dynamic>? req) {
     rawRequest = req;
     rawResponse = null;
-    requestStartMsecs = DateTime.now().millisecondsSinceEpoch;
-    requestSecs = 0;
-    tokensPerSecond = 0;
+    requestStart = DateTime.now();
+    requestEnd = null;
+    processingStatsArray = [];
     notifyListeners();
   }
 
-  void endRawRequest(dynamic resp, int generatedTokensCount) {
+  void endRawRequest(dynamic resp, List<ApiResponseProcessingStats> stats) {
     rawResponse = resp;
-    requestSecs = (DateTime.now().millisecondsSinceEpoch - requestStartMsecs) / 1000;
-    if(requestSecs > 0 && generatedTokensCount > 0)
-      tokensPerSecond = generatedTokensCount / requestSecs;
+    requestEnd = DateTime.now();
+    processingStatsArray = stats;
     notifyListeners();
   }
 
