@@ -92,7 +92,7 @@ class ApiRequest {
     }
   }
 
-  static Future<void> ping(BuildContext context) async {
+  static Future<void> ping(BuildContext context, {bool alwaysUpdateStatsIfAvailable = false}) async {
     var cfgModel = Provider.of<ConfigModel>(context, listen: false);
     var apiModel = Provider.of<ApiModel>(context, listen: false);
     try {
@@ -100,7 +100,7 @@ class ApiRequest {
       var oldAvailability = apiModel.availability;
       var newAvailability = isAvailable ? ApiAvailabilityMode.available : ApiAvailabilityMode.loading;
       apiModel.setAvailability(newAvailability);
-      if(newAvailability == ApiAvailabilityMode.available && oldAvailability != ApiAvailabilityMode.available)
+      if(newAvailability == ApiAvailabilityMode.available && (alwaysUpdateStatsIfAvailable || oldAvailability != ApiAvailabilityMode.available))
         updateStats(context);
     } catch(_) {
       apiModel.setAvailability(ApiAvailabilityMode.notAvailable);

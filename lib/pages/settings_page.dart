@@ -72,6 +72,7 @@ class _SettingsPageState extends State<SettingsPage> {
         onPressed: () async {
           if(!await save(curConv, convModel, cfgModel, msgModel))
             return;
+          ApiRequest.ping(context, alwaysUpdateStatsIfAvailable: true);
           Navigator.of(context).pop();
         }
       ),
@@ -132,8 +133,6 @@ class _SettingsPageState extends State<SettingsPage> {
       msgModel: curData.msgModel,
       config: config
     ));
-
-    ApiRequest.ping(context);
     return true;
   }
 

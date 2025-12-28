@@ -69,9 +69,10 @@ class MainMenu extends StatelessWidget {
       await c.saveData(data);
       convModel.add(c);
       await ConversationsModel.saveList(context);
-      await c.loadAsCurrent(context);
+      await c.loadAsCurrent(context, updateStats: false);
       if(result == CheckboxDialogResult.yesWithoutCheckbox)
         Provider.of<MessagesModel>(context, listen: false).clear();
+      ConversationsModel.updateStatsForCurrent(context);
 
       Navigator.push<void>(
         context,

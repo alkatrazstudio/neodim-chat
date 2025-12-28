@@ -85,7 +85,7 @@ class Conversation {
     await f.writeAsString(json);
   }
 
-  Future<ConversationData> loadAsCurrent(BuildContext ctx) async {
+  Future<ConversationData> loadAsCurrent(BuildContext ctx, {bool updateStats = true}) async {
     ConversationData data;
 
     try {
@@ -94,14 +94,14 @@ class Conversation {
       data = ConversationData.empty();
     }
 
-    await setAsCurrent(ctx, data);
+    await setAsCurrent(ctx, data, updateStats: updateStats);
     return data;
   }
 
-  Future<void> setAsCurrent(BuildContext ctx, ConversationData data) async {
+  Future<void> setAsCurrent(BuildContext ctx, ConversationData data, {bool updateStats = true}) async {
     Provider.of<MessagesModel>(ctx, listen: false).load(data.msgModel);
     Provider.of<ConfigModel>(ctx, listen: false).load(data.config);
-    await Provider.of<ConversationsModel>(ctx, listen: false).setCurrent(ctx, this);
+    await Provider.of<ConversationsModel>(ctx, listen: false).setCurrent(ctx, this, updateStats: updateStats);
   }
 
   ConversationData getCurrentData(BuildContext ctx) {
@@ -376,15 +376,20 @@ class ConversationsModel extends ChangeNotifier {
     msgModel.load(MessagesModel());
   }
 
-  Future<void> setCurrent(BuildContext ctx, Conversation? conversation) async {
+  Future<void> setCurrent(BuildContext ctx, Conversation? conversation, {bool updateStats = true}) async {
     current = conversation;
     if(conversation != null)
       conversation.lastSetAsCurrentAt = DateTime.now();
     notifyListeners();
+    if(updateStats)
+      updateStatsForCurrent(ctx);
+    await saveList(ctx);
+  }
+
+  static Future<void> updateStatsForCurrent(BuildContext ctx) async {
     var apiModel = Provider.of<ApiModel>(ctx, listen: false);
     apiModel.resetStats();
-    ApiRequest.updateStats(ctx);
-    await saveList(ctx);
+    await ApiRequest.updateStats(ctx);
   }
 
   static Future<void> saveCurrentData(BuildContext ctx) async {
