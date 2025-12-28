@@ -39,7 +39,7 @@ class Message {
   @JsonKey(defaultValue: false)
   final bool isGenerated;
 
-  static String format(String text, bool forChat, bool continueLastMsg) {
+  static String format(String text, {bool forChat = true, bool continueLastMsg = false, bool addPeriodAtEnd = true}) {
     text = text.replaceAll('<s>', '');
     text = text.replaceAll('</s>', '');
     text = text.replaceAll('<pad>', '');
@@ -54,7 +54,7 @@ class Message {
       text = text.replaceAll(RegExp(r'''^([^\p{Letter}\p{Number}\("\*])+''', unicode: true), '');
     else
       forChat = false;
-    if(forChat)
+    if(forChat && addPeriodAtEnd)
       text = text.replaceAll(RegExp(r'''([^\p{Letter}\p{Number}\.!\?\)"\*]|[\s|_])+$''', unicode: true), '');
     text = text.replaceAllMapped(RegExp(r'\b(dr|gen|hon|mr|mrs|ms|messrs|mmes|msgr|prof|rev|rt|sr|st|v)\b(\.)?', caseSensitive: false), (m) => '${m[1]?.substring(0, 1).toUpperCase()}${m[1]?.substring(1)}${m[2] ?? '.'}');
     text = text.replaceAllMapped(RegExp(r'([!?])\s*(\p{Letter})', unicode: true), (m) => '${m[1]} ${m[2]?.toUpperCase()}');
@@ -70,6 +70,7 @@ class Message {
       text = text[0].toUpperCase() + text.substring(1);
     if(
       forChat
+      && addPeriodAtEnd
       && !text.endsWith('.')
       && !text.endsWith('!')
       && !text.endsWith('?')

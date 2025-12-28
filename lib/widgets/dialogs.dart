@@ -40,18 +40,19 @@ Future<MessageDialogResult?> showMessageDialog(
   var newParticipantIndex = msg.authorIndex;
   var isContextStart = Provider.of<MessagesModel>(context, listen: false).isContextStart(msg);
 
-  void submitMsg(BuildContext ctx, String text, bool forceNoFormat) {
+  void submitMsg(BuildContext ctx, String text, bool addPeriodAtEnd) {
     text = text.trim();
-    if(doFormat && !forceNoFormat)
-      text = Message.format(text, chatFormat, false);
-    if(text.isEmpty || (text == msg.text && newParticipantIndex == msg.authorIndex))
+    if(doFormat)
+      text = Message.format(text, forChat: chatFormat, addPeriodAtEnd: addPeriodAtEnd);
+    if(text.isEmpty || (text == msg.text && newParticipantIndex == msg.authorIndex)) {
       Navigator.of(context).pop();
-    else
+    } else {
       Navigator.of(context).pop(MessageDialogResult(
         text: text,
         participantIndex: newParticipantIndex,
         action: MessageDialogAction.edit
       ));
+    }
   }
 
   void nonEditAction(BuildContext ctx, MessageDialogAction action) {
@@ -119,7 +120,7 @@ Future<MessageDialogResult?> showMessageDialog(
                 controller: inputController,
                 textInputAction: TextInputAction.go,
                 onSubmitted: (text) {
-                  submitMsg(context, text, false);
+                  submitMsg(context, text, true);
                 }
               ),
               CheckboxListTile(
@@ -173,10 +174,10 @@ Future<MessageDialogResult?> showMessageDialog(
                     TextButton(
                       child: const Text('OK'),
                       onPressed: () {
-                        submitMsg(context, inputController.text, false);
+                        submitMsg(context, inputController.text, true);
                       },
                       onLongPress: () {
-                        submitMsg(context, inputController.text, true);
+                        submitMsg(context, inputController.text, false);
                       }
                     )
                   ]

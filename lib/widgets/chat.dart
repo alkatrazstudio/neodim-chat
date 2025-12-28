@@ -59,7 +59,7 @@ class GeneratedResult {
 
   static GeneratedResult fromRawOutput(String output, bool chatFormat, bool extractPreText, bool continueLastMsg) {
     if(!extractPreText)
-      return GeneratedResult(text: Message.format(output, chatFormat, continueLastMsg));
+      return GeneratedResult(text: Message.format(output, forChat: chatFormat, continueLastMsg: continueLastMsg));
 
     // If the output does not start with a space,
     // then it's probably the continuation of the last word from the prompt.
@@ -69,7 +69,7 @@ class GeneratedResult {
     var preText = match?.group(0) ?? ''; // the possible last part of the last word from the prompt
     var text = output.substring(preText.length);
     return GeneratedResult(
-      text: Message.format(text, chatFormat, continueLastMsg),
+      text: Message.format(text, forChat: chatFormat, continueLastMsg: continueLastMsg),
       preText: preText.trimRight()
     );
   }
@@ -137,13 +137,13 @@ class ChatState extends State<Chat> {
           if(participantName.isNotEmpty)
             participantName = participantName.substring(0, 1).toUpperCase() +  participantName.substring(1);
           var textPart = match.group(2) ?? '';
-          textPart = Message.format(textPart, chatFormat, false);
+          textPart = Message.format(textPart, forChat: chatFormat);
           text = '$participantName${MessagesModel.chatPromptSeparator} $textPart';
         } else {
-          text = Message.format(text, chatFormat, false);
+          text = Message.format(text, forChat: chatFormat);
         }
       } else {
-        text = Message.format(text, chatFormat, false);
+        text = Message.format(text, forChat: chatFormat);
       }
     }
     text = text.trim();
@@ -198,7 +198,7 @@ class ChatState extends State<Chat> {
         results = texts
           .map((text) => isSingle
             ? GeneratedResult.fromRawOutput(text, chatFormat, extractPreText, continueLastMsg)
-            : GeneratedResult(text: Message.format(text, chatFormat, continueLastMsg))
+            : GeneratedResult(text: Message.format(text, forChat: chatFormat, continueLastMsg: continueLastMsg))
           )
           .where((result) => !result.isEmpty)
           .toSet().toList();
@@ -294,7 +294,7 @@ class ChatState extends State<Chat> {
     var streamMsgModel = Provider.of<StreamMessageModel>(context, listen: false);
     if(result.type != GeneratedResultType.response) {
       var chatFormat = (widget.curConv.isChat || authorIndex == Message.youIndex) && result.type != GeneratedResultType.cancel;
-      var text = Message.format(streamMsgModel.text, chatFormat, continueLastMsg);
+      var text = Message.format(streamMsgModel.text, forChat: chatFormat, continueLastMsg: continueLastMsg);
       if(text.isNotEmpty) {
         streamMsgModel.hide(); // first hide the streaming message to avoid showing it as a duplicate
         await addGenerated(
