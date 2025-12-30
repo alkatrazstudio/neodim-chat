@@ -16,6 +16,7 @@ import '../pages/help_page.dart';
 import '../pages/import_page.dart';
 import '../pages/settings_page.dart';
 import '../util/popups.dart';
+import '../widgets/pad.dart';
 
 class DrawerColumn extends StatefulWidget {
   @override
@@ -39,37 +40,47 @@ class DrawerColumnState extends State<DrawerColumn> {
     return Column(
       mainAxisSize: MainAxisSize.max,
       children: [
-        DrawerHeader(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Text(
-                'Neodim Chat',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 21),
-                textAlign: TextAlign.center
-              ),
-              ElevatedButton(
-                onPressed: () async {
-                  var c = Conversation.create('Conversation');
-                  var data = ConversationData.empty();
-                  await c.saveData(data);
-                  Provider.of<ConversationsModel>(context, listen: false).add(c);
-                  ConversationsModel.saveList(context);
-                  await c.setAsCurrent(context, data);
-                  Navigator.pop(context);
-                  Navigator.push<void>(
-                    context,
-                    MaterialPageRoute(builder: (context) => const SettingsPage())
-                  );
-                },
-                child: const Text('New conversation')
-              ),
-              ElevatedButton(
-                child: const Text('Help'),
-                onPressed: () => showHelpPage(context)
-              )
-            ]
-          )
+        SizedBox(
+          height: 150,
+          child: DrawerHeader(
+            padding: Pad.horizontal,
+            margin: EdgeInsets.zero,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Text(
+                  'Neodim Chat',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 21),
+                  textAlign: TextAlign.center
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    ElevatedButton(
+                      onPressed: () async {
+                        var c = Conversation.create('Conversation');
+                        var data = ConversationData.empty();
+                        await c.saveData(data);
+                        Provider.of<ConversationsModel>(context, listen: false).add(c);
+                        ConversationsModel.saveList(context);
+                        await c.setAsCurrent(context, data);
+                        Navigator.pop(context);
+                        Navigator.push<void>(
+                          context,
+                          MaterialPageRoute(builder: (context) => const SettingsPage())
+                        );
+                      },
+                      child: const Text('New conversation')
+                    ),
+                    ElevatedButton(
+                      child: const Text('Help'),
+                      onPressed: () => showHelpPage(context)
+                    )
+                  ],
+                )
+              ]
+            )
+          ),
         ),
         TextField(
           controller: textController,
