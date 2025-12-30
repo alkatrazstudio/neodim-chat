@@ -23,9 +23,10 @@ class DrawerColumn extends StatefulWidget {
 }
 
 class DrawerColumnState extends State<DrawerColumn> {
-  var search = '';
   static var _scrollPos = 0.0;
   var scrollController = ScrollController(initialScrollOffset: _scrollPos);
+  static var textController = TextEditingController();
+  var search = textController.text;
 
   @override
   void initState() {
@@ -71,6 +72,7 @@ class DrawerColumnState extends State<DrawerColumn> {
           )
         ),
         TextField(
+          controller: textController,
           decoration: const InputDecoration(
             hintText: 'Search...',
             contentPadding: EdgeInsets.only(left: 5, top: 15)
