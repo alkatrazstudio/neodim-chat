@@ -408,7 +408,7 @@ Here's the list of secondary actions for each button:</p>
 <div><widget name="undo"></widget> Undo - undo the entire speech bubble, ignoring the "Undo the text up to these symbols" setting.</div>
 <div><widget name="retry"></widget> Retry - reset the blacklist before retrying</div>
 <div><widget name="genLeft"></widget><widget name="genRight"></widget> Generate - continue the last speech bubble instead of generating a new one</div>
-<div><widget name="addLeft"></widget><widget name="addRight"></widget> Add - add a message without any formatting</div>
+<div><widget name="addLeft"></widget><widget name="addRight"></widget> Add - add a message without adding a trailing period.</div>
 
 <h2>Miscellaneous</h2>
 <ul>

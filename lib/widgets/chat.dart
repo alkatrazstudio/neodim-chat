@@ -92,7 +92,7 @@ class ChatState extends State<Chat> {
   String continueText = '';
   Timer? timer;
 
-  Future<void> submit(BuildContext context, int authorIndex, bool format) async {
+  Future<void> submit(BuildContext context, int authorIndex, bool addPeriodAtEnd) async {
     var msgModel = Provider.of<MessagesModel>(context, listen: false);
     if(inputController.text.isEmpty)
       return;
@@ -128,23 +128,21 @@ class ChatState extends State<Chat> {
         text = text.substring(1);
       }
     }
-    if(format) {
-      var chatFormat = widget.curConv.isChat || authorIndex == Message.youIndex;
-      if(!isYou && widget.curConv.type == ConversationType.groupChat) {
-        var match = RegExp(r'^\s*([^:]+):\s*(.*)$').firstMatch(text);
-        if(match != null) {
-          var participantName = (match.group(1) ?? '').trim();
-          if(participantName.isNotEmpty)
-            participantName = participantName.substring(0, 1).toUpperCase() +  participantName.substring(1);
-          var textPart = match.group(2) ?? '';
-          textPart = Message.format(textPart, forChat: chatFormat);
-          text = '$participantName${MessagesModel.chatPromptSeparator} $textPart';
-        } else {
-          text = Message.format(text, forChat: chatFormat);
-        }
+    var chatFormat = widget.curConv.isChat || authorIndex == Message.youIndex;
+    if(!isYou && widget.curConv.type == ConversationType.groupChat) {
+      var match = RegExp(r'^\s*([^:]+):\s*(.*)$').firstMatch(text);
+      if(match != null) {
+        var participantName = (match.group(1) ?? '').trim();
+        if(participantName.isNotEmpty)
+          participantName = participantName.substring(0, 1).toUpperCase() +  participantName.substring(1);
+        var textPart = match.group(2) ?? '';
+        textPart = Message.format(textPart, forChat: chatFormat, addPeriodAtEnd: addPeriodAtEnd);
+        text = '$participantName${MessagesModel.chatPromptSeparator} $textPart';
       } else {
-        text = Message.format(text, forChat: chatFormat);
+        text = Message.format(text, forChat: chatFormat, addPeriodAtEnd: addPeriodAtEnd);
       }
+    } else {
+      text = Message.format(text, forChat: chatFormat, addPeriodAtEnd: addPeriodAtEnd);
     }
     text = text.trim();
     msgModel.addText(text, false, authorIndex);
@@ -570,7 +568,7 @@ class ChatState extends State<Chat> {
             useBlacklist: useBlacklist,
             continueLastMsg: continueLastMsg
           ),
-          submit: (authorIndex, format) => submit(context, authorIndex, format),
+          submit: (authorIndex, addPeriodAtEnd) => submit(context, authorIndex, addPeriodAtEnd),
           changeGroupParticipantName: (name) {
             var text = inputController.text;
             var sepPos = text.indexOf(MessagesModel.chatPromptSeparator);
@@ -613,7 +611,7 @@ class ChatButtons extends StatefulWidget {
   });
 
   final Function(int authorIndex, {Message? undoMessage, bool useBlacklist, bool continueLastMsg}) addGenerated;
-  final Function(int authorIndex, bool format) submit;
+  final Function(int authorIndex, bool addPeriodAtEnd) submit;
   final Function(String newName) changeGroupParticipantName;
   final Message? continueMsg;
   final String continueText;
