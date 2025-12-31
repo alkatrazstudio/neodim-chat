@@ -371,7 +371,14 @@ class ApiRequestLlamaCpp {
   }
 
   static String getCacheFilename(Conversation conv) {
-    var filename = '${conv.id}.neodim.cache';
+    var convName = conv.name;
+    convName = convName.replaceAll(RegExp(r'''^([^\p{Letter}\p{Number}\(\)_\- ])+''', unicode: true), '');
+    if(convName.length > 64)
+      convName = convName.substring(0, 64);
+    convName = convName.trim();
+    var filename = '${conv.id}-llamacpp.neodim.cache';
+    if(convName.isNotEmpty)
+      filename = '$convName-$filename';
     return filename;
   }
 

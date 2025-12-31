@@ -90,11 +90,13 @@ const _manualHtml = '''
     And you must not pass --no-slots.
     The value of 0 will disable the saving.
     However, if the cache is found, it will still be loaded, even if this parameter is zero.
-    The unquantized cache will be approximately 1-1.5 GB per 10K tokens.
+    The cache size depends on the model, but it may be very big.
+    For example, it can be around 2 GB per 10K tokens.
     You can quantize the cache by passing --cache-type-k and/or --cache-type-v to the server,
     but it may lower the quality of the generated text.
     The cache files are stored in the folder specified in --slot-save-path,
-    and they will have filenames like "&lt;uuid&gt;.neodim.cache", e.g. "20fda557-91bb-40d4-9a11-7d795cc78b58.neodim.cache".
+    and they will have filenames like "&lt;conversation name&gt;-&lt;uuid&gt;-&lt;server&gt;.neodim.cache",
+    e.g. "Some Story-8d83f7ab-1918-4ca3-80d5-9824cc7ddad1-llamacpp.neodim.cache".
     A cache can only be loaded if it was created with the same combination of
     --model, --cache-type-k and --cache-type-v server parameters.
     You can also manually save the cache from the main menu.
