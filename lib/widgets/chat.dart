@@ -525,12 +525,16 @@ class ChatState extends State<Chat> {
             return Stack(
               children: [
                 LinearProgressIndicator(
-                  color: Theme.of(context).colorScheme.inversePrimary,
-                ),
-                LinearProgressIndicator(
                   value: progress,
                   backgroundColor: Colors.transparent,
                 ),
+                Opacity(
+                  opacity: 0.5,
+                  child: LinearProgressIndicator(
+                    color: Theme.of(context).colorScheme.inversePrimary,
+                    backgroundColor: Colors.transparent
+                  )
+                )
               ],
             );
           }
