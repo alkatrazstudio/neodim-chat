@@ -1,6 +1,28 @@
 # Neodim Chat - CHANGELOG
 
 
+## v1.0.0 (Jan 1, 2026)
+
+- Removed: Neodim Server support
+- Changed: the start of context is now must be set manually
+- Changed: long pressing the OK button in the edit window or the add button in the chat will now apply most of the formatting
+- Changed: streaming is enabled by default
+- Added: ability to save and load the prompt cache
+- Added: show used context ratio
+- Added: show prompt processing progress
+- Added: show server availability
+- Added: ability to generate several messages upfront for quick retry via llama.cpp
+- Added: more stats on the debug page
+- Added: a button on start screen to quickly open the conversations list
+- Added: a button to clear the search field in the conversations list
+- Improved: show more meaningful error descriptions
+- Improved: more lenient endpoint parsing
+- Improved: preserve the scrolling positions in the conversations list and in the settings
+- Improved: preserve the search text in the conversations list on close
+- Improved: more room for the conversations list
+- Fixed: currently built message is removed on error
+
+
 # v0.14.0 (May 9, 2025)
 
 - Added: Top N Sigma sampler for llama.cpp
