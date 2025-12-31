@@ -84,9 +84,19 @@ class DrawerColumnState extends State<DrawerColumn> {
         ),
         TextField(
           controller: textController,
-          decoration: const InputDecoration(
+          textAlignVertical: TextAlignVertical.center,
+          decoration: InputDecoration(
             hintText: 'Search...',
-            contentPadding: EdgeInsets.only(left: 5, top: 15)
+            contentPadding: Pad.left,
+            suffixIcon: search.isEmpty ? null : IconButton(
+              onPressed: () {
+                textController.clear();
+                setState(() {
+                  search = '';
+                });
+              },
+              icon: const Icon(Icons.clear)
+            )
           ),
           onChanged: (s) {
             setState(() {
