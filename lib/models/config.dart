@@ -36,13 +36,13 @@ enum TemperatureMode {
 enum Warper {
   repetitionPenalty,
   dry,
+  topNSigma,
   topK,
   typical,
   topP,
   minP,
   xtc,
   temperature,
-  topNSigma,
   adaptiveP
 }
 
