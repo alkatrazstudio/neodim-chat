@@ -9,6 +9,7 @@ import '../apis/request.dart';
 import '../models/api_model.dart';
 import '../models/conversations.dart';
 import '../models/messages.dart';
+import '../util/persistence.dart';
 import '../util/popups.dart';
 import '../widgets/chat.dart';
 import '../widgets/drawer_column.dart';
@@ -39,6 +40,7 @@ class HomePage extends StatelessWidget {
     var promptedParticipantIndex = msgModel.participants.indexOf(promptedParticipant);
     streamMsgModel.reset(promptedParticipantIndex);
     try {
+      startPersistence();
       var addedPromptSuffix = '';
       if(!onlySaveCache && conv.type == ConversationType.groupChat && promptedParticipantIndex != Message.youIndex && !continueLastMsg) {
         if(promptedParticipantName == null)
@@ -73,6 +75,7 @@ class HomePage extends StatelessWidget {
       return uniqLines;
     } finally {
       apiModel.setApiRunning(false);
+      stopPersistence();
     }
   }
 

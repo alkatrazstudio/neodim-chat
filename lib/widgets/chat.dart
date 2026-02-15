@@ -9,7 +9,6 @@ import 'package:flutter/services.dart';
 
 import 'package:collection/collection.dart';
 import 'package:provider/provider.dart';
-import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../apis/request.dart';
 import '../models/api_model.dart';
@@ -370,12 +369,10 @@ class ChatState extends State<Chat> {
 
   void enableAutoGen(Conversation conv) {
     generatingForConv = conv;
-    WakelockPlus.enable();
   }
 
   void disableAutoGen() {
     generatingForConv = null;
-    WakelockPlus.disable();
   }
 
   void nextAutoGenWithErrorHandling() {

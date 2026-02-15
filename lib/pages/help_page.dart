@@ -512,6 +512,7 @@ void showHelpPage(BuildContext context) {
         HelpPagePackage.flutter('change_case', HelpPageLicense.mit),
         HelpPagePackage.flutter('file_picker', HelpPageLicense.mit),
         HelpPagePackage.flutter('expandable_page_view', HelpPageLicense.mit),
+        HelpPagePackage.flutter('flutter_background', HelpPageLicense.mit),
       ],
       assets: const []
     ))
