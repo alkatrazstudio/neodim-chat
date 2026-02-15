@@ -73,23 +73,23 @@ class ConfigModel extends ChangeNotifier {
   @JsonKey(defaultValue: TemperatureMode.static, unknownEnumValue: TemperatureMode.static)
   TemperatureMode temperatureMode = TemperatureMode.static;
 
-  @JsonKey(defaultValue: 0.7)
-  double temperature = 0.7; // also acts as dynaTempLow
+  @JsonKey(defaultValue: 0.6)
+  double temperature = 0.6; // also acts as dynaTempLow
 
-  @JsonKey(defaultValue: 0.7)
-  double dynaTempHigh = 0.7;
+  @JsonKey(defaultValue: 0.6)
+  double dynaTempHigh = 0.6;
 
   @JsonKey(defaultValue: 1.0)
   double dynaTempExponent = 1.0;
 
   @JsonKey(defaultValue: 0)
-  double topP = 0;
+  double topP = 0.9;
 
-  @JsonKey(defaultValue: 0)
-  int topK = 0;
+  @JsonKey(defaultValue: 40)
+  int topK = 40;
 
-  @JsonKey(defaultValue: 0)
-  double minP = 0;
+  @JsonKey(defaultValue: 0.01)
+  double minP = 0.01;
 
   @JsonKey(defaultValue: 0)
   double typical = 0;
@@ -133,8 +133,8 @@ class ConfigModel extends ChangeNotifier {
   @JsonKey(fromJson: warpersListFromJson)
   List<Warper> warpersOrder = Warper.values;
 
-  @JsonKey(defaultValue: 1.15)
-  double repetitionPenalty = 1.15;
+  @JsonKey(defaultValue: 1)
+  double repetitionPenalty = 1;
 
   @JsonKey(defaultValue: 0)
   double frequencyPenalty = 0;
