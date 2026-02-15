@@ -406,6 +406,19 @@ class _SettingsPageState extends State<SettingsPage> {
         minValue: -1,
         minInclusive: true
       ),
+      FieldFloat(
+        label: 'Adaptive Target',
+        name: 'adaptiveTarget',
+        initialValue: cfgModel.adaptiveTarget,
+        minValue: -1,
+        minInclusive: true
+      ),
+      FieldFloat(
+        label: 'Adaptive Decay',
+        name: 'adaptiveDecay',
+        initialValue: cfgModel.adaptiveDecay,
+        maxValue: 0.99,
+      ),
       FieldWarpers(
         supportedWarpers: supportedWarpers,
         initialValue: cfgModel.warpersOrder,

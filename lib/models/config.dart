@@ -42,7 +42,8 @@ enum Warper {
   minP,
   xtc,
   temperature,
-  topNSigma
+  topNSigma,
+  adaptiveP
 }
 
 List<Warper> warpersListFromJson(dynamic json) {
@@ -122,6 +123,12 @@ class ConfigModel extends ChangeNotifier {
 
   @JsonKey(defaultValue: -1.0)
   double topNSigma = -1.0;
+
+  @JsonKey(defaultValue: -1.0)
+  double adaptiveTarget = -1.0;
+
+  @JsonKey(defaultValue: 0.9)
+  double adaptiveDecay = 0.9;
 
   @JsonKey(fromJson: warpersListFromJson)
   List<Warper> warpersOrder = Warper.values;
@@ -211,6 +218,8 @@ class ConfigModel extends ChangeNotifier {
     dryAllowedLength = other.dryAllowedLength;
     dryRange = other.dryRange;
     topNSigma = other.topNSigma;
+    adaptiveTarget = other.adaptiveTarget;
+    adaptiveDecay = other.adaptiveDecay;
     warpersOrder = other.warpersOrder.toList();
     repetitionPenalty = other.repetitionPenalty;
     frequencyPenalty = other.frequencyPenalty;
@@ -237,6 +246,8 @@ class ConfigModel extends ChangeNotifier {
   static void normalizeWarpers(List<Warper> warpers) {
     Warper? prevWarper;
     for(var warper in Warper.values) {
+      if(warper == Warper.adaptiveP)
+        continue; // must always be the last one
       if(!warpers.contains(warper)) {
         if(prevWarper == null) {
           warpers.insert(0, warper);
@@ -247,6 +258,8 @@ class ConfigModel extends ChangeNotifier {
       }
       prevWarper = warper;
     }
+    if(!warpers.contains(Warper.adaptiveP))
+      warpers.add(Warper.adaptiveP);
   }
 
   static ConfigModel fromJson(Map<String, dynamic> json) => _$ConfigModelFromJson(json);

@@ -236,6 +236,23 @@ const _manualHtml = '''
     Recommended value: 1.
   </li>
   <li>
+    <strong>Adaptive Target</strong> -
+    try to pick the tokens around this probability.
+    This can be used to ignore some of the top tokens
+    and thus improve the diversity and decrease the repetition of the generated text.
+    Negative values disable the sampler.
+    It's not recommended to use any other sampler if this one is enabled.
+    Recommended value: 0.55.
+  </li>
+  <li>
+    <strong>Adaptive Decay</strong> -
+    defines how stable Adaptive Target is applied.
+    Lower values allow greater variations of the target probability.
+    Higher values are more stable
+    Allowed values: 0 - 0.99.
+    Recommended value: 0.9.
+  </li>
+  <li>
     <strong>Warpers order</strong> - the order in which the filters/samplers/warpers are applied.
     The recommended order is the following:
     top k -> repetition penalty -> temperature -> top n sigma -> everything else
