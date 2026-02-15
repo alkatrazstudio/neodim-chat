@@ -1,5 +1,12 @@
 # Neodim Chat - CHANGELOG
 
+## v1.1.0 (Feb 15, 2026)
+
+- Added: adaptive-p sampler support
+- Changed: default samplers order is now the same as in llama.cpp
+- Changed: new default sampler values
+- Improved: try not to disconnect in the middle of the inference when the app is in the background
+
 
 ## v1.0.0 (Jan 1, 2026)
 
