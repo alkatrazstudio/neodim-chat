@@ -1,0 +1,3 @@
+- Fixed: inference stops on malformed llama.cpp response during streaming
+
+Full changelog: https://github.com/alkatrazstudio/neodim-chat/blob/master/CHANGELOG.md

@@ -1,5 +1,10 @@
 # Neodim Chat - CHANGELOG
 
+## v1.1.1 (Jun 7, 2026)
+
+- Fixed: inference stops on malformed llama.cpp response during streaming
+
+
 ## v1.1.0 (Feb 15, 2026)
 
 - Added: adaptive-p sampler support
