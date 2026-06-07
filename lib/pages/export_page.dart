@@ -37,7 +37,7 @@ class _ExportPageState extends State<ExportPage> {
       var importData = await ConversationsModel.export(context, convIds);
       var json = jsonEncode(importData);
       var bytes = utf8.encode(json);
-      var result = await FilePicker.platform.saveFile(
+      var result = await FilePicker.saveFile(
         fileName: 'neodim.json',
         type: FileType.any,
         allowedExtensions: ['json'],

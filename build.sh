@@ -4,7 +4,7 @@ cd "$(dirname -- "${BASH_SOURCE[0]}")"
 
 flutter clean
 flutter pub get
-dart run build_runner build --delete-conflicting-outputs
+dart run build_runner build
 
 BUILD_PARAMS=(
     --release \

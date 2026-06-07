@@ -156,7 +156,7 @@ class DrawerColumnState extends State<DrawerColumn> {
                 return ElevatedButton(
                   onPressed: apiModel.isApiRunning ? null : () async {
                     try {
-                      var result = await FilePicker.platform.pickFiles(
+                      var result = await FilePicker.pickFiles(
                         allowMultiple: true,
                         type: FileType.custom,
                         allowedExtensions: ['json'],
