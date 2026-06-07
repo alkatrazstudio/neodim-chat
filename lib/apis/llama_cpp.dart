@@ -4,6 +4,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
@@ -249,6 +250,58 @@ class ApiRequestLlamaCpp {
     return resp;
   }
 
+  static Stream<Map<String, dynamic>> parseEventSourceStream(Stream<Uint8List> src) async* {
+    var responseGenerated = false;
+    var msgBuf = <int>[];
+    var nl = '\n'.codeUnits.first;
+    var prefixes = ['data: ', 'error: '];
+    await for(var bytes in src) {
+      msgBuf.addAll(bytes);
+      while(true) {
+        var nlPos = msgBuf.indexOf(nl);
+        if(nlPos == -1) {
+          if(!responseGenerated) {
+            // sometimes the error breaks the streaming conventions
+            // and it will be output as just a regular JSON
+            Map<String, dynamic>? err;
+            try {
+              var errMsg = utf8.decode(msgBuf);
+              err = jsonDecode(errMsg) as Map<String, dynamic>;
+            } catch(_) {
+            }
+            if(err != null)
+              raiseErrorIfNeeded(err);
+          }
+          break;
+        }
+
+        responseGenerated = true;
+        var msgBytes = msgBuf.sublist(0, nlPos);
+        msgBuf = msgBuf.sublist(nlPos + 1);
+        var msg = utf8.decode(msgBytes);
+        if(msg.isEmpty)
+          continue;
+        String? usedPrefix;
+        for(var prefix in prefixes) {
+          if(msg.startsWith(prefix)) {
+            usedPrefix = prefix;
+            break;
+          }
+        }
+        if(usedPrefix == null) {
+          if(msg.startsWith('{'))
+            usedPrefix = '';
+          else
+            continue; // ignore unknown prefixes
+        }
+        var msgJson = msg.substring(usedPrefix.length);
+        var msgObj = jsonDecode(msgJson) as Map<String, dynamic>;
+        raiseErrorIfNeeded(msgObj);
+        yield msgObj;
+      }
+    }
+  }
+
   static Future<List<Map<String, dynamic>>> httpPostRawStream(
     String endpoint,
     Map<String, dynamic> data,
@@ -272,69 +325,24 @@ class ApiRequestLlamaCpp {
     var stream = response.data?.stream;
     if(stream == null)
       throw Exception('No response stream.');
-    var msgBuf = <int>[];
     var lastMsgObjs = <int, Map<String, dynamic>>{};
     var contentBufs = <int, String>{};
-    var nl = '\n'.codeUnits.first;
-    var prefixes = ['data: ', 'error: '];
-    var gotResponse = false;
-    await for (var bytes in stream) {
-      msgBuf.addAll(bytes);
-      while(true) {
-        var nlPos = msgBuf.indexOf(nl);
-        if(nlPos == -1) {
-          if(!gotResponse) {
-            // sometimes the error breaks the streaming conventions
-            // and it will be output as just a regular JSON
-            Map<String, dynamic>? err;
-            try {
-              var errMsg = utf8.decode(msgBuf);
-              err = jsonDecode(errMsg) as Map<String, dynamic>;
-            } catch(_) {
-            }
-            if(err != null)
-              raiseErrorIfNeeded(err);
-          }
-          break;
-        }
-        gotResponse = true;
-        var msgBytes = msgBuf.sublist(0, nlPos);
-        msgBuf = msgBuf.sublist(nlPos + 1);
-        var msg = utf8.decode(msgBytes);
-        if(msg.isEmpty)
+    await for (var msg in parseEventSourceStream(stream)) {
+      try {
+        var response = LlamaCppResponse.fromApiResponseMap(msg);
+        lastMsgObjs[response.index] = msg;
+        if(response.promptProgressTotal > 0 && response.index == 0)
+          apiModel.setPromptProgress(response.promptProgressTotal, response.promptProgressProcessed);
+        var content = response.content;
+        if(content.isEmpty)
           continue;
-        String? usedPrefix;
-        for(var prefix in prefixes) {
-          if(msg.startsWith(prefix)) {
-            usedPrefix = prefix;
-            break;
-          }
-        }
-        if(usedPrefix == null) {
-          if(msg.startsWith('{'))
-            usedPrefix = '';
-          else
-            throw Exception('Invalid stream part prefix.');
-        }
-        var lastMsgJson = msg.substring(usedPrefix.length);
-        var lastMsgObj = jsonDecode(lastMsgJson) as Map<String, dynamic>;
-        raiseErrorIfNeeded(lastMsgObj);
-        try {
-          var response = LlamaCppResponse.fromApiResponseMap(lastMsgObj);
-          lastMsgObjs[response.index] = lastMsgObj;
-          if(response.promptProgressTotal > 0 && response.index == 0)
-            apiModel.setPromptProgress(response.promptProgressTotal, response.promptProgressProcessed);
-          var content = response.content;
-          if(content.isEmpty)
-            continue;
-          var contentBuf = contentBufs[response.index] ??= '';
-          contentBuf += content;
-          contentBufs[response.index] = contentBuf;
-          if(onNewStreamText != null && response.index == 0)
-            onNewStreamText(content);
-          apiModel.setContextStats(maxContextLength, response.usedContextLength);
-        } catch(_) {
-        }
+        var contentBuf = contentBufs[response.index] ??= '';
+        contentBuf += content;
+        contentBufs[response.index] = contentBuf;
+        if(onNewStreamText != null && response.index == 0)
+          onNewStreamText(content);
+        apiModel.setContextStats(maxContextLength, response.usedContextLength);
+      } catch(_) {
       }
     }
     if(lastMsgObjs.isEmpty)
